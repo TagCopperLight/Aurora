@@ -1,2 +1,1 @@
-<h1 id="title" align="center">Aurora</h1>
-<p align="center"><img src="https://socialify.git.ci/TagCopperLight/Aurora/image?description=1&amp;font=Inter&amp;language=1&amp;name=1&amp;owner=1&amp;pattern=Solid&amp;theme=Dark" alt="project-image"></p>
+<p align="center"><img src="https://user-images.githubusercontent.com/59863662/209585518-044522d0-28e1-490d-9d28-05ad54c4768c.png" alt="project-image"></p>

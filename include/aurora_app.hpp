@@ -3,6 +3,10 @@
 #include "aurora_window.hpp"
 #include "aurora_pipeline.hpp"
 #include "aurora_device.hpp"
+#include "aurora_swap_chain.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace aurora {
     class AuroraApp {
@@ -10,11 +14,25 @@ namespace aurora {
             static constexpr int WIDTH = 800;
             static constexpr int HEIGHT = 600;
 
+            AuroraApp();
+            ~AuroraApp();
+
+            AuroraApp(const AuroraApp&) = delete;
+            AuroraApp &operator=(const AuroraApp&) = delete;
+
             void run();
 
         private:
+            void createPipelineLayout();
+            void createPipeline();
+            void createCommandBuffers();
+            void drawFrame();
+
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};
-            AuroraPipeline auroraPipeline{ auroraDevice, "../shaders/shader.vert.spv", "../shaders/shader.frag.spv", AuroraPipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT) }; 
+            AuroraSwapChain auroraSwapChain{auroraDevice, auroraWindow.getExtent()};
+            std::unique_ptr<AuroraPipeline> auroraPipeline;
+            VkPipelineLayout pipelineLayout;
+            std::vector<VkCommandBuffer> commandBuffers;
     };
 }

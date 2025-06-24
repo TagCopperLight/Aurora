@@ -4,8 +4,8 @@
 #include <fstream>
 
 namespace aurora {
-    AuroraPipeline::AuroraPipeline(const std::string& vertFilePath, const std::string& fragFilePath){
-        createGraphicsPipeline(vertFilePath, fragFilePath);
+    AuroraPipeline::AuroraPipeline(AuroraDevice& device, const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& configInfo) : auroraDevice{device} {
+        createGraphicsPipeline(vertFilePath, fragFilePath, configInfo);
     }
 
     std::vector<char> AuroraPipeline::readFile(const std::string& filePath) {
@@ -26,11 +26,28 @@ namespace aurora {
         return buffer;
     }
 
-    void AuroraPipeline::createGraphicsPipeline(const std::string& vertFilePath, const std::string& fragFilePath) {
+    void AuroraPipeline::createGraphicsPipeline(const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& configInfo) {
         auto vertCode = readFile(vertFilePath);
         auto fragCode = readFile(fragFilePath);
 
         std::cout << "Vertex shader code size: " << vertCode.size() << " bytes\n";
         std::cout << "Fragment shader code size: " << fragCode.size() << " bytes\n";
+    }
+
+    void AuroraPipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule) {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = code.size();
+        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+        if (vkCreateShaderModule(auroraDevice.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create shader module");
+        }
+    }
+
+    PipelineConfigInfo AuroraPipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height) {
+        PipelineConfigInfo configInfo{};
+
+        return configInfo;
     }
 }

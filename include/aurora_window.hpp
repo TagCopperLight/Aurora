@@ -11,9 +11,11 @@ namespace aurora {
             ~AuroraWindow();
 
             AuroraWindow(const AuroraWindow&) = delete;
-            AuroraWindow& operator=(const AuroraWindow&) = delete;
+            void operator=(const AuroraWindow&) = delete;
             
             bool shouldClose() { return glfwWindowShouldClose(window); }
+
+            void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
         private:
             void initWindow();

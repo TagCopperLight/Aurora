@@ -2,6 +2,7 @@
 
 #include "aurora_window.hpp"
 #include "aurora_pipeline.hpp"
+#include "aurora_device.hpp"
 
 namespace aurora {
     class AuroraApp {
@@ -13,6 +14,7 @@ namespace aurora {
 
         private:
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
-            AuroraPipeline auroraPipeline{"../shaders/shader.vert.spv", "../shaders/shader.frag.spv"}; 
+            AuroraDevice auroraDevice{auroraWindow};
+            AuroraPipeline auroraPipeline{ auroraDevice, "../shaders/shader.vert.spv", "../shaders/shader.frag.spv", AuroraPipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT) }; 
     };
 }

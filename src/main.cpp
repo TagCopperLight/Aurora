@@ -1,6 +1,18 @@
-#include <iostream>
+#include "aurora_app.hpp"
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
+
+int main(){
+    aurora::AuroraApp app{};
+
+    try {
+        app.run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

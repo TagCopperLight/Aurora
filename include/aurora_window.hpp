@@ -1,0 +1,27 @@
+#pragma once
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#include <string>
+
+namespace aurora {
+    class AuroraWindow {
+        public:
+            AuroraWindow(int width, int height, std::string name);
+            ~AuroraWindow();
+
+            AuroraWindow(const AuroraWindow&) = delete;
+            AuroraWindow& operator=(const AuroraWindow&) = delete;
+            
+            bool shouldClose() { return glfwWindowShouldClose(window); }
+
+        private:
+            void initWindow();
+
+            const int width;
+            const int height;
+
+            std::string windowName;
+            GLFWwindow* window;
+    };
+}

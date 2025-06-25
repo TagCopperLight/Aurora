@@ -11,7 +11,7 @@ namespace aurora {
             ~AuroraWindow();
 
             AuroraWindow(const AuroraWindow&) = delete;
-            void operator=(const AuroraWindow&) = delete;
+            AuroraWindow& operator=(const AuroraWindow&) = delete;
             
             bool shouldClose() { return glfwWindowShouldClose(window); }
             VkExtent2D getExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }

@@ -27,7 +27,7 @@ namespace aurora {
             ~AuroraPipeline();
 
             AuroraPipeline(const AuroraPipeline&) = delete;
-            void operator=(const AuroraPipeline&) = delete;
+            AuroraPipeline& operator=(const AuroraPipeline&) = delete;
 
             void bind(VkCommandBuffer commandBuffer);
             static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);

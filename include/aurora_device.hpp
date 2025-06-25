@@ -32,7 +32,7 @@ namespace aurora {
             ~AuroraDevice();
 
             AuroraDevice(const AuroraDevice &) = delete;
-            void operator=(const AuroraDevice &) = delete;
+            AuroraDevice& operator=(const AuroraDevice &) = delete;
             AuroraDevice(AuroraDevice &&) = delete;
             AuroraDevice &operator=(AuroraDevice &&) = delete;
 

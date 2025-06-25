@@ -14,7 +14,7 @@ namespace aurora {
             ~AuroraSwapChain();
 
             AuroraSwapChain(const AuroraSwapChain &) = delete;
-            void operator=(const AuroraSwapChain &) = delete;
+            AuroraSwapChain& operator=(const AuroraSwapChain &) = delete;
 
             VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
             VkRenderPass getRenderPass() { return renderPass; }

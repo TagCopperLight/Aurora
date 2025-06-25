@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace aurora {
     class AuroraSwapChain {
@@ -11,6 +12,7 @@ namespace aurora {
             static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
             AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D windowExtent);
+            AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D windowExtent, std::shared_ptr<AuroraSwapChain> previous);
             ~AuroraSwapChain();
 
             AuroraSwapChain(const AuroraSwapChain &) = delete;
@@ -34,6 +36,7 @@ namespace aurora {
             VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
         private:
+            void init();
             void createSwapChain();
             void createImageViews();
             void createDepthResources();
@@ -61,6 +64,7 @@ namespace aurora {
             VkExtent2D windowExtent;
 
             VkSwapchainKHR swapChain;
+            std::shared_ptr<AuroraSwapChain> oldSwapChain;
 
             std::vector<VkSemaphore> imageAvailableSemaphores;
             std::vector<VkSemaphore> renderFinishedSemaphores;

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <array>
 #include <spdlog/spdlog.h>
+#include <cassert>
 
 namespace aurora {
     AuroraApp::AuroraApp() {
@@ -78,7 +79,11 @@ namespace aurora {
 
     void AuroraApp::createPipeline() {
         spdlog::debug("Creating graphics pipeline");
-        auto pipelineConfig = AuroraPipeline::defaultPipelineConfigInfo(auroraSwapChain->width(), auroraSwapChain->height());
+        assert(auroraSwapChain != nullptr && "Swap chain must be created before creating the pipeline");
+        assert(pipelineLayout != nullptr && "Pipeline layout must be created before creating the pipeline");
+
+        PipelineConfigInfo pipelineConfig{};
+        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig);
         pipelineConfig.renderPass = auroraSwapChain->getRenderPass();
         pipelineConfig.pipelineLayout = pipelineLayout;
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
@@ -94,8 +99,18 @@ namespace aurora {
         }
 
         vkDeviceWaitIdle(auroraDevice.device());
-        auroraSwapChain = nullptr;
-        auroraSwapChain = std::make_unique<AuroraSwapChain>(auroraDevice, extent);
+        
+        if (auroraSwapChain == nullptr) {
+            auroraSwapChain = std::make_unique<AuroraSwapChain>(auroraDevice, extent);
+        } else {
+            auroraSwapChain = std::make_unique<AuroraSwapChain>(auroraDevice, extent, std::move(auroraSwapChain));
+            if (auroraSwapChain->imageCount() != commandBuffers.size()) {
+                freeCommandBuffers();
+                createCommandBuffers();
+            }
+        }
+
+        // If the render pass is compatible, we can reuse the existing pipeline
         createPipeline();
         spdlog::debug("Swap chain recreated successfully");
     }
@@ -114,6 +129,13 @@ namespace aurora {
             throw std::runtime_error("Failed to allocate command buffers");
         }
         spdlog::debug("Created {} command buffers", commandBuffers.size());
+    }
+
+    void AuroraApp::freeCommandBuffers() {
+        spdlog::debug("Freeing command buffers");
+        vkFreeCommandBuffers(auroraDevice.device(), auroraDevice.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+        commandBuffers.clear();
+        spdlog::debug("Command buffers freed successfully");
     }
 
     void AuroraApp::recordCommandBuffer(int imageIndex) {
@@ -139,6 +161,17 @@ namespace aurora {
         renderPassInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(auroraSwapChain->getSwapChainExtent().width);
+        viewport.height = static_cast<float>(auroraSwapChain->getSwapChainExtent().height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        VkRect2D scissor{{0, 0}, auroraSwapChain->getSwapChainExtent()};
+        vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
         auroraPipeline->bind(commandBuffers[imageIndex]);
         auroraModel->bind(commandBuffers[imageIndex]);

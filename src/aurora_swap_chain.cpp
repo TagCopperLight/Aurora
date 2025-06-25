@@ -10,7 +10,19 @@
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent): device{deviceRef}, windowExtent{extent} {
+    AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent)
+    : device{deviceRef}, windowExtent{extent} {
+        init();
+    }
+
+    AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent, std::shared_ptr<AuroraSwapChain> previous)
+    : device{deviceRef}, windowExtent{extent}, oldSwapChain{previous} {
+        init();
+
+        oldSwapChain = nullptr;
+    }
+
+    void AuroraSwapChain::init() {
         spdlog::debug("Initializing Aurora Swap Chain");
         createSwapChain();
         createImageViews();
@@ -164,7 +176,7 @@ namespace aurora {
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
 
-        createInfo.oldSwapchain = VK_NULL_HANDLE;
+        createInfo.oldSwapchain = oldSwapChain == nullptr ? VK_NULL_HANDLE : oldSwapChain->swapChain;
 
         if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");

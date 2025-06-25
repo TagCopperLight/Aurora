@@ -49,8 +49,13 @@ namespace aurora {
 
     void AuroraApp::loadModels() {
         spdlog::info("Loading 3D models");
-        std::vector<AuroraModel::Vertex> vertices = {};
-        sierpinski(vertices, 6, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
+        std::vector<AuroraModel::Vertex> vertices = {
+            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        };
+        // std::vector<AuroraModel::Vertex> vertices;
+        // sierpinski(vertices, 5, {0.0f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f});
 
         auroraModel = std::make_unique<AuroraModel>(auroraDevice, vertices);
         spdlog::info("Loaded model with {} vertices", vertices.size());

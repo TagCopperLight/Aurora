@@ -30,10 +30,12 @@ namespace aurora {
             void createPipeline();
             void createCommandBuffers();
             void drawFrame();
+            void recreateSwapChain();
+            void recordCommandBuffer(int imageIndex);
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};
-            AuroraSwapChain auroraSwapChain{auroraDevice, auroraWindow.getExtent()};
+            std::unique_ptr<AuroraSwapChain> auroraSwapChain;
             std::unique_ptr<AuroraPipeline> auroraPipeline;
             VkPipelineLayout pipelineLayout;
             std::vector<VkCommandBuffer> commandBuffers;

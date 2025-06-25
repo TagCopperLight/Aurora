@@ -24,14 +24,24 @@ namespace aurora {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+        glfwSetWindowUserPointer(window, this);
+        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
         spdlog::debug("GLFW window initialized");
     }
         
-    void AuroraWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface){
+    void AuroraWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
         spdlog::debug("Creating window surface");
         if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
         spdlog::debug("Window surface created successfully");
+    }
+
+    void AuroraWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+        auto auroraWindow = reinterpret_cast<AuroraWindow *>(glfwGetWindowUserPointer(window));
+        auroraWindow->framebufferResized = true;
+        auroraWindow->width = width;
+        auroraWindow->height = height;
+        spdlog::debug("Framebuffer resized to {}x{}", width, height);
     }
 }

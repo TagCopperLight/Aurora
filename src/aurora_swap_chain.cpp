@@ -11,18 +11,18 @@
 
 namespace aurora {
     AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent): device{deviceRef}, windowExtent{extent} {
-        spdlog::info("Initializing Aurora Swap Chain");
+        spdlog::debug("Initializing Aurora Swap Chain");
         createSwapChain();
         createImageViews();
         createRenderPass();
         createDepthResources();
         createFramebuffers();
         createSyncObjects();
-        spdlog::info("Aurora Swap Chain initialized successfully");
+        spdlog::debug("Aurora Swap Chain initialized successfully");
     }
 
     AuroraSwapChain::~AuroraSwapChain() {
-        spdlog::info("Destroying Aurora Swap Chain");
+        spdlog::debug("Destroying Aurora Swap Chain");
         for (auto imageView : swapChainImageViews) {
             vkDestroyImageView(device.device(), imageView, nullptr);
         }
@@ -53,7 +53,7 @@ namespace aurora {
             vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device.device(), inFlightFences[i], nullptr);
         }
-        spdlog::info("Aurora Swap Chain destroyed");
+        spdlog::debug("Aurora Swap Chain destroyed");
     }
 
     VkResult AuroraSwapChain::acquireNextImage(uint32_t *imageIndex) {

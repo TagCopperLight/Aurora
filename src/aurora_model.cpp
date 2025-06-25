@@ -6,16 +6,16 @@
 
 namespace aurora {
     AuroraModel::AuroraModel(AuroraDevice &device, const std::vector<Vertex> &vertices) : auroraDevice{device} {
-        spdlog::info("Creating Aurora Model with {} vertices", vertices.size());
+        spdlog::debug("Creating Aurora Model with {} vertices", vertices.size());
         createVertexBuffers(vertices);
-        spdlog::info("Aurora Model created successfully");
+        spdlog::debug("Aurora Model created successfully");
     }
 
     AuroraModel::~AuroraModel() {
-        spdlog::info("Destroying Aurora Model");
+        spdlog::debug("Destroying Aurora Model");
         vkDestroyBuffer(auroraDevice.device(), vertexBuffer, nullptr);
         vkFreeMemory(auroraDevice.device(), vertexBufferMemory, nullptr);
-        spdlog::info("Aurora Model destroyed");
+        spdlog::debug("Aurora Model destroyed");
     }
 
     void AuroraModel::createVertexBuffers(const std::vector<Vertex> &vertices) {

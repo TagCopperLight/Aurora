@@ -5,6 +5,7 @@
 
 namespace aurora {
     AuroraApp::AuroraApp() {
+        loadModels();
         createPipelineLayout();
         createPipeline();
         createCommandBuffers();
@@ -21,6 +22,16 @@ namespace aurora {
         }
 
         vkDeviceWaitIdle(auroraDevice.device());
+    }
+
+    void AuroraApp::loadModels() {
+        std::vector<AuroraModel::Vertex> vertices = {
+            {{0.0f, -0.5f}},
+            {{0.5f, 0.5f}},
+            {{-0.5f, 0.5f}}
+        };
+
+        auroraModel = std::make_unique<AuroraModel>(auroraDevice, vertices);
     }
 
     void AuroraApp::createPipelineLayout() {
@@ -40,7 +51,7 @@ namespace aurora {
         auto pipelineConfig = AuroraPipeline::defaultPipelineConfigInfo(auroraSwapChain.width(), auroraSwapChain.height());
         pipelineConfig.renderPass = auroraSwapChain.getRenderPass();
         pipelineConfig.pipelineLayout = pipelineLayout;
-        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "../shaders/shader.vert.spv", "../shaders/shader.frag.spv", pipelineConfig);
+        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
     }
 
     void AuroraApp::createCommandBuffers() {
@@ -81,7 +92,8 @@ namespace aurora {
             vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
             auroraPipeline->bind(commandBuffers[i]);
-            vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+            auroraModel->bind(commandBuffers[i]);
+            auroraModel->draw(commandBuffers[i]);
 
             vkCmdEndRenderPass(commandBuffers[i]);
             if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {

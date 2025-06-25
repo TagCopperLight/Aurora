@@ -4,6 +4,7 @@
 #include "aurora_pipeline.hpp"
 #include "aurora_device.hpp"
 #include "aurora_swap_chain.hpp"
+#include "aurora_model.hpp"
 
 #include <memory>
 #include <vector>
@@ -23,6 +24,7 @@ namespace aurora {
             void run();
 
         private:
+            void loadModels(); 
             void createPipelineLayout();
             void createPipeline();
             void createCommandBuffers();
@@ -34,5 +36,6 @@ namespace aurora {
             std::unique_ptr<AuroraPipeline> auroraPipeline;
             VkPipelineLayout pipelineLayout;
             std::vector<VkCommandBuffer> commandBuffers;
+            std::unique_ptr<AuroraModel> auroraModel;
     };
 }

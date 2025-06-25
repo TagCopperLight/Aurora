@@ -2,26 +2,34 @@
 
 #include <stdexcept>
 #include <array>
+#include <spdlog/spdlog.h>
 
 namespace aurora {
     AuroraApp::AuroraApp() {
+        spdlog::info("Initializing Aurora Application");
         loadModels();
         createPipelineLayout();
         createPipeline();
         createCommandBuffers();
+        spdlog::info("Aurora Application initialized successfully");
     }
 
     AuroraApp::~AuroraApp() {
+        spdlog::info("Destroying Aurora Application");
         vkDestroyPipelineLayout(auroraDevice.device(), pipelineLayout, nullptr);
+        spdlog::info("Aurora Application destroyed");
     }
 
     void AuroraApp::run() {
+        spdlog::info("Starting Aurora Application main loop");
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
             drawFrame();
         }
 
+        spdlog::info("Aurora Application main loop ended, waiting for device idle");
         vkDeviceWaitIdle(auroraDevice.device());
+        spdlog::info("Aurora Application run completed");
     }
 
     void AuroraApp::sierpinski(std::vector<AuroraModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top) {
@@ -40,13 +48,16 @@ namespace aurora {
     }
 
     void AuroraApp::loadModels() {
+        spdlog::info("Loading 3D models");
         std::vector<AuroraModel::Vertex> vertices = {};
         sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
 
         auroraModel = std::make_unique<AuroraModel>(auroraDevice, vertices);
+        spdlog::info("Loaded model with {} vertices", vertices.size());
     }
 
     void AuroraApp::createPipelineLayout() {
+        spdlog::info("Creating pipeline layout");
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 0;
@@ -57,16 +68,20 @@ namespace aurora {
         if (vkCreatePipelineLayout(auroraDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create pipeline layout");
         }
+        spdlog::info("Pipeline layout created successfully");
     }
 
     void AuroraApp::createPipeline() {
+        spdlog::info("Creating graphics pipeline");
         auto pipelineConfig = AuroraPipeline::defaultPipelineConfigInfo(auroraSwapChain.width(), auroraSwapChain.height());
         pipelineConfig.renderPass = auroraSwapChain.getRenderPass();
         pipelineConfig.pipelineLayout = pipelineLayout;
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
+        spdlog::info("Graphics pipeline created successfully");
     }
 
     void AuroraApp::createCommandBuffers() {
+        spdlog::info("Creating command buffers");
         commandBuffers.resize(auroraSwapChain.imageCount());
 
         VkCommandBufferAllocateInfo allocInfo{};
@@ -78,6 +93,7 @@ namespace aurora {
         if (vkAllocateCommandBuffers(auroraDevice.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to allocate command buffers");
         }
+        spdlog::info("Created {} command buffers", commandBuffers.size());
 
         for (int i = 0; i < commandBuffers.size(); i++) {
             VkCommandBufferBeginInfo beginInfo{};

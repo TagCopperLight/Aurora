@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include <unordered_set>
+#include <spdlog/spdlog.h>
 
 namespace aurora {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -12,7 +13,7 @@ namespace aurora {
         const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData
         ) {
 
-        std::cerr << "validation layer: " << pCallbackData->pMessage << "\n" << std::endl;
+        spdlog::error("validation layer: {}", pCallbackData->pMessage);
         return VK_FALSE;
     }
 
@@ -38,15 +39,18 @@ namespace aurora {
     }
 
     AuroraDevice::AuroraDevice(AuroraWindow &window) : window{window} {
+        spdlog::info("Initializing Aurora Device");
         createInstance();
         setupDebugMessenger();
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
+        spdlog::info("Aurora Device initialized successfully");
     }
 
     AuroraDevice::~AuroraDevice() {
+        spdlog::info("Destroying Aurora Device");
         vkDestroyCommandPool(device_, commandPool, nullptr);
         vkDestroyDevice(device_, nullptr);
 
@@ -56,9 +60,11 @@ namespace aurora {
 
         vkDestroySurfaceKHR(instance, surface_, nullptr);
         vkDestroyInstance(instance, nullptr);
+        spdlog::info("Aurora Device destroyed");
     }
 
     void AuroraDevice::createInstance() {
+        spdlog::info("Creating Vulkan instance");
         if (enableValidationLayers && !checkValidationLayerSupport()) {
             throw std::runtime_error("validation layers requested, but not available!");
         }
@@ -96,15 +102,17 @@ namespace aurora {
         }
 
         hasGflwRequiredInstanceExtensions();
+        spdlog::info("Vulkan instance created successfully");
     }
 
     void AuroraDevice::pickPhysicalDevice() {
+        spdlog::info("Selecting physical device");
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
         if (deviceCount == 0) {
             throw std::runtime_error("failed to find GPUs with Vulkan support!");
         }
-        std::cout << "Device count: " << deviceCount << std::endl;
+        spdlog::info("Device count: {}", deviceCount);
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
@@ -120,10 +128,11 @@ namespace aurora {
         }
 
         vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-        std::cout << "physical device: " << properties.deviceName << std::endl;
+        spdlog::info("physical device: {}", properties.deviceName);
     }
 
     void AuroraDevice::createLogicalDevice() {
+        spdlog::info("Creating logical device");
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -165,9 +174,11 @@ namespace aurora {
 
         vkGetDeviceQueue(device_, indices.graphicsFamily, 0, &graphicsQueue_);
         vkGetDeviceQueue(device_, indices.presentFamily, 0, &presentQueue_);
+        spdlog::info("Logical device created successfully");
     }
 
     void AuroraDevice::createCommandPool() {
+        spdlog::info("Creating command pool");
         QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
 
         VkCommandPoolCreateInfo poolInfo = {};
@@ -178,9 +189,14 @@ namespace aurora {
         if (vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
+        spdlog::info("Command pool created successfully");
     }
 
-    void AuroraDevice::createSurface() { window.createWindowSurface(instance, &surface_); }
+    void AuroraDevice::createSurface() { 
+        spdlog::info("Creating Vulkan surface");
+        window.createWindowSurface(instance, &surface_); 
+        spdlog::info("Vulkan surface created successfully");
+    }
 
     bool AuroraDevice::isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices indices = findQueueFamilies(device);
@@ -212,12 +228,17 @@ namespace aurora {
     }
 
     void AuroraDevice::setupDebugMessenger() {
-        if (!enableValidationLayers) return;
+        if (!enableValidationLayers) {
+            spdlog::info("Validation layers disabled, skipping debug messenger setup");
+            return;
+        }
+        spdlog::info("Setting up debug messenger");
         VkDebugUtilsMessengerCreateInfoEXT createInfo;
         populateDebugMessengerCreateInfo(createInfo);
         if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug messenger!");
         }
+        spdlog::info("Debug messenger setup successfully");
     }
 
     bool AuroraDevice::checkValidationLayerSupport() {

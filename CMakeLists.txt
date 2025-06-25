@@ -7,6 +7,7 @@ include_directories(include)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
+find_package(spdlog REQUIRED)
 
 file(GLOB SOURCES "src/*.cpp")
 
@@ -30,4 +31,4 @@ add_executable(aurora ${SOURCES})
 # Make aurora depend on shader compilation
 add_dependencies(aurora compile_shaders)
 
-target_link_libraries(aurora Vulkan::Vulkan glfw dl pthread)
+target_link_libraries(aurora Vulkan::Vulkan glfw spdlog::spdlog dl pthread)

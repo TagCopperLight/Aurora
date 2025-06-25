@@ -7,18 +7,22 @@
 #include <limits>
 #include <set>
 #include <stdexcept>
+#include <spdlog/spdlog.h>
 
 namespace aurora {
     AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent): device{deviceRef}, windowExtent{extent} {
+        spdlog::info("Initializing Aurora Swap Chain");
         createSwapChain();
         createImageViews();
         createRenderPass();
         createDepthResources();
         createFramebuffers();
         createSyncObjects();
+        spdlog::info("Aurora Swap Chain initialized successfully");
     }
 
     AuroraSwapChain::~AuroraSwapChain() {
+        spdlog::info("Destroying Aurora Swap Chain");
         for (auto imageView : swapChainImageViews) {
             vkDestroyImageView(device.device(), imageView, nullptr);
         }
@@ -49,6 +53,7 @@ namespace aurora {
             vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device.device(), inFlightFences[i], nullptr);
         }
+        spdlog::info("Aurora Swap Chain destroyed");
     }
 
     VkResult AuroraSwapChain::acquireNextImage(uint32_t *imageIndex) {
@@ -359,7 +364,7 @@ namespace aurora {
     VkPresentModeKHR AuroraSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                std::cout << "Present mode: Mailbox" << std::endl;
+                spdlog::info("Present mode: Mailbox");
                 return availablePresentMode;
             }
         }
@@ -371,7 +376,7 @@ namespace aurora {
         //   }
         // }
 
-        std::cout << "Present mode: V-Sync" << std::endl;
+        spdlog::info("Present mode: V-Sync");
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 

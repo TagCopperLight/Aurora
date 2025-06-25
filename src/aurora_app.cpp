@@ -3,6 +3,7 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include <stdexcept>
 #include <array>
@@ -11,13 +12,14 @@
 
 namespace aurora {
     struct PushConstantsData {
+        glm::mat2 transform{1.0f};
         glm::vec2 offset;
         alignas(16) glm::vec3 color;
     };
 
     AuroraApp::AuroraApp() {
         spdlog::debug("Initializing Aurora Application");
-        loadModels();
+        loadGameObjects();
         createPipelineLayout();
         recreateSwapChain();
         createCommandBuffers();
@@ -57,7 +59,7 @@ namespace aurora {
         }
     }
 
-    void AuroraApp::loadModels() {
+    void AuroraApp::loadGameObjects() {
         spdlog::debug("Loading 3D models");
         std::vector<AuroraModel::Vertex> vertices = {
             {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -67,8 +69,27 @@ namespace aurora {
         // std::vector<AuroraModel::Vertex> vertices;
         // sierpinski(vertices, 5, {0.0f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f});
 
-        auroraModel = std::make_unique<AuroraModel>(auroraDevice, vertices);
+        auto auroraModel = std::make_shared<AuroraModel>(auroraDevice, vertices);
         spdlog::debug("Loaded model with {} vertices", vertices.size());
+
+        std::vector<glm::vec3> colors{
+            {1.f, .7f, .73f},
+            {1.f, .87f, .73f},
+            {1.f, 1.f, .73f},
+            {.73f, 1.f, .8f},
+            {.73, .88f, 1.f}
+        };
+        for (auto& color : colors) {
+            color = glm::pow(color, glm::vec3{2.2f});
+        }
+        for (int i = 0; i < 40; i++) {
+            auto triangle = AuroraGameObject::createGameObject();
+            triangle.model = auroraModel;
+            triangle.transform2d.scale = glm::vec2(.5f) + i * 0.025f;
+            triangle.transform2d.rotation = i * glm::pi<float>() * .025f;
+            triangle.color = colors[i % colors.size()];
+            gameObjects.push_back(std::move(triangle));
+        }
     }
 
     void AuroraApp::createPipelineLayout() {
@@ -154,9 +175,6 @@ namespace aurora {
     }
 
     void AuroraApp::recordCommandBuffer(int imageIndex) {
-        static int frame = 0;
-        frame = (frame + 1) % 1000;
-
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         
@@ -191,23 +209,33 @@ namespace aurora {
         vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
         vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
-        auroraPipeline->bind(commandBuffers[imageIndex]);
-        auroraModel->bind(commandBuffers[imageIndex]);
-
-        for (int j = 0; j < 4; j++) {
-            PushConstantsData push{};
-            push.offset = {-0.5f + frame * 0.001f, -0.4f + j * 0.25f};
-            push.color = {0.0f, 0.0f, 0.2f + j * 0.2f};
-            
-            vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);
-            
-            auroraModel->draw(commandBuffers[imageIndex]);
-        }
-
+        renderGameObjects(commandBuffers[imageIndex]);
 
         vkCmdEndRenderPass(commandBuffers[imageIndex]);
         if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer");
+        }
+    }
+
+    void AuroraApp::renderGameObjects(VkCommandBuffer commandBuffer) {
+        int i = 0;
+        for (auto& obj : gameObjects) {
+            i += 1;
+            obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.0001f * i, glm::two_pi<float>());
+        }
+
+        auroraPipeline->bind(commandBuffer);
+
+        for (auto& obj : gameObjects) {
+            PushConstantsData push{};
+            push.transform = obj.transform2d.mat2();
+            push.offset = obj.transform2d.translation;
+            push.color = obj.color;
+            
+            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);
+
+            obj.model->bind(commandBuffer);
+            obj.model->draw(commandBuffer);
         }
     }
 

@@ -4,7 +4,7 @@
 #include "aurora_pipeline.hpp"
 #include "aurora_device.hpp"
 #include "aurora_swap_chain.hpp"
-#include "aurora_model.hpp"
+#include "aurora_game_object.hpp"
 
 #include <memory>
 #include <vector>
@@ -25,7 +25,7 @@ namespace aurora {
 
         private:
             void sierpinski(std::vector<AuroraModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
-            void loadModels(); 
+            void loadGameObjects(); 
             void createPipelineLayout();
             void createPipeline();
             void createCommandBuffers();
@@ -33,6 +33,7 @@ namespace aurora {
             void drawFrame();
             void recreateSwapChain();
             void recordCommandBuffer(int imageIndex);
+            void renderGameObjects(VkCommandBuffer commandBuffer);
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};
@@ -40,6 +41,6 @@ namespace aurora {
             std::unique_ptr<AuroraPipeline> auroraPipeline;
             VkPipelineLayout pipelineLayout;
             std::vector<VkCommandBuffer> commandBuffers;
-            std::unique_ptr<AuroraModel> auroraModel;
+            std::vector<AuroraGameObject> gameObjects;
     };
 }

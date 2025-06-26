@@ -20,6 +20,11 @@ namespace aurora {
         }
     };
 
+    struct RigidBody2dComponent {
+        glm::vec2 velocity;
+        float mass{1.0f};
+    };
+
     class AuroraGameObject {
         public:
             using id_t = unsigned int;
@@ -39,6 +44,7 @@ namespace aurora {
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
             Transform2dComponent transform2d{};
+            RigidBody2dComponent rigidBody2d{};
 
         private:
             AuroraGameObject(id_t objId) : id(objId) {}

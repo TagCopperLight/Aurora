@@ -1,0 +1,46 @@
+Aurora/
+├── include/
+│   ├── aurora/
+│   │   ├── core/                    # Core engine functionality
+│   │   │   ├── context.hpp
+│   │   │   ├── renderer.hpp
+│   │   │   ├── resource_manager.hpp
+│   │   │   └── window_manager.hpp
+│   │   ├── graphics/                # Graphics abstraction layer
+│   │   │   ├── buffer.hpp
+│   │   │   ├── pipeline.hpp
+│   │   │   ├── shader.hpp
+│   │   │   └── texture.hpp
+│   │   ├── primitives/              # Debug primitive components
+│   │   │   ├── line.hpp
+│   │   │   ├── sphere.hpp
+│   │   │   ├── box.hpp
+│   │   │   ├── text.hpp
+│   │   │   └── primitive_base.hpp
+│   │   ├── scene/                   # Scene management
+│   │   │   ├── camera.hpp
+│   │   │   ├── transform.hpp
+│   │   │   └── scene_graph.hpp
+│   │   ├── debug/                   # Debug-specific features
+│   │   │   ├── debug_renderer.hpp
+│   │   │   ├── overlay.hpp
+│   │   │   ├── grid.hpp
+│   │   │   └── axis.hpp
+│   │   └── aurora.hpp               # Main library header
+│   └── aurora_config.hpp            # Configuration header
+├── src/
+│   ├── core/
+│   ├── graphics/
+│   ├── primitives/
+│   ├── scene/
+│   └── debug/
+├── shaders/
+│   ├── primitives/                  # Primitive-specific shaders
+│   ├── debug/                       # Debug visualization shaders
+│   └── common/                      # Shared shader utilities
+├── assets/                          # Default fonts, textures, etc.
+├── examples/                        # Usage examples
+├── tests/                          # Unit tests
+├── tools/                          # Build and development tools
+├── docs/                           # Documentation
+└── CMakeLists.txt

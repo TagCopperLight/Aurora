@@ -18,30 +18,25 @@ namespace aurora {
     };
 
     AuroraApp::AuroraApp() {
-        spdlog::debug("Initializing Aurora Application");
+        spdlog::info("Initializing Aurora Application");
         loadGameObjects();
         createPipelineLayout();
         recreateSwapChain();
         createCommandBuffers();
-        spdlog::debug("Aurora Application initialized successfully");
+        spdlog::info("Aurora Application ready");
     }
 
     AuroraApp::~AuroraApp() {
-        spdlog::debug("Destroying Aurora Application");
         vkDestroyPipelineLayout(auroraDevice.device(), pipelineLayout, nullptr);
-        spdlog::debug("Aurora Application destroyed");
     }
 
     void AuroraApp::run() {
-        spdlog::debug("Starting Aurora Application main loop");
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
             drawFrame();
         }
 
-        spdlog::debug("Aurora Application main loop ended, waiting for device idle");
         vkDeviceWaitIdle(auroraDevice.device());
-        spdlog::debug("Aurora Application run completed");
     }
 
     void AuroraApp::sierpinski(std::vector<AuroraModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top) {
@@ -60,7 +55,6 @@ namespace aurora {
     }
 
     void AuroraApp::loadGameObjects() {
-        spdlog::debug("Loading 3D models");
         std::vector<AuroraModel::Vertex> vertices = {
             {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -70,7 +64,6 @@ namespace aurora {
         // sierpinski(vertices, 5, {0.0f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f});
 
         auto auroraModel = std::make_shared<AuroraModel>(auroraDevice, vertices);
-        spdlog::debug("Loaded model with {} vertices", vertices.size());
 
         std::vector<glm::vec3> colors{
             {1.f, .7f, .73f},
@@ -93,8 +86,6 @@ namespace aurora {
     }
 
     void AuroraApp::createPipelineLayout() {
-        spdlog::debug("Creating pipeline layout");
-
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
@@ -110,11 +101,9 @@ namespace aurora {
         if (vkCreatePipelineLayout(auroraDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create pipeline layout");
         }
-        spdlog::debug("Pipeline layout created successfully");
     }
 
     void AuroraApp::createPipeline() {
-        spdlog::debug("Creating graphics pipeline");
         assert(auroraSwapChain != nullptr && "Swap chain must be created before creating the pipeline");
         assert(pipelineLayout != nullptr && "Pipeline layout must be created before creating the pipeline");
 
@@ -123,7 +112,6 @@ namespace aurora {
         pipelineConfig.renderPass = auroraSwapChain->getRenderPass();
         pipelineConfig.pipelineLayout = pipelineLayout;
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
-        spdlog::debug("Graphics pipeline created successfully");
     }
 
     void AuroraApp::recreateSwapChain() {

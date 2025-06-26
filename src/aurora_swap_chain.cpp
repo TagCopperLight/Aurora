@@ -23,18 +23,15 @@ namespace aurora {
     }
 
     void AuroraSwapChain::init() {
-        spdlog::debug("Initializing Aurora Swap Chain");
         createSwapChain();
         createImageViews();
         createRenderPass();
         createDepthResources();
         createFramebuffers();
         createSyncObjects();
-        spdlog::debug("Aurora Swap Chain initialized successfully");
     }
 
     AuroraSwapChain::~AuroraSwapChain() {
-        spdlog::debug("Destroying Aurora Swap Chain");
         for (auto imageView : swapChainImageViews) {
             vkDestroyImageView(device.device(), imageView, nullptr);
         }
@@ -65,7 +62,6 @@ namespace aurora {
             vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device.device(), inFlightFences[i], nullptr);
         }
-        spdlog::debug("Aurora Swap Chain destroyed");
     }
 
     VkResult AuroraSwapChain::acquireNextImage(uint32_t *imageIndex) {
@@ -376,7 +372,6 @@ namespace aurora {
     VkPresentModeKHR AuroraSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                spdlog::info("Present mode: Mailbox");
                 return availablePresentMode;
             }
         }

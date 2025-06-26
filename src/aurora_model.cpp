@@ -5,17 +5,13 @@
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    AuroraModel::AuroraModel(AuroraDevice &device, const std::vector<Vertex> &vertices) : auroraDevice{device} {
-        spdlog::debug("Creating Aurora Model with {} vertices", vertices.size());
+    AuroraModel::AuroraModel(AuroraDevice& device, const std::vector<Vertex>& vertices) : auroraDevice{device} {
         createVertexBuffers(vertices);
-        spdlog::debug("Aurora Model created successfully");
     }
 
     AuroraModel::~AuroraModel() {
-        spdlog::debug("Destroying Aurora Model");
         vkDestroyBuffer(auroraDevice.device(), vertexBuffer, nullptr);
         vkFreeMemory(auroraDevice.device(), vertexBufferMemory, nullptr);
-        spdlog::debug("Aurora Model destroyed");
     }
 
     void AuroraModel::createVertexBuffers(const std::vector<Vertex> &vertices) {

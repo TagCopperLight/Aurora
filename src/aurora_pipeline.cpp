@@ -8,21 +8,16 @@
 
 namespace aurora {
     AuroraPipeline::AuroraPipeline(AuroraDevice& device, const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& configInfo) : auroraDevice{device} {
-        spdlog::debug("Creating Aurora Pipeline with shaders: '{}' and '{}'", vertFilePath, fragFilePath);
         createGraphicsPipeline(vertFilePath, fragFilePath, configInfo);
-        spdlog::debug("Aurora Pipeline created successfully");
     }
 
     AuroraPipeline::~AuroraPipeline() {
-        spdlog::debug("Destroying Aurora Pipeline");
         vkDestroyShaderModule(auroraDevice.device(), vertShaderModule, nullptr);
         vkDestroyShaderModule(auroraDevice.device(), fragShaderModule, nullptr);
         vkDestroyPipeline(auroraDevice.device(), graphicsPipeline, nullptr);
-        spdlog::debug("Aurora Pipeline destroyed");
     }
 
     std::vector<char> AuroraPipeline::readFile(const std::string& filePath) {
-        spdlog::debug("Reading shader file: '{}'", filePath);
         std::ifstream file{filePath, std::ios::ate | std::ios::binary};
 
         if (!file.is_open()) {
@@ -36,7 +31,6 @@ namespace aurora {
         file.read(buffer.data(), fileSize);
         
         file.close();
-        spdlog::debug("Read {} bytes from shader file: '{}'", fileSize, filePath);
 
         return buffer;
     }

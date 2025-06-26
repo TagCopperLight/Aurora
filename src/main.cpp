@@ -1,5 +1,5 @@
 // #include "aurora_app.hpp"
-#include "physics_app.hpp"
+#include "aurora_app.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -10,7 +10,7 @@ int main(){
     spdlog::set_level(spdlog::level::info);
     
     spdlog::info("Starting Aurora Vulkan Application");
-    aurora::PhysicsApp app{};
+    aurora::AuroraApp app{};
 
     try {
         app.run();

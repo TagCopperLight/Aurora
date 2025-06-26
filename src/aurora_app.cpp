@@ -1,4 +1,5 @@
 #include "aurora_app.hpp"
+#include "aurora_render_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -11,29 +12,30 @@
 #include <cassert>
 
 namespace aurora {
-    struct PushConstantsData {
-        glm::mat2 transform{1.0f};
-        glm::vec2 offset;
-        alignas(16) glm::vec3 color;
-    };
-
     AuroraApp::AuroraApp() {
         spdlog::info("Initializing Aurora Application");
         loadGameObjects();
-        createPipelineLayout();
-        recreateSwapChain();
-        createCommandBuffers();
         spdlog::info("Aurora Application ready");
     }
 
-    AuroraApp::~AuroraApp() {
-        vkDestroyPipelineLayout(auroraDevice.device(), pipelineLayout, nullptr);
-    }
+    AuroraApp::~AuroraApp() {}
 
     void AuroraApp::run() {
+        AuroraRenderSystem auroraRenderSystem{auroraDevice, auroraRenderer.getSwapChainRenderPass()};
+
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
-            drawFrame();
+            
+            if (auto commandBuffer = auroraRenderer.beginFrame()) {
+                auroraRenderer.beginSwapChainRenderPass(commandBuffer);
+
+                auroraRenderSystem.renderGameObjects(commandBuffer, gameObjects);
+
+                auroraRenderer.endSwapChainRenderPass(commandBuffer);
+                auroraRenderer.endFrame();
+            } else {
+                spdlog::warn("Failed to begin frame, skipping rendering");
+            }
         }
 
         vkDeviceWaitIdle(auroraDevice.device());
@@ -82,177 +84,6 @@ namespace aurora {
             triangle.transform2d.rotation = i * glm::pi<float>() * .025f;
             triangle.color = colors[i % colors.size()];
             gameObjects.push_back(std::move(triangle));
-        }
-    }
-
-    void AuroraApp::createPipelineLayout() {
-        VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-        pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(PushConstantsData);
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pSetLayouts = nullptr;
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-        if (vkCreatePipelineLayout(auroraDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create pipeline layout");
-        }
-    }
-
-    void AuroraApp::createPipeline() {
-        assert(auroraSwapChain != nullptr && "Swap chain must be created before creating the pipeline");
-        assert(pipelineLayout != nullptr && "Pipeline layout must be created before creating the pipeline");
-
-        PipelineConfigInfo pipelineConfig{};
-        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig);
-        pipelineConfig.renderPass = auroraSwapChain->getRenderPass();
-        pipelineConfig.pipelineLayout = pipelineLayout;
-        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
-    }
-
-    void AuroraApp::recreateSwapChain() {
-        spdlog::debug("Recreating swap chain");
-        auto extent = auroraWindow.getExtent();
-        while (extent.width == 0 || extent.height == 0) {
-            extent = auroraWindow.getExtent();
-            glfwWaitEvents();
-        }
-
-        vkDeviceWaitIdle(auroraDevice.device());
-        
-        if (auroraSwapChain == nullptr) {
-            auroraSwapChain = std::make_unique<AuroraSwapChain>(auroraDevice, extent);
-        } else {
-            auroraSwapChain = std::make_unique<AuroraSwapChain>(auroraDevice, extent, std::move(auroraSwapChain));
-            if (auroraSwapChain->imageCount() != commandBuffers.size()) {
-                freeCommandBuffers();
-                createCommandBuffers();
-            }
-        }
-
-        // If the render pass is compatible, we can reuse the existing pipeline
-        createPipeline();
-        spdlog::debug("Swap chain recreated successfully");
-    }
-
-    void AuroraApp::createCommandBuffers() {
-        spdlog::debug("Creating command buffers");
-        commandBuffers.resize(auroraSwapChain->imageCount());
-
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = auroraDevice.getCommandPool();
-        allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
-
-        if (vkAllocateCommandBuffers(auroraDevice.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to allocate command buffers");
-        }
-        spdlog::debug("Created {} command buffers", commandBuffers.size());
-    }
-
-    void AuroraApp::freeCommandBuffers() {
-        spdlog::debug("Freeing command buffers");
-        vkFreeCommandBuffers(auroraDevice.device(), auroraDevice.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
-        commandBuffers.clear();
-        spdlog::debug("Command buffers freed successfully");
-    }
-
-    void AuroraApp::recordCommandBuffer(int imageIndex) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        
-        if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to begin recording command buffer");
-        }
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = auroraSwapChain->getRenderPass();
-        renderPassInfo.framebuffer = auroraSwapChain->getFrameBuffer(imageIndex);
-
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = auroraSwapChain->getSwapChainExtent();
-
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<float>(auroraSwapChain->getSwapChainExtent().width);
-        viewport.height = static_cast<float>(auroraSwapChain->getSwapChainExtent().height);
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        VkRect2D scissor{{0, 0}, auroraSwapChain->getSwapChainExtent()};
-        vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
-
-        renderGameObjects(commandBuffers[imageIndex]);
-
-        vkCmdEndRenderPass(commandBuffers[imageIndex]);
-        if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to record command buffer");
-        }
-    }
-
-    void AuroraApp::renderGameObjects(VkCommandBuffer commandBuffer) {
-        int i = 0;
-        for (auto& obj : gameObjects) {
-            i += 1;
-            obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.0001f * i, glm::two_pi<float>());
-        }
-
-        auroraPipeline->bind(commandBuffer);
-
-        for (auto& obj : gameObjects) {
-            PushConstantsData push{};
-            push.transform = obj.transform2d.mat2();
-            push.offset = obj.transform2d.translation;
-            push.color = obj.color;
-            
-            vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);
-
-            obj.model->bind(commandBuffer);
-            obj.model->draw(commandBuffer);
-        }
-    }
-
-    void AuroraApp::drawFrame() {
-        uint32_t imageIndex;
-        auto result = auroraSwapChain->acquireNextImage(&imageIndex);
-
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            spdlog::debug("Swap chain out of date, recreating");
-            recreateSwapChain();
-            return;
-        }
-
-        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("Failed to acquire swap chain image");
-        }
-
-        recordCommandBuffer(imageIndex);
-        result = auroraSwapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || auroraWindow.wasWindowResized()) {
-            spdlog::debug("Swap chain out of date or window resized, recreating swap chain");
-            auroraWindow.resetWindowResizedFlag();
-            recreateSwapChain();
-            return;
-        }
-
-        if (result != VK_SUCCESS) {
-            throw std::runtime_error("Failed to submit command buffers");
         }
     }
 }

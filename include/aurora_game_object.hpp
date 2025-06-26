@@ -2,27 +2,44 @@
 
 #include "aurora_model.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <memory>
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    struct Transform2dComponent {
+    struct TransformComponent {
         glm::vec2 translation{};
-        glm::vec2 scale{1.0f, 1.0f};
+        glm::vec2 scale{1.f, 1.f};
         float rotation;
 
-        glm::mat2 mat2() {
+        glm::mat4 mat4() {
             const float s = glm::sin(rotation);
             const float c = glm::cos(rotation);
-            glm::mat2 rotMat = glm::mat2{{c, s}, {-s, c}};
-            glm::mat2 scaleMat = glm::mat2{scale.x, 0.0f, 0.0f, scale.y};
-            return rotMat * scaleMat;
-        }
-    };
-
-    struct RigidBody2dComponent {
-        glm::vec2 velocity;
-        float mass{1.0f};
+            
+            glm::mat4 rotationMat = glm::mat4(
+                c, s, 0.f, 0.f,
+                -s, c, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                0.f, 0.f, 0.f, 1.f
+            );
+            
+            glm::mat4 scaleMat = glm::mat4(
+                scale.x, 0.f, 0.f, 0.f,
+                0.f, scale.y, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                0.f, 0.f, 0.f, 1.f
+            );
+            
+            glm::mat4 translationMat = glm::mat4(
+                1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                translation.x, translation.y, 0.f, 1.f
+            );
+            
+            return translationMat * rotationMat * scaleMat;
+        };
     };
 
     class AuroraGameObject {
@@ -43,8 +60,7 @@ namespace aurora {
 
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
-            Transform2dComponent transform2d{};
-            RigidBody2dComponent rigidBody2d{};
+            TransformComponent transform{};
 
         private:
             AuroraGameObject(id_t objId) : id(objId) {}

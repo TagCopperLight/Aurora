@@ -23,7 +23,6 @@ namespace aurora {
             void run();
 
         private:
-            void sierpinski(std::vector<AuroraModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
             void loadGameObjects(); 
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};

@@ -41,21 +41,6 @@ namespace aurora {
         vkDeviceWaitIdle(auroraDevice.device());
     }
 
-    void AuroraApp::sierpinski(std::vector<AuroraModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top) {
-        if (depth == 0) {
-            vertices.push_back({top});
-            vertices.push_back({right});
-            vertices.push_back({left});
-        } else {
-            auto leftTop = 0.5f * (left + top);
-            auto rightTop = 0.5f * (right + top);
-            auto leftRight = 0.5f * (left + right);
-            sierpinski(vertices, depth - 1, left, leftRight, leftTop);
-            sierpinski(vertices, depth - 1, leftRight, right, rightTop);
-            sierpinski(vertices, depth - 1, leftTop, rightTop, top);
-        }
-    }
-
     void AuroraApp::loadGameObjects() {
         std::vector<AuroraModel::Vertex> vertices = {
             {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -80,8 +65,8 @@ namespace aurora {
         for (int i = 0; i < 40; i++) {
             auto triangle = AuroraGameObject::createGameObject();
             triangle.model = auroraModel;
-            triangle.transform2d.scale = glm::vec2(.5f) + i * 0.025f;
-            triangle.transform2d.rotation = i * glm::pi<float>() * .025f;
+            triangle.transform.scale = glm::vec2(.5f) + i * 0.025f;
+            triangle.transform.rotation = i * glm::pi<float>() * .025f;
             triangle.color = colors[i % colors.size()];
             gameObjects.push_back(std::move(triangle));
         }

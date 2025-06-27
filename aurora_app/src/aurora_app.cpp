@@ -1,5 +1,5 @@
-#include "aurora_app.hpp"
-#include "aurora_render_system.hpp"
+#include "aurora_app/aurora_app.hpp"
+#include "aurora_app/graphics/aurora_render_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

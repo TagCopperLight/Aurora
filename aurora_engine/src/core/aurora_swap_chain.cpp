@@ -1,4 +1,4 @@
-#include "aurora_swap_chain.hpp"
+#include "aurora_engine/core/aurora_swap_chain.hpp"
 
 #include <array>
 #include <cstdlib>
@@ -42,7 +42,7 @@ namespace aurora {
             swapChain = nullptr;
         }
 
-        for (int i = 0; i < depthImages.size(); i++) {
+        for (size_t i = 0; i < depthImages.size(); i++) {
             vkDestroyImageView(device.device(), depthImageViews[i], nullptr);
             vkDestroyImage(device.device(), depthImages[i], nullptr);
             vkFreeMemory(device.device(), depthImageMemorys[i], nullptr);
@@ -298,7 +298,7 @@ namespace aurora {
         depthImageMemorys.resize(imageCount());
         depthImageViews.resize(imageCount());
 
-        for (int i = 0; i < depthImages.size(); i++) {
+        for (size_t i = 0; i < depthImages.size(); i++) {
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
             imageInfo.imageType = VK_IMAGE_TYPE_2D;

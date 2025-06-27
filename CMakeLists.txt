@@ -1,34 +1,23 @@
 cmake_minimum_required(VERSION 3.10)
-project(aurora)
+project(Aurora VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(include)
-
+# Find required packages once at the root level
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(spdlog REQUIRED)
 
-file(GLOB SOURCES "src/*.cpp")
+# Add subdirectories in dependency order
+add_subdirectory(aurora_engine)
+add_subdirectory(aurora_app)
+add_subdirectory(debug_example)
 
-# Add custom command to compile shaders
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/compile.sh
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag
-    COMMENT "Compiling shaders"
-    VERBATIM
+# Optional: Create an install target
+install(TARGETS aurora_engine aurora_app
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
 )
-
-# Add custom target to ensure shader compilation happens
-add_custom_target(compile_shaders ALL
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv
-)
-
-add_executable(aurora ${SOURCES})
-
-# Make aurora depend on shader compilation
-add_dependencies(aurora compile_shaders)
-
-target_link_libraries(aurora Vulkan::Vulkan glfw spdlog::spdlog dl pthread)

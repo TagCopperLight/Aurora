@@ -1,4 +1,4 @@
-#include "aurora_render_system.hpp"
+#include "aurora_app/graphics/aurora_render_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -50,7 +50,7 @@ namespace aurora {
         AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig);
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
+        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "aurora_app/shaders/shader.vert.spv", "aurora_app/shaders/shader.frag.spv", pipelineConfig);
     }
 
     void AuroraRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<AuroraGameObject>& gameObjects) {

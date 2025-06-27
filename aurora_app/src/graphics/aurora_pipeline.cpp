@@ -1,5 +1,5 @@
-#include "aurora_pipeline.hpp"
-#include "aurora_model.hpp"
+#include "aurora_app/graphics/aurora_pipeline.hpp"
+#include "aurora_app/graphics/aurora_model.hpp"
 
 #include <iostream>
 #include <fstream>

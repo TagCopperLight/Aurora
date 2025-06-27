@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aurora_device.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
 
 #include <string>
 #include <vector>

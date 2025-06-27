@@ -1,4 +1,4 @@
-#include "aurora_renderer.hpp"
+#include "aurora_engine/core/aurora_renderer.hpp"
 
 #include <stdexcept>
 #include <array>

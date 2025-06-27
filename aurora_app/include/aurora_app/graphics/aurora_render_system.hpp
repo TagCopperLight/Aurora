@@ -1,8 +1,8 @@
 #pragma once
 
 #include "aurora_pipeline.hpp"
-#include "aurora_device.hpp"
-#include "aurora_game_object.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
+#include "../aurora_game_object.hpp"
 
 #include <memory>
 #include <vector>

@@ -1,4 +1,4 @@
-#include "aurora_window.hpp"
+#include "aurora_engine/core/aurora_window.hpp"
 
 #include <stdexcept>
 #include <spdlog/spdlog.h>

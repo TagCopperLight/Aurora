@@ -1,4 +1,4 @@
-#include "aurora_device.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -12,6 +12,10 @@ namespace aurora {
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData
         ) {
+        // Suppress unused parameter warnings
+        (void)messageSeverity;
+        (void)messageType;
+        (void)pUserData;
 
         spdlog::error("validation layer: {}", pCallbackData->pMessage);
         return VK_FALSE;

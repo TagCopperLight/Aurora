@@ -1,9 +1,9 @@
 #pragma once
 
-#include "aurora_window.hpp"
-#include "aurora_device.hpp"
+#include "aurora_engine/core/aurora_window.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_game_object.hpp"
-#include "aurora_renderer.hpp"
+#include "aurora_engine/core/aurora_renderer.hpp"
 
 #include <memory>
 #include <vector>

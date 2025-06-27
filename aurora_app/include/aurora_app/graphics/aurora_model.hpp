@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aurora_device.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

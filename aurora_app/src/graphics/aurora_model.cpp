@@ -1,4 +1,4 @@
-#include "aurora_model.hpp"
+#include "aurora_app/graphics/aurora_model.hpp"
 
 #include <cassert>
 #include <cstring>

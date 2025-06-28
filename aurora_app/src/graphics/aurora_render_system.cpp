@@ -54,13 +54,7 @@ namespace aurora {
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, vertFilePath, fragFilePath, pipelineConfig);
     }
 
-    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer) {
-        int i = 0;
-        for (auto& component : components) {
-            i += 1;
-            component->transform.rotation = glm::mod(component->transform.rotation + 0.0001f * i, glm::two_pi<float>());
-        }
-
+    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
         auroraPipeline->bind(commandBuffer);
 
         for (const auto& component : components) {
@@ -69,7 +63,7 @@ namespace aurora {
             }
 
             PushConstantsData push{};
-            push.transform = component->transform.mat4();
+            push.transform = camera.getProjection() * component->transform.mat4();
             push.color = component->color;
 
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);

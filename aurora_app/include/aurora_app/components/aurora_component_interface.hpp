@@ -47,20 +47,21 @@ namespace aurora {
             explicit AuroraComponentInterface(AuroraDevice &device) : auroraDevice{device} {}
             virtual ~AuroraComponentInterface() = default;
 
-            virtual void initialize() {};
             virtual void update(float) {};
-
+            
             bool isHidden() const { return hidden; }
             void setHidden(bool value) { hidden = value; }
-
+            
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
             TransformComponent transform{};
-
+            
         protected:
             AuroraDevice &auroraDevice;
-
+            
         private:
+            virtual void initialize() {};
+
             bool hidden = false;
 
     };

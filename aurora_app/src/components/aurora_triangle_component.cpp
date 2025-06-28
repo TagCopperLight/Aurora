@@ -17,8 +17,4 @@ namespace aurora {
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
         color = {1.0f, 1.0f, 1.0f};
     }
-
-    void AuroraTriangleComponent::update(float deltaTime) {
-        transform.rotation += deltaTime - deltaTime;
-    }
 }

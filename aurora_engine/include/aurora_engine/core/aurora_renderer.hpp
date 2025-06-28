@@ -18,6 +18,7 @@ namespace aurora {
             AuroraRenderer &operator=(const AuroraRenderer&) = delete;
 
             VkRenderPass getSwapChainRenderPass() const { return auroraSwapChain->getRenderPass(); }
+            float getAspectRatio() const { return auroraSwapChain->extentAspectRatio(); }
             bool isFrameInProgress() const { return isFrameStarted; }
 
             VkCommandBuffer getCurrentCommandBuffer() const {

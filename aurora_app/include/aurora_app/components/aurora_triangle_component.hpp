@@ -7,8 +7,7 @@ namespace aurora {
         public:
             AuroraTriangleComponent(AuroraDevice &device);
 
+        private:
             void initialize() override;
-
-            void update(float deltaTime) override;
     };
 }

@@ -1,7 +1,7 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system.hpp"
 
-#include "aurora_app/components/aurora_triangle_component.hpp"
+#include "aurora_app/components/aurora_circle_component.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -23,14 +23,19 @@ namespace aurora {
     AuroraApp::~AuroraApp() {}
 
     void AuroraApp::run() {
+        AuroraCamera camera;
+        
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
+
+            float aspect = auroraRenderer.getAspectRatio();
+            camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
 
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
                 for (const auto& renderSystem : renderSystems) {
-                    renderSystem->renderComponents(auroraRenderer.getCurrentCommandBuffer());
+                    renderSystem->renderComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
                 }
 
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
@@ -44,37 +49,17 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        // Create triangle render system
-        auto triangleRenderSystem = std::make_unique<AuroraRenderSystem>(
+        auto circleRenderSystem = std::make_unique<AuroraRenderSystem>(
             auroraDevice,
             auroraRenderer.getSwapChainRenderPass(),
             "aurora_app/shaders/shader.vert.spv",
             "aurora_app/shaders/shader.frag.spv",
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN
         );
 
-        std::vector<glm::vec3> colors{
-            {1.f, .7f, .73f},
-            {1.f, .87f, .73f},
-            {1.f, 1.f, .73f},
-            {.73f, 1.f, .8f},
-            {.73, .88f, 1.f}
-        };
+        auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.5f, glm::vec2(0.0f, 0.0f));
+        circleRenderSystem->addComponent(std::move(circleComponent));
 
-        for (auto& color : colors) {
-            color = glm::pow(color, glm::vec3{2.2f});
-        }
-
-        // Add triangle components to the render system
-        for (int i = 0; i < 40; i++) {
-            auto triangle = std::make_unique<AuroraTriangleComponent>(auroraDevice);
-            triangle->transform.scale = glm::vec2(.5f) + i * 0.025f;
-            triangle->transform.rotation = i * glm::pi<float>() * .025f;
-            triangle->color = colors[i % colors.size()];
-            triangleRenderSystem->addComponent(std::move(triangle));
-        }
-        
-        spdlog::info("Created {} components", triangleRenderSystem->getComponentCount());
-        renderSystems.push_back(std::move(triangleRenderSystem));
+        renderSystems.push_back(std::move(circleRenderSystem));
     }
 }

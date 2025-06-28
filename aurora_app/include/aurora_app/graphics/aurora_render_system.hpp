@@ -2,6 +2,7 @@
 
 #include "aurora_pipeline.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
 
 #include <memory>
@@ -16,7 +17,7 @@ namespace aurora {
             AuroraRenderSystem(const AuroraRenderSystem&) = delete;
             AuroraRenderSystem &operator=(const AuroraRenderSystem&) = delete;
 
-            void renderComponents(VkCommandBuffer commandBuffer);
+            void renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera);
 
             void addComponent(std::unique_ptr<AuroraComponentInterface> component) {
                 components.push_back(std::move(component));

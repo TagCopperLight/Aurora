@@ -1,4 +1,5 @@
 #include "aurora_app/graphics/aurora_render_system.hpp"
+#include "aurora_app/components/aurora_component_interface.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -53,24 +54,22 @@ namespace aurora {
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "aurora_app/shaders/shader.vert.spv", "aurora_app/shaders/shader.frag.spv", pipelineConfig);
     }
 
-    void AuroraRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<AuroraGameObject>& gameObjects) {
-        int i = 0;
-        for (auto& obj : gameObjects) {
-            i += 1;
-            obj.transform.rotation = glm::mod(obj.transform.rotation + 0.0001f * i, glm::two_pi<float>());
-        }
-
+    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const std::vector<std::unique_ptr<AuroraComponentInterface>>& components) {
         auroraPipeline->bind(commandBuffer);
 
-        for (auto& obj : gameObjects) {
+        for (const auto& component : components) {
+            if (component->isHidden()) {
+                continue;
+            }
+
             PushConstantsData push{};
-            push.transform = obj.transform.mat4();
-            push.color = obj.color;
-            
+            push.transform = component->transform.mat4();
+            push.color = component->color;
+
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);
 
-            obj.model->bind(commandBuffer);
-            obj.model->draw(commandBuffer);
+            component->model->bind(commandBuffer);
+            component->model->draw(commandBuffer);
         }
     }
 }

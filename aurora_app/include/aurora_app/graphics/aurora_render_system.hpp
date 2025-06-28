@@ -2,7 +2,7 @@
 
 #include "aurora_pipeline.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
-#include "../aurora_game_object.hpp"
+#include "aurora_app/components/aurora_component_interface.hpp"
 
 #include <memory>
 #include <vector>
@@ -16,7 +16,7 @@ namespace aurora {
             AuroraRenderSystem(const AuroraRenderSystem&) = delete;
             AuroraRenderSystem &operator=(const AuroraRenderSystem&) = delete;
 
-            void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<AuroraGameObject>& gameObjects);
+            void renderComponents(VkCommandBuffer commandBuffer, const std::vector<std::unique_ptr<AuroraComponentInterface>>& components);
         private:
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass);

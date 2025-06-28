@@ -1,11 +1,9 @@
 #pragma once
 
-#include "graphics/aurora_model.hpp"
-
-#include <glm/gtc/matrix_transform.hpp>
+#include "aurora_app/graphics/aurora_model.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
 
 #include <memory>
-#include <spdlog/spdlog.h>
 
 namespace aurora {
     struct TransformComponent {
@@ -38,33 +36,32 @@ namespace aurora {
                 translation.x, translation.y, 0.f, 1.f
             );
             
+            // Apply transformations in the correct order: T * R * S
+            // This ensures scale happens first, then rotation, then translation
             return translationMat * rotationMat * scaleMat;
         };
     };
-
-    class AuroraGameObject {
+    
+    class AuroraComponentInterface {
         public:
-            using id_t = unsigned int;
+            explicit AuroraComponentInterface(AuroraDevice &device) : auroraDevice{device} {}
+            virtual ~AuroraComponentInterface() = default;
 
-            static AuroraGameObject createGameObject() {
-                static id_t currentId = 0;
-                return AuroraGameObject{currentId++};
-            }
-            
-            AuroraGameObject(const AuroraGameObject &) = delete;
-            AuroraGameObject &operator=(const AuroraGameObject &) = delete;
-            AuroraGameObject(AuroraGameObject &&) = default;
-            AuroraGameObject &operator=(AuroraGameObject &&) = default;
-            
-            id_t getId() { return id; }
+            virtual void initialize() {};
+            virtual void update(float) {};
+
+            bool isHidden() const { return hidden; }
+            void setHidden(bool value) { hidden = value; }
 
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
             TransformComponent transform{};
 
-        private:
-            AuroraGameObject(id_t objId) : id(objId) {}
+        protected:
+            AuroraDevice &auroraDevice;
 
-            id_t id;
+        private:
+            bool hidden = false;
+
     };
 }

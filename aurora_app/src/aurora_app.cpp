@@ -28,10 +28,6 @@ namespace aurora {
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
 
-            for (auto& component : components) {
-                component->update(0.0016f); // Assuming a fixed delta time for simplicity
-            }
-            
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
@@ -48,7 +44,26 @@ namespace aurora {
     }
 
     void AuroraApp::createComponents() {
-        components.push_back(std::make_unique<AuroraTriangleComponent>(auroraDevice));
+        std::vector<glm::vec3> colors{
+            {1.f, .7f, .73f},
+            {1.f, .87f, .73f},
+            {1.f, 1.f, .73f},
+            {.73f, 1.f, .8f},
+            {.73, .88f, 1.f}
+        };
+
+        for (auto& color : colors) {
+            color = glm::pow(color, glm::vec3{2.2f});
+        }
+
+        // components.push_back(std::make_unique<AuroraTriangleComponent>(auroraDevice));
+        for (int i = 0; i < 40; i++) {
+            auto triangle = std::make_unique<AuroraTriangleComponent>(auroraDevice);
+            triangle->transform.scale = glm::vec2(.5f) + i * 0.025f;
+            triangle->transform.rotation = i * glm::pi<float>() * .025f;
+            triangle->color = colors[i % colors.size()];
+            components.push_back(std::move(triangle));
+        }
         spdlog::info("Created {} components", components.size());
     }
 }

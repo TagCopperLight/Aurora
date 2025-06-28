@@ -7,6 +7,8 @@
 
 namespace aurora {
     AuroraRenderer::AuroraRenderer(AuroraWindow& window, AuroraDevice& device) : auroraWindow(window), auroraDevice(device) {
+        currentFrameIndex = 0;
+        isFrameStarted = false;
         recreateSwapChain();
         createCommandBuffers();
     }

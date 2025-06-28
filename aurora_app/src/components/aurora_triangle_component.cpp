@@ -20,5 +20,6 @@ namespace aurora {
 
     void AuroraTriangleComponent::update(float deltaTime) {
         transform.rotation += deltaTime;
+        transform.rotation -= deltaTime;
     }
 }

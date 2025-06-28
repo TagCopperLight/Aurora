@@ -55,6 +55,12 @@ namespace aurora {
     }
 
     void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const std::vector<std::unique_ptr<AuroraComponentInterface>>& components) {
+        int i = 0;
+        for (auto& component : components) {
+            i += 1;
+            component->transform.rotation = glm::mod(component->transform.rotation + 0.0001f * i, glm::two_pi<float>());
+        }
+
         auroraPipeline->bind(commandBuffer);
 
         for (const auto& component : components) {

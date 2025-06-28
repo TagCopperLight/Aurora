@@ -16,22 +16,22 @@
 namespace aurora {
     AuroraApp::AuroraApp() {
         spdlog::info("Initializing Aurora Application");
-        createComponents();
+        createRenderSystems();
         spdlog::info("Aurora Application ready");
     }
 
     AuroraApp::~AuroraApp() {}
 
     void AuroraApp::run() {
-        AuroraRenderSystem auroraRenderSystem{auroraDevice, auroraRenderer.getSwapChainRenderPass()};
-
         while (!auroraWindow.shouldClose()) {
             glfwPollEvents();
 
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
-                auroraRenderSystem.renderComponents(commandBuffer, components);
+                for (const auto& renderSystem : renderSystems) {
+                    renderSystem->renderComponents(auroraRenderer.getCurrentCommandBuffer());
+                }
 
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
                 auroraRenderer.endFrame();
@@ -43,7 +43,16 @@ namespace aurora {
         vkDeviceWaitIdle(auroraDevice.device());
     }
 
-    void AuroraApp::createComponents() {
+    void AuroraApp::createRenderSystems() {
+        // Create triangle render system
+        auto triangleRenderSystem = std::make_unique<AuroraRenderSystem>(
+            auroraDevice,
+            auroraRenderer.getSwapChainRenderPass(),
+            "aurora_app/shaders/shader.vert.spv",
+            "aurora_app/shaders/shader.frag.spv",
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        );
+
         std::vector<glm::vec3> colors{
             {1.f, .7f, .73f},
             {1.f, .87f, .73f},
@@ -56,14 +65,16 @@ namespace aurora {
             color = glm::pow(color, glm::vec3{2.2f});
         }
 
-        // components.push_back(std::make_unique<AuroraTriangleComponent>(auroraDevice));
+        // Add triangle components to the render system
         for (int i = 0; i < 40; i++) {
             auto triangle = std::make_unique<AuroraTriangleComponent>(auroraDevice);
             triangle->transform.scale = glm::vec2(.5f) + i * 0.025f;
             triangle->transform.rotation = i * glm::pi<float>() * .025f;
             triangle->color = colors[i % colors.size()];
-            components.push_back(std::move(triangle));
+            triangleRenderSystem->addComponent(std::move(triangle));
         }
-        spdlog::info("Created {} components", components.size());
+        
+        spdlog::info("Created {} components", triangleRenderSystem->getComponentCount());
+        renderSystems.push_back(std::move(triangleRenderSystem));
     }
 }

@@ -17,9 +17,9 @@ namespace aurora {
         alignas(16) glm::vec3 color;
     };
 
-    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass) : auroraDevice{device} {
+    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology) : auroraDevice{device} {
         createPipelineLayout();
-        createPipeline(renderPass);
+        createPipeline(renderPass, vertFilePath, fragFilePath, topology);
     }
 
     AuroraRenderSystem::~AuroraRenderSystem() {
@@ -44,17 +44,17 @@ namespace aurora {
         }
     }
 
-    void AuroraRenderSystem::createPipeline(VkRenderPass renderPass) {
+    void AuroraRenderSystem::createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology) {
         assert(pipelineLayout != nullptr && "Pipeline layout must be created before creating the pipeline");
 
         PipelineConfigInfo pipelineConfig{};
-        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig);
+        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig, topology);
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, "aurora_app/shaders/shader.vert.spv", "aurora_app/shaders/shader.frag.spv", pipelineConfig);
+        auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, vertFilePath, fragFilePath, pipelineConfig);
     }
 
-    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const std::vector<std::unique_ptr<AuroraComponentInterface>>& components) {
+    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer) {
         int i = 0;
         for (auto& component : components) {
             i += 1;

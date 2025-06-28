@@ -3,7 +3,9 @@
 # Aurora Build and Run Script (Fish Shell Version)
 # This script handles the complete build process: CMake configuration, compilation, and execution
 
-echo "🌟 Aurora Build and Run Script (Fish)"
+clear
+
+echo "Aurora Build and Run Script"
 echo "======================================"
 
 # Function to print colored output

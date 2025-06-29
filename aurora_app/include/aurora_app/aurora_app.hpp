@@ -3,7 +3,7 @@
 #include "aurora_engine/core/aurora_window.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_renderer.hpp"
-#include "aurora_app/graphics/aurora_render_system.hpp"
+#include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 #include <vector>
@@ -29,6 +29,6 @@ namespace aurora {
             AuroraDevice auroraDevice{auroraWindow};
             AuroraRenderer auroraRenderer{auroraWindow, auroraDevice};
 
-            std::vector<std::unique_ptr<AuroraRenderSystem>> renderSystems{};
+            std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
     };
 }

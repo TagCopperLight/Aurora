@@ -1,0 +1,62 @@
+#include "aurora_app/graphics/aurora_render_system_manager.hpp"
+#include <spdlog/spdlog.h>
+
+namespace aurora {
+    AuroraRenderSystemManager::AuroraRenderSystemManager(AuroraDevice& device, VkRenderPass renderPass) 
+        : auroraDevice{device}, renderPass{renderPass} {
+        spdlog::info("RenderSystemManager initialized");
+    }
+
+    void AuroraRenderSystemManager::addComponent(std::unique_ptr<AuroraComponentInterface> component) {
+        if (!component) {
+            spdlog::warn("Attempted to add null component to RenderSystemManager");
+            return;
+        }
+
+        // Try to find a compatible existing render system
+        AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
+        
+        if (compatibleSystem) {
+            compatibleSystem->addComponent(std::move(component));
+        } else {
+            auto newRenderSystem = createRenderSystem(*component);
+            newRenderSystem->addComponent(std::move(component));
+            renderSystems.push_back(std::move(newRenderSystem));
+        }
+    }
+
+    void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
+        for (const auto& renderSystem : renderSystems) {
+            if (renderSystem->getComponentCount() > 0) {
+                renderSystem->renderComponents(commandBuffer, camera);
+            }
+        }
+    }
+
+    size_t AuroraRenderSystemManager::getTotalComponentCount() const {
+        size_t totalCount = 0;
+        for (const auto& renderSystem : renderSystems) {
+            totalCount += renderSystem->getComponentCount();
+        }
+        return totalCount;
+    }
+
+    AuroraRenderSystem* AuroraRenderSystemManager::findCompatibleRenderSystem(const AuroraComponentInterface& component) {
+        for (const auto& renderSystem : renderSystems) {
+            if (renderSystem->isCompatibleWith(component)) {
+                return renderSystem.get();
+            }
+        }
+        return nullptr;
+    }
+
+    std::unique_ptr<AuroraRenderSystem> AuroraRenderSystemManager::createRenderSystem(const AuroraComponentInterface& component) {
+        return std::make_unique<AuroraRenderSystem>(
+            auroraDevice,
+            renderPass,
+            component.getVertexShaderPath(),
+            component.getFragmentShaderPath(),
+            component.getTopology()
+        );
+    }
+}

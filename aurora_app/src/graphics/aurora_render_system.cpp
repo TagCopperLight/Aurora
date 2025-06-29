@@ -17,7 +17,8 @@ namespace aurora {
         alignas(16) glm::vec3 color;
     };
 
-    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology) : auroraDevice{device} {
+    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology) 
+        : auroraDevice{device}, vertexShaderPath{vertFilePath}, fragmentShaderPath{fragFilePath}, topology{topology} {
         createPipelineLayout();
         createPipeline(renderPass, vertFilePath, fragFilePath, topology);
     }

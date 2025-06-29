@@ -27,6 +27,18 @@ namespace aurora {
                 return components.size();
             }
             
+            // Check if this render system is compatible with a component
+            bool isCompatibleWith(const AuroraComponentInterface& component) const {
+                return vertexShaderPath == component.getVertexShaderPath() &&
+                       fragmentShaderPath == component.getFragmentShaderPath() &&
+                       topology == component.getTopology();
+            }
+            
+            // Getters for render system properties
+            const std::string& getVertexShaderPath() const { return vertexShaderPath; }
+            const std::string& getFragmentShaderPath() const { return fragmentShaderPath; }
+            VkPrimitiveTopology getTopology() const { return topology; }
+            
         private:
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
@@ -37,5 +49,10 @@ namespace aurora {
             VkPipelineLayout pipelineLayout;
 
             std::vector<std::unique_ptr<AuroraComponentInterface>> components;
+            
+            // Store render system properties for compatibility checking
+            std::string vertexShaderPath;
+            std::string fragmentShaderPath;
+            VkPrimitiveTopology topology;
     };
 }

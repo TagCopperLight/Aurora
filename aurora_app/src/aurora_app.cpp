@@ -1,5 +1,5 @@
 #include "aurora_app/aurora_app.hpp"
-#include "aurora_app/graphics/aurora_render_system.hpp"
+#include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include "aurora_app/components/aurora_circle_component.hpp"
 #include "aurora_app/components/aurora_rounded_rect_component.hpp"
@@ -18,6 +18,7 @@
 namespace aurora {
     AuroraApp::AuroraApp() {
         spdlog::info("Initializing Aurora Application");
+        renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer.getSwapChainRenderPass());
         createRenderSystems();
         spdlog::info("Aurora Application ready");
     }
@@ -36,9 +37,7 @@ namespace aurora {
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
-                for (const auto& renderSystem : renderSystems) {
-                    renderSystem->renderComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
-                }
+                renderSystemManager->renderAllComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
 
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
                 auroraRenderer.endFrame();
@@ -51,24 +50,23 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        auto circleRenderSystem = std::make_unique<AuroraRenderSystem>(
-            auroraDevice,
-            auroraRenderer.getSwapChainRenderPass(),
-            "aurora_app/shaders/shader.vert.spv",
-            "aurora_app/shaders/shader.frag.spv",
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN
-        );
-
+        // Create components and add them to the manager
+        // The manager will automatically create appropriate render systems
+        
         auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.1f);
         circleComponent->color = {1.0f, 0.0f, 0.0f}; // Red color
-        circleRenderSystem->addComponent(std::move(circleComponent));
+        renderSystemManager->addComponent(std::move(circleComponent));
+        
         auto roundedRectComponent = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.1f);
-        circleRenderSystem->addComponent(std::move(roundedRectComponent));
+        renderSystemManager->addComponent(std::move(roundedRectComponent));
+        
         auto roundedRectComponent2 = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.0f);
         roundedRectComponent2->color = {0.0f, 1.0f, 0.0f}; // Green color
         roundedRectComponent2->transform.translation.z = -0.5f;
-        circleRenderSystem->addComponent(std::move(roundedRectComponent2));
-
-        renderSystems.push_back(std::move(circleRenderSystem));
+        renderSystemManager->addComponent(std::move(roundedRectComponent2));
+        
+        spdlog::info("Created {} render systems with {} total components", 
+                     renderSystemManager->getRenderSystemCount(), 
+                     renderSystemManager->getTotalComponentCount());
     }
 }

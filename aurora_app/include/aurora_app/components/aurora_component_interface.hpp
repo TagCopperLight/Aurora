@@ -52,6 +52,11 @@ namespace aurora {
             bool isHidden() const { return hidden; }
             void setHidden(bool value) { hidden = value; }
             
+            // Get shader file paths and topology for this component type
+            virtual const std::string& getVertexShaderPath() const = 0;
+            virtual const std::string& getFragmentShaderPath() const = 0;
+            virtual VkPrimitiveTopology getTopology() const = 0;
+            
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
             TransformComponent transform{};

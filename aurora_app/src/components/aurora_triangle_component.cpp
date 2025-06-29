@@ -9,9 +9,9 @@ namespace aurora {
 
     void AuroraTriangleComponent::initialize() {
         std::vector<AuroraModel::Vertex> vertices = {
-            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+            {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
         };
 
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);

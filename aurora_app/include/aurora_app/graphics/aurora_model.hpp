@@ -12,8 +12,17 @@ namespace aurora {
     class AuroraModel {
         public:
             struct Vertex {
-                glm::vec2 position;
+                glm::vec3 position;
                 glm::vec3 color;
+
+                // Default constructor
+                Vertex() = default;
+                
+                // Constructor for vec3 position and vec3 color
+                Vertex(const glm::vec3& pos, const glm::vec3& col) : position(pos), color(col) {}
+                
+                // Constructor for vec2 position (z=0) and vec3 color
+                Vertex(const glm::vec2& pos, const glm::vec3& col) : position(pos.x, pos.y, 0.0f), color(col) {}
 
                 static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
                 static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();

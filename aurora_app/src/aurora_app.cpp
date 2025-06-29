@@ -66,6 +66,7 @@ namespace aurora {
         circleRenderSystem->addComponent(std::move(roundedRectComponent));
         auto roundedRectComponent2 = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.0f);
         roundedRectComponent2->color = {0.0f, 1.0f, 0.0f}; // Green color
+        roundedRectComponent2->transform.translation.z = -0.5f;
         circleRenderSystem->addComponent(std::move(roundedRectComponent2));
 
         renderSystems.push_back(std::move(circleRenderSystem));

@@ -7,7 +7,7 @@
 
 namespace aurora {
     struct TransformComponent {
-        glm::vec2 translation{};
+        glm::vec3 translation{};
         glm::vec2 scale{1.f, 1.f};
         float rotation;
 
@@ -33,7 +33,7 @@ namespace aurora {
                 1.f, 0.f, 0.f, 0.f,
                 0.f, 1.f, 0.f, 0.f,
                 0.f, 0.f, 1.f, 0.f,
-                translation.x, translation.y, 0.f, 1.f
+                translation.x, translation.y, translation.z, 1.f
             );
             
             // Apply transformations in the correct order: T * R * S

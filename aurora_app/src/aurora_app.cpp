@@ -50,9 +50,6 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        // Create components and add them to the manager
-        // The manager will automatically create appropriate render systems
-        
         auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.1f);
         circleComponent->color = {1.0f, 0.0f, 0.0f}; // Red color
         renderSystemManager->addComponent(std::move(circleComponent));

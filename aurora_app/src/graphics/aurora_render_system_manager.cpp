@@ -1,6 +1,8 @@
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 #include <spdlog/spdlog.h>
 
+#include <memory>
+
 namespace aurora {
     AuroraRenderSystemManager::AuroraRenderSystemManager(AuroraDevice& device, VkRenderPass renderPass) 
         : auroraDevice{device}, renderPass{renderPass} {
@@ -13,7 +15,15 @@ namespace aurora {
             return;
         }
 
-        // Try to find a compatible existing render system
+        // Extract children before moving the component
+        auto& children = component->getChildren();
+        std::vector<std::unique_ptr<AuroraComponentInterface>> childrenToAdd;
+        childrenToAdd.reserve(children.size());
+        for (auto& child : children) {
+            childrenToAdd.push_back(std::move(child));
+        }
+        children.clear(); // Clear the original vector
+
         AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
         
         if (compatibleSystem) {
@@ -22,6 +32,11 @@ namespace aurora {
             auto newRenderSystem = createRenderSystem(*component);
             newRenderSystem->addComponent(std::move(component));
             renderSystems.push_back(std::move(newRenderSystem));
+        }
+
+        // Now add the children
+        for (auto& child : childrenToAdd) {
+            addComponent(std::move(child));
         }
     }
 

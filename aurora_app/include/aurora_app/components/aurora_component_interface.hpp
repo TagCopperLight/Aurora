@@ -11,7 +11,7 @@ namespace aurora {
         glm::vec2 scale{1.f, 1.f};
         float rotation;
 
-        glm::mat4 mat4() {
+        glm::mat4 mat4() const {
             const float s = glm::sin(rotation);
             const float c = glm::cos(rotation);
             
@@ -60,9 +60,29 @@ namespace aurora {
             std::shared_ptr<AuroraModel> model{};
             glm::vec3 color{};
             TransformComponent transform{};
+
+            virtual void addChild(std::unique_ptr<AuroraComponentInterface> child) {
+                child->parent = this;
+                children.push_back(std::move(child));
+            }
+
+            virtual void updateHierarchy(float deltaTime) {
+                update(deltaTime);
+
+                for (auto &child : children) {
+                    child->update(deltaTime);
+                    child->updateHierarchy(deltaTime);
+                }
+            }
+            
+            std::vector<std::unique_ptr<AuroraComponentInterface>>& getChildren() {
+                return children;
+            }
             
         protected:
             AuroraDevice &auroraDevice;
+            std::vector<std::unique_ptr<AuroraComponentInterface>> children;
+            AuroraComponentInterface* parent = nullptr;
             
         private:
             virtual void initialize() {};

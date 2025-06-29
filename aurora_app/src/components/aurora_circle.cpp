@@ -1,4 +1,4 @@
-#include "aurora_app/components/aurora_circle_component.hpp"
+#include "aurora_app/components/aurora_circle.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -7,18 +7,18 @@
 #include <memory>
 
 namespace aurora {
-    AuroraCircleComponent::AuroraCircleComponent(AuroraDevice &device, float radius)
+    AuroraCircle::AuroraCircle(AuroraDevice &device, float radius)
         : AuroraComponentInterface{device}, radius{radius} {
         initialize();
     }
 
-    void AuroraCircleComponent::initialize() {
+    void AuroraCircle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = createCircleVertices(64);
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
         color = {1.0f, 1.0f, 1.0f};
     }
 
-    std::vector<AuroraModel::Vertex> AuroraCircleComponent::createCircleVertices(int numSegments) {
+    std::vector<AuroraModel::Vertex> AuroraCircle::createCircleVertices(int numSegments) {
         std::vector<AuroraModel::Vertex> vertices;
         float angleIncrement = 2.0f * glm::pi<float>() / numSegments;
 

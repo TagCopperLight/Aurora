@@ -3,9 +3,9 @@
 #include "aurora_component_interface.hpp"
 
 namespace aurora {
-    class AuroraRoundedRectangleComponent : public AuroraComponentInterface {
+    class AuroraTriangle : public AuroraComponentInterface {
         public:
-            AuroraRoundedRectangleComponent(AuroraDevice &device, glm::vec2 size, float radius);
+            AuroraTriangle(AuroraDevice &device);
 
             // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
@@ -19,14 +19,10 @@ namespace aurora {
             }
             
             VkPrimitiveTopology getTopology() const override {
-                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             }
 
         private:
             void initialize() override;
-            std::vector<AuroraModel::Vertex> createRoundedRectangleVertices(int numSegments);
-
-            glm::vec2 size;
-            float radius;
     };
 }

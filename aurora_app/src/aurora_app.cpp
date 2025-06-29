@@ -1,9 +1,11 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
-#include "aurora_app/components/aurora_circle_component.hpp"
-#include "aurora_app/components/aurora_rounded_rect_component.hpp"
-#include "aurora_app/components/aurora_triangle_component.hpp"
+#include "aurora_app/components/aurora_circle.hpp"
+#include "aurora_app/components/aurora_rounded_rect.hpp"
+#include "aurora_app/components/aurora_triangle.hpp"
+#include "aurora_app/components/aurora_rounded_borders.hpp"
+#include "aurora_app/components/aurora_rounded_shadows.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -50,20 +52,21 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.1f);
-        circleComponent->color = {1.0f, 0.0f, 0.0f}; // Red color
-        renderSystemManager->addComponent(std::move(circleComponent));
-        
-        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.1f);
+        auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f, 0.0075f);
+        bordersComponent->color = {0.784f, 0.38f, 0.286f};
+        float borderZ = bordersComponent->transform.translation.z;
+        renderSystemManager->addComponent(std::move(bordersComponent));
+
+        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f);
+        roundedRectComponent->color = {0.196f, 0.196f, 0.196f};
+        roundedRectComponent->transform.translation.z = borderZ + 0.01f;
         renderSystemManager->addComponent(std::move(roundedRectComponent));
-        
-        auto roundedRectComponent2 = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.0f);
-        roundedRectComponent2->color = {0.0f, 1.0f, 0.0f}; // Green color
-        roundedRectComponent2->transform.translation.z = -0.5f;
-        renderSystemManager->addComponent(std::move(roundedRectComponent2));
-        
-        spdlog::info("Created {} render systems with {} total components", 
-                     renderSystemManager->getRenderSystemCount(), 
+
+        auto shadowBordersComponent = std::make_unique<AuroraRoundedShadows>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f, 0.025f);
+        renderSystemManager->addComponent(std::move(shadowBordersComponent));
+
+        spdlog::info("Created {} render systems with {} total components",
+                     renderSystemManager->getRenderSystemCount(),
                      renderSystemManager->getTotalComponentCount());
     }
 }

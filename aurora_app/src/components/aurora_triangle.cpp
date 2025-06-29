@@ -1,13 +1,13 @@
-#include "aurora_app/components/aurora_triangle_component.hpp"
+#include "aurora_app/components/aurora_triangle.hpp"
 
 #include <memory>
 
 namespace aurora {
-    AuroraTriangleComponent::AuroraTriangleComponent(AuroraDevice &device) : AuroraComponentInterface{device} {
+    AuroraTriangle::AuroraTriangle(AuroraDevice &device) : AuroraComponentInterface{device} {
         initialize();
     }
 
-    void AuroraTriangleComponent::initialize() {
+    void AuroraTriangle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = {
             {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},

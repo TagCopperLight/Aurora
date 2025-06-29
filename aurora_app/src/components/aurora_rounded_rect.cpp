@@ -1,4 +1,4 @@
-#include "aurora_app/components/aurora_rounded_rect_component.hpp"
+#include "aurora_app/components/aurora_rounded_rect.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,18 +8,18 @@
 #include <iostream>
 
 namespace aurora {
-    AuroraRoundedRectangleComponent::AuroraRoundedRectangleComponent(AuroraDevice &device, glm::vec2 size, float radius)
+    AuroraRoundedRectangle::AuroraRoundedRectangle(AuroraDevice &device, glm::vec2 size, float radius)
         : AuroraComponentInterface{device}, size{size}, radius{radius} {
         initialize();
     }
 
-    void AuroraRoundedRectangleComponent::initialize() {
+    void AuroraRoundedRectangle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = createRoundedRectangleVertices(16);
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
         color = {1.0f, 1.0f, 1.0f};
     }
 
-    std::vector<AuroraModel::Vertex> AuroraRoundedRectangleComponent::createRoundedRectangleVertices(int numSegments) {
+    std::vector<AuroraModel::Vertex> AuroraRoundedRectangle::createRoundedRectangleVertices(int numSegments) {
         std::vector<AuroraModel::Vertex> vertices;
 
         std::vector<glm::vec2> corners = {

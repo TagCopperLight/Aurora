@@ -3,29 +3,31 @@
 #include "aurora_component_interface.hpp"
 
 namespace aurora {
-    class AuroraCircleComponent : public AuroraComponentInterface {
+    class AuroraRoundedShadows : public AuroraComponentInterface {
         public:
-            AuroraCircleComponent(AuroraDevice &device, float radius);
+            AuroraRoundedShadows(AuroraDevice &device, glm::vec2 size, float radius, float borderWidth);
 
             // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
-                static const std::string vertexPath = "aurora_app/shaders/shader.vert.spv";
+                static const std::string vertexPath = "aurora_app/shaders/shadow.vert.spv";
                 return vertexPath;
             }
             
             const std::string& getFragmentShaderPath() const override {
-                static const std::string fragmentPath = "aurora_app/shaders/shader.frag.spv";
+                static const std::string fragmentPath = "aurora_app/shaders/shadow.frag.spv";
                 return fragmentPath;
             }
             
             VkPrimitiveTopology getTopology() const override {
-                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
             }
 
         private:
             void initialize() override;
-            std::vector<AuroraModel::Vertex> createCircleVertices(int numSegments);
+            std::vector<AuroraModel::Vertex> createRoundedRectangleVertices(int numSegments, float deltaLength);
 
+            glm::vec2 size;
             float radius;
+            float borderWidth;
     };
 }

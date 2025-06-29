@@ -7,8 +7,8 @@
 #include <memory>
 
 namespace aurora {
-    AuroraCircleComponent::AuroraCircleComponent(AuroraDevice &device, float radius, glm::vec2 position)
-        : AuroraComponentInterface{device}, radius{radius}, position{position} {
+    AuroraCircleComponent::AuroraCircleComponent(AuroraDevice &device, float radius)
+        : AuroraComponentInterface{device}, radius{radius} {
         initialize();
     }
 

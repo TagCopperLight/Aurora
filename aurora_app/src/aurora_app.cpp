@@ -2,6 +2,8 @@
 #include "aurora_app/graphics/aurora_render_system.hpp"
 
 #include "aurora_app/components/aurora_circle_component.hpp"
+#include "aurora_app/components/aurora_rounded_rect_component.hpp"
+#include "aurora_app/components/aurora_triangle_component.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -57,8 +59,14 @@ namespace aurora {
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN
         );
 
-        auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.5f, glm::vec2(0.0f, 0.0f));
+        auto circleComponent = std::make_unique<AuroraCircleComponent>(auroraDevice, 0.1f);
+        circleComponent->color = {1.0f, 0.0f, 0.0f}; // Red color
         circleRenderSystem->addComponent(std::move(circleComponent));
+        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.1f);
+        circleRenderSystem->addComponent(std::move(roundedRectComponent));
+        auto roundedRectComponent2 = std::make_unique<AuroraRoundedRectangleComponent>(auroraDevice, glm::vec2(0.5f, 0.5f), 0.0f);
+        roundedRectComponent2->color = {0.0f, 1.0f, 0.0f}; // Green color
+        circleRenderSystem->addComponent(std::move(roundedRectComponent2));
 
         renderSystems.push_back(std::move(circleRenderSystem));
     }

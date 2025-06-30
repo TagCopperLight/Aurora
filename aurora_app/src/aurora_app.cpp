@@ -1,11 +1,7 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
-#include "aurora_app/components/aurora_circle.hpp"
-#include "aurora_app/components/aurora_rounded_rect.hpp"
-#include "aurora_app/components/aurora_triangle.hpp"
-#include "aurora_app/components/aurora_rounded_borders.hpp"
-#include "aurora_app/components/aurora_rounded_shadows.hpp"
+#include "aurora_app/components/aurora_card.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -68,18 +64,8 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f, 0.0075f);
-        bordersComponent->color = {0.784f, 0.38f, 0.286f, 1.0f};
-        float borderZ = bordersComponent->transform.translation.z;
-        renderSystemManager->addComponent(std::move(bordersComponent));
-
-        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f);
-        roundedRectComponent->color = {0.196f, 0.196f, 0.196f, 1.0f};
-        roundedRectComponent->transform.translation.z = borderZ + 0.01f;
-        renderSystemManager->addComponent(std::move(roundedRectComponent));
-
-        auto shadowBordersComponent = std::make_unique<AuroraRoundedShadows>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f, 0.025f);
-        renderSystemManager->addComponent(std::move(shadowBordersComponent));
+        auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(0.8f, 0.8f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
+        renderSystemManager->addComponent(std::move(cardComponent));
 
         spdlog::info("Created {} render systems with {} total components",
                      renderSystemManager->getRenderSystemCount(),

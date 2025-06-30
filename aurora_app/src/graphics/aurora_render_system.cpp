@@ -59,7 +59,7 @@ namespace aurora {
         auroraPipeline->bind(commandBuffer);
 
         for (const auto& component : components) {
-            if (component->isHidden()) {
+            if (component->isHidden() || !component->model) {
                 continue;
             }
 

@@ -11,6 +11,7 @@ add_executable(debug_example ${SOURCES})
 target_link_libraries(debug_example PRIVATE
     aurora_app
     aurora_engine
+    fontconfig
 )
 
 # Set compiler-specific options

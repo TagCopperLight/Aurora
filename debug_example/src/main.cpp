@@ -5,10 +5,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <spdlog/spdlog.h>
+#include <fontconfig/fontconfig.h>
 
 int main(){
     spdlog::set_level(spdlog::level::info);
-    
+
+    FcInit();
+
     spdlog::info("Starting Aurora Vulkan Application");
     aurora::AuroraApp app{};
 

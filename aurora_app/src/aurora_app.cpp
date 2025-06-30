@@ -16,6 +16,8 @@
 #include <array>
 #include <spdlog/spdlog.h>
 #include <cassert>
+// #include <chrono>
+// #include <thread>
 
 namespace aurora {
     AuroraApp::AuroraApp() {
@@ -30,7 +32,12 @@ namespace aurora {
     void AuroraApp::run() {
         AuroraCamera camera;
         
+        const auto targetFrameTime = std::chrono::microseconds(1000000/60);
+        auto lastFrameTime = std::chrono::high_resolution_clock::now();
+        
         while (!auroraWindow.shouldClose()) {
+            auto frameStart = std::chrono::high_resolution_clock::now();
+            
             glfwPollEvents();
 
             float aspect = auroraRenderer.getAspectRatio();
@@ -46,6 +53,15 @@ namespace aurora {
             } else {
                 spdlog::warn("Failed to begin frame, skipping rendering");
             }
+            
+            auto frameEnd = std::chrono::high_resolution_clock::now();
+            auto frameTime = frameEnd - frameStart;
+            
+            if (frameTime < targetFrameTime) {
+                std::this_thread::sleep_for(targetFrameTime - frameTime);
+            }
+            
+            lastFrameTime = frameStart;
         }
 
         vkDeviceWaitIdle(auroraDevice.device());

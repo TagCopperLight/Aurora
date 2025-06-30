@@ -7,7 +7,7 @@ layout(location = 0) out vec4 fragColor;
 
 layout(push_constant) uniform Push {
     mat4 transform;
-    vec4 color;
+    vec3 color;
 } push;
 
 void main() {

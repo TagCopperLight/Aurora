@@ -16,7 +16,7 @@ namespace aurora {
     void AuroraRoundedRectangle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = createRoundedRectangleVertices(16);
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
-        color = {1.0f, 1.0f, 1.0f};
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 
     std::vector<AuroraModel::Vertex> AuroraRoundedRectangle::createRoundedRectangleVertices(int numSegments) {
@@ -40,11 +40,6 @@ namespace aurora {
                 vertices.push_back({position, color});
             }
         }
-
-        // for (int i = 0; i < 4; ++i) {
-        //     std::cout << "Adding corner " << i << ": " << corners[i].x << ", " << corners[i].y << std::endl;
-        //     vertices.push_back({corners[i], color});
-        // }
 
         return vertices;
     }

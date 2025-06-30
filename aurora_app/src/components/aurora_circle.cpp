@@ -15,7 +15,7 @@ namespace aurora {
     void AuroraCircle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = createCircleVertices(64);
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
-        color = {1.0f, 1.0f, 1.0f};
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 
     std::vector<AuroraModel::Vertex> AuroraCircle::createCircleVertices(int numSegments) {

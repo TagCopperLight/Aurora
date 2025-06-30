@@ -69,12 +69,12 @@ namespace aurora {
 
     void AuroraApp::createRenderSystems() {
         auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f, 0.0075f);
-        bordersComponent->color = {0.784f, 0.38f, 0.286f};
+        bordersComponent->color = {0.784f, 0.38f, 0.286f, 1.0f};
         float borderZ = bordersComponent->transform.translation.z;
         renderSystemManager->addComponent(std::move(bordersComponent));
 
         auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(auroraDevice, glm::vec2(0.8f, 0.8f), 0.1f);
-        roundedRectComponent->color = {0.196f, 0.196f, 0.196f};
+        roundedRectComponent->color = {0.196f, 0.196f, 0.196f, 1.0f};
         roundedRectComponent->transform.translation.z = borderZ + 0.01f;
         renderSystemManager->addComponent(std::move(roundedRectComponent));
 

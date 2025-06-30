@@ -20,18 +20,18 @@ namespace aurora {
 
         for (size_t i = 0; i < outerVertices.size(); ++i) {
             vertices.push_back(outerVertices[i]);
-            vertices.back().color = {1.0f, 1.0f, 1.0f}; // Outer vertices are white
+            vertices.back().color = {1.0f, 1.0f, 1.0f, 1.0f}; // Outer vertices are white
             vertices.push_back(innerVertices[i]);
-            vertices.back().color = {0.0f, 0.0f, 0.0f}; // Inner vertices are black
+            vertices.back().color = {0.0f, 0.0f, 0.0f, 1.0f}; // Inner vertices are black
         }
 
         vertices.push_back(outerVertices[0]);
-        vertices.back().color = {1.0f, 1.0f, 1.0f}; // Closing the outer loop
+        vertices.back().color = {1.0f, 1.0f, 1.0f, 1.0f}; // Closing the outer loop
         vertices.push_back(innerVertices[0]);
-        vertices.back().color = {0.0f, 0.0f, 0.0f}; // Closing the inner loop
+        vertices.back().color = {0.0f, 0.0f, 0.0f, 1.0f}; // Closing the inner loop
 
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
-        color = {1.0f, 1.0f, 1.0f};
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 
     std::vector<AuroraModel::Vertex> AuroraRoundedShadows::createRoundedRectangleVertices(int numSegments, float deltaLength) {
@@ -57,11 +57,6 @@ namespace aurora {
                 vertices.push_back({position, color});
             }
         }
-
-        // for (int i = 0; i < 4; ++i) {
-        //     std::cout << "Adding corner " << i << ": " << corners[i].x << ", " << corners[i].y << std::endl;
-        //     vertices.push_back({corners[i], color});
-        // }
 
         return vertices;
     }

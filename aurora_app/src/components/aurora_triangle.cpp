@@ -9,12 +9,12 @@ namespace aurora {
 
     void AuroraTriangle::initialize() {
         std::vector<AuroraModel::Vertex> vertices = {
-            {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+            {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+            {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
         };
 
         model = std::make_shared<AuroraModel>(auroraDevice, vertices);
-        color = {1.0f, 1.0f, 1.0f};
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }

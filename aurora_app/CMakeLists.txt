@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES
 # Add custom command to compile shaders
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../compile.sh
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../compile_shaders.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag
     COMMENT "Compiling shaders for aurora_app"

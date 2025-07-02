@@ -12,8 +12,10 @@
 #include <array>
 #include <spdlog/spdlog.h>
 #include <cassert>
-// #include <chrono>
-// #include <thread>
+#include <chrono>
+#include <thread>
+#include <fstream>
+#include <iomanip>
 
 namespace aurora {
     AuroraApp::AuroraApp() {
@@ -28,8 +30,15 @@ namespace aurora {
     void AuroraApp::run() {
         AuroraCamera camera;
         
-        const auto targetFrameTime = std::chrono::microseconds(1000000/60);
+        const int targetFrameRate = 60;
+        const auto targetFrameTime = std::chrono::microseconds(1000000 / targetFrameRate);
         auto lastFrameTime = std::chrono::high_resolution_clock::now();
+        auto appStartTime = std::chrono::high_resolution_clock::now();
+        
+        // Frame time logging
+        std::ofstream frameTimeFile("frame_times.csv");
+        frameTimeFile << "timestamp_ms,frame_time_ms,fps\n";
+        frameTimeFile << std::fixed << std::setprecision(3);
         
         while (!auroraWindow.shouldClose()) {
             auto frameStart = std::chrono::high_resolution_clock::now();
@@ -51,15 +60,29 @@ namespace aurora {
             }
             
             auto frameEnd = std::chrono::high_resolution_clock::now();
-            auto frameTime = frameEnd - frameStart;
+            auto renderTime = frameEnd - frameStart;
+
+            // auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
+            // if (renderTimeMicros < targetFrameTime) {
+            //     auto sleepTime = targetFrameTime - renderTimeMicros;
+            //     std::this_thread::sleep_for(sleepTime);
+            // }
             
-            if (frameTime < targetFrameTime) {
-                std::this_thread::sleep_for(targetFrameTime - frameTime);
-            }
+            auto actualFrameEnd = std::chrono::high_resolution_clock::now();
+            auto frameTime = actualFrameEnd - frameStart;
+            
+            auto timeSinceStart = frameStart - appStartTime;
+            double timestampMs = std::chrono::duration<double, std::milli>(timeSinceStart).count();
+            double frameTimeMs = std::chrono::duration<double, std::milli>(frameTime).count();
+            double fps = 1000.0 / frameTimeMs;
+            
+            frameTimeFile << timestampMs << "," << frameTimeMs << "," << fps << "\n";
             
             lastFrameTime = frameStart;
         }
 
+        frameTimeFile.close();
+        spdlog::info("Frame time data saved to frame_times.csv");
         vkDeviceWaitIdle(auroraDevice.device());
     }
 

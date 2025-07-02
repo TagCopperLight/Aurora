@@ -43,6 +43,7 @@ namespace aurora {
             void init();
             void createSwapChain();
             void createImageViews();
+            void createColorResources();
             void createDepthResources();
             void createRenderPass();
             void createFramebuffers();
@@ -64,6 +65,11 @@ namespace aurora {
             std::vector<VkImageView> depthImageViews;
             std::vector<VkImage> swapChainImages;
             std::vector<VkImageView> swapChainImageViews;
+            
+            // MSAA resources
+            std::vector<VkImage> colorImages;
+            std::vector<VkDeviceMemory> colorImageMemorys;
+            std::vector<VkImageView> colorImageViews;
 
             AuroraDevice &device;
             VkExtent2D windowExtent;

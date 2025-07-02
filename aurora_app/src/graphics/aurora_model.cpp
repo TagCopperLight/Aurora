@@ -5,13 +5,19 @@
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    AuroraModel::AuroraModel(AuroraDevice& device, const std::vector<Vertex>& vertices) : auroraDevice{device} {
-        createVertexBuffers(vertices);
+    AuroraModel::AuroraModel(AuroraDevice& device, const AuroraModel::Builder &builder) : auroraDevice{device} {
+        createVertexBuffers(builder.vertices);
+        createIndexBuffers(builder.indices);
     }
 
     AuroraModel::~AuroraModel() {
         vkDestroyBuffer(auroraDevice.device(), vertexBuffer, nullptr);
         vkFreeMemory(auroraDevice.device(), vertexBufferMemory, nullptr);
+
+        if (hasIndexBuffer) {
+            vkDestroyBuffer(auroraDevice.device(), indexBuffer, nullptr);
+            vkFreeMemory(auroraDevice.device(), indexBufferMemory, nullptr);
+        }
     }
 
     void AuroraModel::createVertexBuffers(const std::vector<Vertex> &vertices) {
@@ -32,14 +38,45 @@ namespace aurora {
         vkUnmapMemory(auroraDevice.device(), vertexBufferMemory);
     }
 
+    void AuroraModel::createIndexBuffers(const std::vector<uint32_t> &indices) {
+        indexCount = static_cast<uint32_t>(indices.size());
+        hasIndexBuffer = indexCount > 0;
+
+        if (!hasIndexBuffer) {
+            return;
+        }
+        
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
+        auroraDevice.createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            indexBuffer,
+            indexBufferMemory
+        );
+
+        void *data;
+        vkMapMemory(auroraDevice.device(), indexBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+        vkUnmapMemory(auroraDevice.device(), indexBufferMemory);
+    }
+
     void AuroraModel::draw(VkCommandBuffer commandBuffer) {
-        vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+        if (hasIndexBuffer) {
+            vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+        } else {
+            vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+        }
     }
 
     void AuroraModel::bind(VkCommandBuffer commandBuffer) {
         VkBuffer buffers[] = {vertexBuffer};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+
+        if (hasIndexBuffer) {
+            vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        }
     }
 
     std::vector<VkVertexInputBindingDescription> AuroraModel::Vertex::getBindingDescriptions() {

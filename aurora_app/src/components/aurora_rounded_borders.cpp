@@ -26,7 +26,9 @@ namespace aurora {
         vertices.push_back(outerVertices[0]);
         vertices.push_back(innerVertices[0]);
 
-        model = std::make_shared<AuroraModel>(auroraDevice, vertices);
+        AuroraModel::Builder builder{};
+        builder.vertices = vertices;
+        model = std::make_shared<AuroraModel>(auroraDevice, builder);
         color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 

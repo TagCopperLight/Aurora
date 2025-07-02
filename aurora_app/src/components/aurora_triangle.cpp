@@ -14,7 +14,9 @@ namespace aurora {
             {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
         };
 
-        model = std::make_shared<AuroraModel>(auroraDevice, vertices);
+        AuroraModel::Builder builder{};
+        builder.vertices = vertices;
+        model = std::make_shared<AuroraModel>(auroraDevice, builder);
         color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }

@@ -1046,3 +1046,4 @@ dkms.conf
 
 .vscode/
 *.spv
+frame_times.csv

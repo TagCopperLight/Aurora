@@ -9,6 +9,23 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(spdlog REQUIRED)
 
+# Find MSDF libraries manually
+find_library(MSDFGEN_CORE_LIB msdfgen-core)
+find_library(MSDFGEN_EXT_LIB msdfgen-ext)
+find_library(MSDF_ATLAS_GEN_LIB msdf-atlas-gen)
+
+if(NOT MSDFGEN_CORE_LIB)
+    message(FATAL_ERROR "msdfgen-core library not found")
+endif()
+
+if(NOT MSDFGEN_EXT_LIB)
+    message(FATAL_ERROR "msdfgen-ext library not found")
+endif()
+
+if(NOT MSDF_ATLAS_GEN_LIB)
+    message(FATAL_ERROR "msdf-atlas-gen library not found")
+endif()
+
 # Add subdirectories in dependency order
 add_subdirectory(aurora_engine)
 add_subdirectory(aurora_app)

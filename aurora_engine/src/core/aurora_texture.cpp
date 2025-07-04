@@ -30,6 +30,11 @@ namespace aurora {
             createTextureImageView(VK_IMAGE_VIEW_TYPE_2D);
             textureLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         }
+        if (usage & VK_IMAGE_USAGE_SAMPLED_BIT) {
+            createTextureImageView(VK_IMAGE_VIEW_TYPE_2D);
+            createTextureSampler();
+            textureLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
 
         updateDescriptor();
     }

@@ -3,6 +3,7 @@
 #include "aurora_pipeline.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
+#include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
 
 #include <memory>
@@ -11,7 +12,7 @@
 namespace aurora {
     class AuroraRenderSystem {
         public:
-            AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
+            AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology, AuroraDescriptorPool* descriptorPool);
             ~AuroraRenderSystem();
 
             AuroraRenderSystem(const AuroraRenderSystem&) = delete;
@@ -42,11 +43,18 @@ namespace aurora {
         private:
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
+            void createUniformBuffers();
 
             AuroraDevice& auroraDevice;
 
             std::unique_ptr<AuroraPipeline> auroraPipeline;
             VkPipelineLayout pipelineLayout;
+
+            std::vector<std::unique_ptr<AuroraBuffer>> uniformBuffers;
+
+            AuroraDescriptorPool* globalDescriptorPool;
+            std::vector<std::unique_ptr<AuroraDescriptorSetLayout>> descriptorSetLayouts{};
+            std::vector<VkDescriptorSet> descriptorSets{};
 
             std::vector<std::unique_ptr<AuroraComponentInterface>> components;
             

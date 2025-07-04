@@ -5,7 +5,12 @@
 
 namespace aurora {
     AuroraRenderSystemManager::AuroraRenderSystemManager(AuroraDevice& device, VkRenderPass renderPass) 
-        : auroraDevice{device}, renderPass{renderPass} {
+    : auroraDevice{device}, renderPass{renderPass} {
+        globalDescriptorPool = AuroraDescriptorPool::Builder(auroraDevice)
+            .setMaxSets(100)  // Allow for many render systems
+            .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100)
+            .build();
+
         spdlog::info("RenderSystemManager initialized");
     }
 
@@ -71,7 +76,8 @@ namespace aurora {
             renderPass,
             component.getVertexShaderPath(),
             component.getFragmentShaderPath(),
-            component.getTopology()
+            component.getTopology(),
+            globalDescriptorPool.get()
         );
     }
 }

@@ -3,6 +3,7 @@
 #include "aurora_render_system.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
+#include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
 #include <vulkan/vulkan.h>
 
@@ -36,5 +37,7 @@ namespace aurora {
             AuroraDevice& auroraDevice;
             VkRenderPass renderPass;
             std::vector<std::unique_ptr<AuroraRenderSystem>> renderSystems;
+            
+            std::unique_ptr<AuroraDescriptorPool> globalDescriptorPool;
     };
 }

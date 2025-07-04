@@ -18,13 +18,10 @@ namespace aurora {
                 glm::vec4 color;
                 glm::vec2 texCoord;
 
-                // Default constructor
                 Vertex() = default;
 
-                // Constructor for vec3 position and vec4 color
                 Vertex(const glm::vec3& pos, const glm::vec4& col) : position(pos), color(col), texCoord(0.0f, 0.0f) {}
 
-                // Constructor for vec2 position (z=0) and vec4 color
                 Vertex(const glm::vec2& pos, const glm::vec4& col) : position(pos.x, pos.y, 0.0f), color(col), texCoord(0.0f, 0.0f) {}
 
                 static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();

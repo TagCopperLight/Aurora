@@ -12,7 +12,7 @@ namespace aurora {
     }
 
     AuroraBuffer::AuroraBuffer(AuroraDevice &device, VkDeviceSize instanceSize, uint32_t instanceCount, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize minOffsetAlignment)
-    : auroraDevice{device}, instanceSize{instanceSize}, instanceCount{instanceCount}, usageFlags{usageFlags}, memoryPropertyFlags{memoryPropertyFlags} {
+    : auroraDevice{device}, instanceCount{instanceCount}, instanceSize{instanceSize}, usageFlags{usageFlags}, memoryPropertyFlags{memoryPropertyFlags} {
         alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
         bufferSize = alignmentSize * instanceCount;
         device.createBuffer(bufferSize, usageFlags, memoryPropertyFlags, buffer, memory);

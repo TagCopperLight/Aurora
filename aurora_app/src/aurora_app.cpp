@@ -2,6 +2,7 @@
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include "aurora_app/components/aurora_card.hpp"
+#include "aurora_app/components/aurora_text.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -89,6 +90,11 @@ namespace aurora {
     void AuroraApp::createRenderSystems() {
         auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(0.8f, 0.8f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
         renderSystemManager->addComponent(std::move(cardComponent));
+        
+        // Create a text component using the atlas from the render system manager
+        auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Ils seraient pas sur League Voice ?", renderSystemManager->getMSDFAtlas(), 2.5f);
+        textComponent->transform.translation = glm::vec3(-0.9f, 0.1f, 0.0f); // Position it to the left of the card
+        renderSystemManager->addComponent(std::move(textComponent));
 
         spdlog::info("Created {} render systems with {} total components",
                      renderSystemManager->getRenderSystemCount(),

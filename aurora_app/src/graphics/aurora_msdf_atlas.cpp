@@ -10,7 +10,7 @@ namespace aurora {
     }
 
     AuroraMSDFAtlas::AuroraMSDFAtlas(AuroraDevice& device, const std::string& fontPath, const Config& config)
-    : auroraDevice{device}, config{config}, fontHandle{nullptr} {
+    : auroraDevice{device}, config{config}, fontHandle{nullptr}, fontGeometry{&glyphGeometry} {
         // Initialize FreeType handle
         freetypeHandle = msdfgen::initializeFreetype();
 
@@ -93,6 +93,10 @@ namespace aurora {
         atlasStorage = std::make_unique<msdf_atlas::BitmapAtlasStorage<msdf_atlas::byte, 3>>(
             generator.atlasStorage()
         );
+
+        // Store glyph geometry for later access
+        glyphGeometry = std::move(glyphs);
+        this->fontGeometry = msdf_atlas::FontGeometry(&glyphGeometry);
 
         createAtlasTexture();
 
@@ -200,5 +204,64 @@ namespace aurora {
         } else {
             spdlog::error("Failed to save MSDF atlas as PNG");
         }
+    }
+    
+    bool AuroraMSDFAtlas::getGlyphInfo(char character, GlyphInfo& glyphInfo) const {
+        // Find the glyph in the geometry
+        for (const auto& glyph : glyphGeometry) {
+            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(character)) {
+                // Get atlas bounds (texture coordinates)
+                double left, bottom, right, top;
+                glyph.getQuadAtlasBounds(left, bottom, right, top);
+                
+                // Convert to normalized atlas coordinates (0-1)
+                glyphInfo.atlasBounds = glm::vec4(
+                    static_cast<float>(left / config.width),
+                    static_cast<float>(bottom / config.height),
+                    static_cast<float>((right - left) / config.width),
+                    static_cast<float>((top - bottom) / config.height)
+                );
+                
+                // Get plane bounds (font units)
+                glyph.getQuadPlaneBounds(left, bottom, right, top);
+                glyphInfo.planeBounds = glm::vec4(
+                    static_cast<float>(left),
+                    static_cast<float>(bottom),
+                    static_cast<float>(right - left),
+                    static_cast<float>(top - bottom)
+                );
+                
+                // Get advance
+                glyphInfo.advance = glyph.getAdvance();
+                
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    double AuroraMSDFAtlas::getKerning(char left, char right) const {
+        // Find both glyphs
+        const msdf_atlas::GlyphGeometry* leftGlyph = nullptr;
+        const msdf_atlas::GlyphGeometry* rightGlyph = nullptr;
+        
+        for (const auto& glyph : glyphGeometry) {
+            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(left)) {
+                leftGlyph = &glyph;
+            }
+            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(right)) {
+                rightGlyph = &glyph;
+            }
+        }
+        
+        if (leftGlyph && rightGlyph) {
+            auto kerningMap = fontGeometry.getKerning();
+            auto it = kerningMap.find({leftGlyph->getCodepoint(), rightGlyph->getCodepoint()});
+            if (it != kerningMap.end()) {
+                return it->second;
+            }
+        }
+        
+        return 0.0;
     }
 }

@@ -2,6 +2,10 @@
 
 #include <msdf-atlas-gen/msdf-atlas-gen.h>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include "aurora_engine/core/aurora_texture.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
 
@@ -35,6 +39,16 @@ namespace aurora {
 
             const AuroraTexture& getAtlasTexture() const { return *atlasTexture; }
             const VkDescriptorImageInfo& getDescriptorInfo() const { return atlasTexture->getDescriptorInfo(); }
+            
+            // Glyph information access
+            struct GlyphInfo {
+                glm::vec4 atlasBounds;  // x, y, width, height in atlas coordinates (0-1)
+                glm::vec4 planeBounds;  // x, y, width, height in font units
+                double advance;         // Horizontal advance for the glyph
+            };
+            
+            bool getGlyphInfo(char character, GlyphInfo& glyphInfo) const;
+            double getKerning(char left, char right) const;
 
         private:
             void createAtlasTexture();
@@ -48,6 +62,10 @@ namespace aurora {
             std::unique_ptr<AuroraTexture> atlasTexture;
             
             std::unique_ptr<msdf_atlas::BitmapAtlasStorage<msdf_atlas::byte, 3>> atlasStorage;
+            
+            // Store glyph geometry for later access
+            std::vector<msdf_atlas::GlyphGeometry> glyphGeometry;
+            msdf_atlas::FontGeometry fontGeometry;
 
             void freeFont();
     };

@@ -29,6 +29,8 @@ namespace aurora {
             }
 
             size_t getTotalComponentCount() const;
+            
+            const AuroraMSDFAtlas& getMSDFAtlas() const { return *msdfAtlas; }
 
         private:
             AuroraRenderSystem* findCompatibleRenderSystem(const AuroraComponentInterface& component);

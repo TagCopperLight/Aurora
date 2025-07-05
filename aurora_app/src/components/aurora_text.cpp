@@ -11,7 +11,6 @@ namespace aurora {
 
     void AuroraText::initialize() {
         color = {1.0f, 1.0f, 1.0f, 1.0f};
-        spdlog::info("Initializing text component with text: '{}', fontSize: {}", text, fontSize);
         rebuildGeometry();
     }
 
@@ -61,8 +60,6 @@ namespace aurora {
         builder.vertices = vertices;
         builder.indices = indices;
         model = std::make_shared<AuroraModel>(auroraDevice, builder);
-
-        spdlog::info("Rebuilt text geometry for '{}', {} vertices, {} indices", text, vertices.size(), indices.size());
     }
 
     std::vector<AuroraModel::Vertex> AuroraText::createTextVertices() {

@@ -18,7 +18,15 @@ namespace aurora {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+        // Get primary monitor for fullscreen
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        
+        // Update width and height to match monitor resolution
+        width = mode->width;
+        height = mode->height;
+
+        window = glfwCreateWindow(width, height, windowName.c_str(), monitor, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     }

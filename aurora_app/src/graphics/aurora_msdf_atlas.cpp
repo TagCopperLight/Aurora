@@ -23,6 +23,8 @@ namespace aurora {
         }
 
         uploadAtlasToTexture();
+
+        spdlog::info("MSDF Atlas generated with dimensions: {}x{}", config.width, config.height);
     }
 
     AuroraMSDFAtlas::~AuroraMSDFAtlas() {
@@ -40,7 +42,6 @@ namespace aurora {
             return false;
         }
 
-        spdlog::info("Font loaded successfully from path: {}", fontPath);
         return true;
     }
 
@@ -96,7 +97,7 @@ namespace aurora {
 
         
         glyphGeometry = std::move(glyphs);
-        this->fontGeometry = msdf_atlas::FontGeometry(&glyphGeometry);
+        fontGeometry = msdf_atlas::FontGeometry(&glyphGeometry);
 
         createAtlasTexture();
 
@@ -181,8 +182,6 @@ namespace aurora {
 
         vkDestroyBuffer(auroraDevice.device(), stagingBuffer, nullptr);
         vkFreeMemory(auroraDevice.device(), stagingBufferMemory, nullptr);
-        
-        spdlog::info("Successfully uploaded MSDF atlas data to texture");
     }
     
     void AuroraMSDFAtlas::saveAtlasAsPNG(const std::string& outputPath) const {

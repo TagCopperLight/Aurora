@@ -8,12 +8,12 @@ namespace aurora {
             AuroraRoundedShadows(AuroraDevice &device, glm::vec2 size, float radius, float borderWidth);
 
             const std::string& getVertexShaderPath() const override {
-                static const std::string vertexPath = "aurora_app/shaders/shadow.vert.spv";
+                static const std::string vertexPath = "shaders/shadow.vert.spv";
                 return vertexPath;
             }
             
             const std::string& getFragmentShaderPath() const override {
-                static const std::string fragmentPath = "aurora_app/shaders/shadow.frag.spv";
+                static const std::string fragmentPath = "shaders/shadow.frag.spv";
                 return fragmentPath;
             }
             

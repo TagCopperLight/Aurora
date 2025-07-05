@@ -3,30 +3,60 @@ project(aurora_app)
 
 # Note: CXX standard and packages are set in root CMakeLists.txt
 
+# Find glslc compiler for shader compilation
+find_program(GLSLC glslc REQUIRED)
+
 # Collect all source files
 file(GLOB_RECURSE SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-# Add custom command to compile shaders
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../compile_shaders.sh
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag
-    COMMENT "Compiling shaders for aurora_app"
-    VERBATIM
-)
+# Collect all shader files
+file(GLOB VERTEX_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")
+file(GLOB FRAGMENT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
 
-# Add custom target to ensure shader compilation happens
+# Create build/shaders directory
+set(SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+file(MAKE_DIRECTORY ${SHADER_OUTPUT_DIR})
+
+# Function to compile shaders
+function(compile_shader SHADER_FILE OUTPUT_FILE)
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        COMMAND ${GLSLC} ${SHADER_FILE} -o ${OUTPUT_FILE}
+        DEPENDS ${SHADER_FILE}
+        COMMENT "Compiling shader: ${SHADER_FILE}"
+    )
+endfunction()
+
+# Compile vertex shaders
+set(COMPILED_VERTEX_SHADERS)
+foreach(SHADER_FILE ${VERTEX_SHADERS})
+    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
+    set(OUTPUT_FILE "${SHADER_OUTPUT_DIR}/${SHADER_NAME}.spv")
+    compile_shader(${SHADER_FILE} ${OUTPUT_FILE})
+    list(APPEND COMPILED_VERTEX_SHADERS ${OUTPUT_FILE})
+endforeach()
+
+# Compile fragment shaders
+set(COMPILED_FRAGMENT_SHADERS)
+foreach(SHADER_FILE ${FRAGMENT_SHADERS})
+    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
+    set(OUTPUT_FILE "${SHADER_OUTPUT_DIR}/${SHADER_NAME}.spv")
+    compile_shader(${SHADER_FILE} ${OUTPUT_FILE})
+    list(APPEND COMPILED_FRAGMENT_SHADERS ${OUTPUT_FILE})
+endforeach()
+
+# Create a custom target for shader compilation
 add_custom_target(compile_shaders_app ALL
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv
+    DEPENDS ${COMPILED_VERTEX_SHADERS} ${COMPILED_FRAGMENT_SHADERS}
+    COMMENT "Compiling all aurora_app shaders"
 )
 
 # Create the aurora_app library
 add_library(aurora_app STATIC ${SOURCES})
 
-# Make aurora_app depend on shader compilation
+# Make sure shaders are compiled before the library
 add_dependencies(aurora_app compile_shaders_app)
 
 # Set include directories for the library

@@ -62,11 +62,11 @@ namespace aurora {
             auto frameEnd = std::chrono::high_resolution_clock::now();
             auto renderTime = frameEnd - frameStart;
 
-            // auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
-            // if (renderTimeMicros < targetFrameTime) {
-            //     auto sleepTime = targetFrameTime - renderTimeMicros;
-            //     std::this_thread::sleep_for(sleepTime);
-            // }
+            auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
+            if (renderTimeMicros < targetFrameTime) {
+                auto sleepTime = targetFrameTime - renderTimeMicros;
+                std::this_thread::sleep_for(sleepTime);
+            }
             
             auto actualFrameEnd = std::chrono::high_resolution_clock::now();
             auto frameTime = actualFrameEnd - frameStart;
@@ -90,9 +90,8 @@ namespace aurora {
         auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(0.8f, 0.8f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
         renderSystemManager->addComponent(std::move(cardComponent));
         
-        // Create a text component using the atlas from the render system manager
-        auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Ils seraient pas sur League Voice ?", renderSystemManager->getMSDFAtlas(), 2.5f);
-        textComponent->transform.translation = glm::vec3(-0.9f, 0.1f, 0.0f); // Position it to the left of the card
+        auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Hello World !", renderSystemManager->getMSDFAtlas(), 2.5f);
+        textComponent->transform.translation = glm::vec3(-0.9f, 0.1f, 0.0f);
         renderSystemManager->addComponent(std::move(textComponent));
 
         spdlog::info("Created {} render systems with {} total components",

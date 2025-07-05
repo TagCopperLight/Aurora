@@ -36,7 +36,6 @@ namespace aurora {
         auto lastFrameTime = std::chrono::high_resolution_clock::now();
         auto appStartTime = std::chrono::high_resolution_clock::now();
         
-        // Frame time logging
         std::ofstream frameTimeFile("frame_times.csv");
         frameTimeFile << "timestamp_ms,frame_time_ms,fps\n";
         frameTimeFile << std::fixed << std::setprecision(3);

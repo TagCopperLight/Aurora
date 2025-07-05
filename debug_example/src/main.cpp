@@ -1,4 +1,4 @@
-// #include "aurora_app.hpp"
+
 #include "aurora_app/aurora_app.hpp"
 
 #include <cstdlib>

@@ -43,7 +43,7 @@ namespace aurora {
             swapChain = nullptr;
         }
 
-        // Clean up MSAA color resources
+        
         for (size_t i = 0; i < colorImages.size(); i++) {
             vkDestroyImageView(device.device(), colorImageViews[i], nullptr);
             vkDestroyImage(device.device(), colorImages[i], nullptr);
@@ -259,7 +259,7 @@ namespace aurora {
     }
 
     void AuroraSwapChain::createRenderPass() {
-        // MSAA color attachment
+        
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = getSwapChainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
@@ -274,7 +274,7 @@ namespace aurora {
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        // Depth attachment
+        
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
         depthAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
@@ -289,7 +289,7 @@ namespace aurora {
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        // Color resolve attachment (swap chain image)
+        
         VkAttachmentDescription colorAttachmentResolve{};
         colorAttachmentResolve.format = getSwapChainImageFormat();
         colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -341,9 +341,9 @@ namespace aurora {
         swapChainFramebuffers.resize(imageCount());
         for (size_t i = 0; i < imageCount(); i++) {
             std::array<VkImageView, 3> attachments = {
-                colorImageViews[i],      // MSAA color attachment
-                depthImageViews[i],      // MSAA depth attachment
-                swapChainImageViews[i]   // Color resolve attachment
+                colorImageViews[i],      
+                depthImageViews[i],      
+                swapChainImageViews[i]   
             };
 
             VkExtent2D swapChainExtent = getSwapChainExtent();
@@ -452,12 +452,12 @@ namespace aurora {
             }
         }
 
-        // for (const auto &availablePresentMode : availablePresentModes) {
-        //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-        //     std::cout << "Present mode: Immediate" << std::endl;
-        //     return availablePresentMode;
-        //   }
-        // }
+        
+        
+        
+        
+        
+        
 
         spdlog::info("Present mode: V-Sync");
         return VK_PRESENT_MODE_FIFO_KHR;

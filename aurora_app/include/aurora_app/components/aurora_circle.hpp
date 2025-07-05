@@ -7,7 +7,6 @@ namespace aurora {
         public:
             AuroraCircle(AuroraDevice &device, float radius);
 
-            // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "aurora_app/shaders/shader.vert.spv";
                 return vertexPath;

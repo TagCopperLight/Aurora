@@ -40,11 +40,10 @@ namespace aurora {
             const AuroraTexture& getAtlasTexture() const { return *atlasTexture; }
             const VkDescriptorImageInfo& getDescriptorInfo() const { return atlasTexture->getDescriptorInfo(); }
             
-            // Glyph information access
             struct GlyphInfo {
-                glm::vec4 atlasBounds;  // x, y, width, height in atlas coordinates (0-1)
-                glm::vec4 planeBounds;  // x, y, width, height in font units
-                double advance;         // Horizontal advance for the glyph
+                glm::vec4 atlasBounds;
+                glm::vec4 planeBounds;
+                double advance;
             };
             
             bool getGlyphInfo(char character, GlyphInfo& glyphInfo) const;
@@ -63,7 +62,7 @@ namespace aurora {
             
             std::unique_ptr<msdf_atlas::BitmapAtlasStorage<msdf_atlas::byte, 3>> atlasStorage;
             
-            // Store glyph geometry for later access
+            
             std::vector<msdf_atlas::GlyphGeometry> glyphGeometry;
             msdf_atlas::FontGeometry fontGeometry;
 

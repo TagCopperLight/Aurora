@@ -44,10 +44,10 @@ namespace aurora {
         deltaLength = - deltaLength;
         
         std::vector<glm::vec2> corners = {
-            {nRadius + deltaLength, -nRadius - deltaLength},                      // Top Left 
-            {nRadius + deltaLength, -size.y + nRadius + deltaLength},            // Bottom Left 
-            {size.x - nRadius - deltaLength, -size.y + nRadius + deltaLength},         // Bottom Right
-            {size.x - nRadius - deltaLength, -nRadius - deltaLength},                  // Top Right
+            {nRadius + deltaLength, -nRadius - deltaLength},                      
+            {nRadius + deltaLength, -size.y + nRadius + deltaLength},            
+            {size.x - nRadius - deltaLength, -size.y + nRadius + deltaLength},         
+            {size.x - nRadius - deltaLength, -nRadius - deltaLength},                  
         };
 
         for (int i = 0; i < 4; ++i) {

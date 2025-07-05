@@ -36,8 +36,6 @@ namespace aurora {
                 translation.x, translation.y, translation.z, 1.f
             );
             
-            // Apply transformations in the correct order: T * R * S
-            // This ensures scale happens first, then rotation, then translation
             return translationMat * rotationMat * scaleMat;
         };
     };
@@ -52,7 +50,6 @@ namespace aurora {
             bool isHidden() const { return hidden; }
             void setHidden(bool value) { hidden = value; }
             
-            // Get shader file paths and topology for this component type
             virtual const std::string& getVertexShaderPath() const = 0;
             virtual const std::string& getFragmentShaderPath() const = 0;
             virtual VkPrimitiveTopology getTopology() const = 0;

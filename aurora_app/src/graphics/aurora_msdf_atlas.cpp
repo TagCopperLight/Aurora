@@ -11,7 +11,7 @@ namespace aurora {
 
     AuroraMSDFAtlas::AuroraMSDFAtlas(AuroraDevice& device, const std::string& fontPath, const Config& config)
     : auroraDevice{device}, config{config}, fontHandle{nullptr}, fontGeometry{&glyphGeometry} {
-        // Initialize FreeType handle
+        
         freetypeHandle = msdfgen::initializeFreetype();
 
         if (!loadFont(fontPath)) {
@@ -63,9 +63,9 @@ namespace aurora {
         msdf_atlas::TightAtlasPacker packer;
         packer.setDimensionsConstraint(msdf_atlas::DimensionsConstraint::SQUARE);
         
-        packer.setMinimumScale(24); // Set minimum scale for glyphs
-        packer.setPixelRange(2.0); // Set pixel range for distance field
-        packer.setMiterLimit(1.0); // Set miter limit for glyphs
+        packer.setMinimumScale(24); 
+        packer.setPixelRange(2.0); 
+        packer.setMiterLimit(1.0); 
 
         packer.pack(glyphs.data(), static_cast<int>(glyphs.size()));
 
@@ -89,12 +89,12 @@ namespace aurora {
 
         generator.generate(glyphs.data(), static_cast<int>(glyphs.size()));
 
-        // Store the generated atlas bitmap data
+        
         atlasStorage = std::make_unique<msdf_atlas::BitmapAtlasStorage<msdf_atlas::byte, 3>>(
             generator.atlasStorage()
         );
 
-        // Store glyph geometry for later access
+        
         glyphGeometry = std::move(glyphs);
         this->fontGeometry = msdf_atlas::FontGeometry(&glyphGeometry);
 
@@ -135,9 +135,9 @@ namespace aurora {
 
         std::vector<uint8_t> rgbaData(config.width * config.height * 4);
         for (size_t i = 0; i < config.width * config.height; ++i) {
-            rgbaData[i * 4 + 0] = bitmapData[i * 3 + 0]; // R
-            rgbaData[i * 4 + 1] = bitmapData[i * 3 + 1]; // G
-            rgbaData[i * 4 + 2] = bitmapData[i * 3 + 2]; // B
+            rgbaData[i * 4 + 0] = bitmapData[i * 3 + 0]; 
+            rgbaData[i * 4 + 1] = bitmapData[i * 3 + 1]; 
+            rgbaData[i * 4 + 2] = bitmapData[i * 3 + 2]; 
             rgbaData[i * 4 + 3] = 255;
         }
 
@@ -207,14 +207,14 @@ namespace aurora {
     }
     
     bool AuroraMSDFAtlas::getGlyphInfo(char character, GlyphInfo& glyphInfo) const {
-        // Find the glyph in the geometry
+        
         for (const auto& glyph : glyphGeometry) {
             if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(character)) {
-                // Get atlas bounds (texture coordinates)
+                
                 double left, bottom, right, top;
                 glyph.getQuadAtlasBounds(left, bottom, right, top);
                 
-                // Convert to normalized atlas coordinates (0-1)
+                
                 glyphInfo.atlasBounds = glm::vec4(
                     static_cast<float>(left / config.width),
                     static_cast<float>(bottom / config.height),
@@ -222,7 +222,7 @@ namespace aurora {
                     static_cast<float>((top - bottom) / config.height)
                 );
                 
-                // Get plane bounds (font units)
+                
                 glyph.getQuadPlaneBounds(left, bottom, right, top);
                 glyphInfo.planeBounds = glm::vec4(
                     static_cast<float>(left),
@@ -231,7 +231,7 @@ namespace aurora {
                     static_cast<float>(top - bottom)
                 );
                 
-                // Get advance
+                
                 glyphInfo.advance = glyph.getAdvance();
                 
                 return true;
@@ -241,7 +241,7 @@ namespace aurora {
     }
     
     double AuroraMSDFAtlas::getKerning(char left, char right) const {
-        // Find both glyphs
+        
         const msdf_atlas::GlyphGeometry* leftGlyph = nullptr;
         const msdf_atlas::GlyphGeometry* rightGlyph = nullptr;
         

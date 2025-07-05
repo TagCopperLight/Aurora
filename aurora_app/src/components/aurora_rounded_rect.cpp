@@ -25,10 +25,10 @@ namespace aurora {
         std::vector<AuroraModel::Vertex> vertices;
 
         std::vector<glm::vec2> corners = {
-            {radius, -radius},                      // Top Left 
-            {radius, -size.y + radius},            // Bottom Left 
-            {size.x - radius, -size.y + radius},         // Bottom Right
-            {size.x - radius, -radius},                  // Top Right
+            {radius, -radius},                      
+            {radius, -size.y + radius},            
+            {size.x - radius, -size.y + radius},         
+            {size.x - radius, -radius},                  
         };
 
         for (int i = 0; i < 4; ++i) {

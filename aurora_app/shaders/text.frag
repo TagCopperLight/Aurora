@@ -28,7 +28,7 @@ void main() {
     float screenPxDistance = screenPxDistance();
     float opacity = clamp((sd - 0.5) * screenPxDistance + 0.5, 0.0, 1.0);
     
-    // Use the vertex color multiplied by the push constant color
+    
     vec3 finalColor = fragColor.rgb * push.color;
     outColor = vec4(finalColor, fragColor.a * opacity);
 }

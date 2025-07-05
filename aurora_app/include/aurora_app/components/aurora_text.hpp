@@ -11,7 +11,6 @@ namespace aurora {
         public:
             AuroraText(AuroraDevice &device, const std::string& text, const AuroraMSDFAtlas& atlas, float fontSize = 24.0f);
 
-            // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "aurora_app/shaders/text.vert.spv";
                 return vertexPath;
@@ -26,7 +25,6 @@ namespace aurora {
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             }
             
-            // Text management
             void setText(const std::string& newText);
             const std::string& getText() const { return text; }
             

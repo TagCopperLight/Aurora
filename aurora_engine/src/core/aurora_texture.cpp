@@ -53,7 +53,7 @@ namespace aurora {
         viewInfo.viewType = viewType;
         viewInfo.format = format;
         
-        // Set aspect mask based on format
+        
         if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT) {
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else {
@@ -103,7 +103,7 @@ namespace aurora {
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.image = textureImage;
         
-        // Set aspect mask based on format
+        
         if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT) {
             barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else {

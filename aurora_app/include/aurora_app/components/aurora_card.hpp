@@ -9,7 +9,6 @@ namespace aurora {
         public:
             AuroraCard(AuroraDevice &device, glm::vec2 size, glm::vec4 borderColor, std::string title = "");
 
-            // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "aurora_app/shaders/shader.vert.spv";
                 return vertexPath;

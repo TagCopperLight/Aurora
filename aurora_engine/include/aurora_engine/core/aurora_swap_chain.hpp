@@ -66,7 +66,7 @@ namespace aurora {
             std::vector<VkImage> swapChainImages;
             std::vector<VkImageView> swapChainImageViews;
             
-            // MSAA resources
+            
             std::vector<VkImage> colorImages;
             std::vector<VkDeviceMemory> colorImageMemorys;
             std::vector<VkImageView> colorImageViews;

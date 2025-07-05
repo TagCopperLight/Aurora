@@ -22,14 +22,14 @@ namespace aurora {
             return;
         }
 
-        // Extract children before moving the component
+        
         auto& children = component->getChildren();
         std::vector<std::unique_ptr<AuroraComponentInterface>> childrenToAdd;
         childrenToAdd.reserve(children.size());
         for (auto& child : children) {
             childrenToAdd.push_back(std::move(child));
         }
-        children.clear(); // Clear the original vector
+        children.clear(); 
 
         AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
         
@@ -41,7 +41,7 @@ namespace aurora {
             renderSystems.push_back(std::move(newRenderSystem));
         }
 
-        // Now add the children
+        
         for (auto& child : childrenToAdd) {
             addComponent(std::move(child));
         }

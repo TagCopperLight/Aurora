@@ -7,7 +7,6 @@ namespace aurora {
         public:
             AuroraTriangle(AuroraDevice &device);
 
-            // Component type-specific shader and topology information
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "aurora_app/shaders/shader.vert.spv";
                 return vertexPath;

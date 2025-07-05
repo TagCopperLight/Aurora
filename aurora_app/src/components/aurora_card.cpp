@@ -16,8 +16,8 @@ namespace aurora {
     }
 
     void AuroraCard::initialize() {
-        // AuroraCard is a container component - it doesn't render itself
-        // No model creation needed, just create child components
+        
+        
         
         auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, size, 0.1f, 0.0075f);
         bordersComponent->color = borderColor;

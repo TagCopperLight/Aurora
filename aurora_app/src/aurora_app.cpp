@@ -1,6 +1,5 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
-#include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include "aurora_app/components/aurora_card.hpp"
 
@@ -31,8 +30,6 @@ namespace aurora {
     void AuroraApp::run() {
         AuroraCamera camera;
 
-        AuroraMSDFAtlas msdfAtlas(auroraDevice, "/home/tag/Downloads/font.ttf");
-        
         const int targetFrameRate = 60;
         const auto targetFrameTime = std::chrono::microseconds(1000000 / targetFrameRate);
         auto lastFrameTime = std::chrono::high_resolution_clock::now();

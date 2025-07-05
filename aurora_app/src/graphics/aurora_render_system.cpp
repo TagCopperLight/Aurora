@@ -22,11 +22,15 @@ namespace aurora {
         glm::vec4 color;
     };
 
-    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology, AuroraDescriptorPool* descriptorPool) 
-        : auroraDevice{device}, globalDescriptorPool{descriptorPool}, vertexShaderPath{vertFilePath}, fragmentShaderPath{fragFilePath}, topology{topology} {
+    AuroraRenderSystem::AuroraRenderSystem(AuroraDevice& device, const RenderSystemCreateInfo& createInfo) 
+        : auroraDevice{device}, 
+          globalDescriptorPool{createInfo.descriptorPool}, 
+          vertexShaderPath{createInfo.vertFilePath}, 
+          fragmentShaderPath{createInfo.fragFilePath}, 
+          topology{createInfo.topology} {
         createPipelineLayout();
-        createPipeline(renderPass, vertFilePath, fragFilePath, topology);
-        createUniformBuffers();
+        createPipeline(createInfo.renderPass, createInfo.vertFilePath, createInfo.fragFilePath, createInfo.topology);
+        createUniformBuffers(createInfo.msdfAtlas);
     }
 
     AuroraRenderSystem::~AuroraRenderSystem() {
@@ -41,6 +45,7 @@ namespace aurora {
 
         auto descriptorSetLayout = AuroraDescriptorSetLayout::Builder(auroraDevice)
             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .build();
 
         std::vector<VkDescriptorSetLayout> setLayouts{descriptorSetLayout->getDescriptorSetLayout()};
@@ -68,7 +73,7 @@ namespace aurora {
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, vertFilePath, fragFilePath, pipelineConfig);
     }
 
-    void AuroraRenderSystem::createUniformBuffers() {
+    void AuroraRenderSystem::createUniformBuffers(AuroraMSDFAtlas* msdfAtlas) {
         auto colorBuffer = std::make_unique<AuroraBuffer>(
             auroraDevice,
             sizeof(ColorUbo),
@@ -107,8 +112,10 @@ namespace aurora {
 
         descriptorSets.resize(1);
         auto bufferInfo = uniformBuffers[0]->descriptorInfo();
+        auto imageInfo = msdfAtlas->getDescriptorInfo();
         AuroraDescriptorWriter(*descriptorSetLayouts[0], *globalDescriptorPool)
             .writeBuffer(0, &bufferInfo)
+            .writeImage(1, &imageInfo)
             .build(descriptorSets[0]);
     }
 

@@ -7,10 +7,12 @@ namespace aurora {
     AuroraRenderSystemManager::AuroraRenderSystemManager(AuroraDevice& device, VkRenderPass renderPass) 
     : auroraDevice{device}, renderPass{renderPass} {
         globalDescriptorPool = AuroraDescriptorPool::Builder(auroraDevice)
-            .setMaxSets(100)  // Allow for many render systems
+            .setMaxSets(100)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100)
+            .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100)
             .build();
 
+        msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, "/home/tag/Downloads/font.ttf");
         spdlog::info("RenderSystemManager initialized");
     }
 
@@ -71,13 +73,15 @@ namespace aurora {
     }
 
     std::unique_ptr<AuroraRenderSystem> AuroraRenderSystemManager::createRenderSystem(const AuroraComponentInterface& component) {
-        return std::make_unique<AuroraRenderSystem>(
-            auroraDevice,
+        RenderSystemCreateInfo createInfo{
             renderPass,
             component.getVertexShaderPath(),
             component.getFragmentShaderPath(),
             component.getTopology(),
-            globalDescriptorPool.get()
-        );
+            globalDescriptorPool.get(),
+            msdfAtlas.get()
+        };
+
+        return std::make_unique<AuroraRenderSystem>(auroraDevice, createInfo);
     }
 }

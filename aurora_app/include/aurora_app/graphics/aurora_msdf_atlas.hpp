@@ -34,6 +34,7 @@ namespace aurora {
             uint32_t getAtlasHeight() const { return config.height; }
 
             const AuroraTexture& getAtlasTexture() const { return *atlasTexture; }
+            const VkDescriptorImageInfo& getDescriptorInfo() const { return atlasTexture->getDescriptorInfo(); }
 
         private:
             void createAtlasTexture();

@@ -5,6 +5,7 @@
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
+#include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 #include <vulkan/vulkan.h>
 
 #include <memory>
@@ -39,5 +40,6 @@ namespace aurora {
             std::vector<std::unique_ptr<AuroraRenderSystem>> renderSystems;
             
             std::unique_ptr<AuroraDescriptorPool> globalDescriptorPool;
+            std::unique_ptr<AuroraMSDFAtlas> msdfAtlas;
     };
 }

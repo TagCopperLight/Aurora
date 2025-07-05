@@ -5,14 +5,24 @@
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
+#include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include <memory>
 #include <vector>
 
 namespace aurora {
+    struct RenderSystemCreateInfo {
+        VkRenderPass renderPass;
+        const std::string& vertFilePath;
+        const std::string& fragFilePath;
+        VkPrimitiveTopology topology;
+        AuroraDescriptorPool* descriptorPool;
+        AuroraMSDFAtlas* msdfAtlas;
+    };
+
     class AuroraRenderSystem {
         public:
-            AuroraRenderSystem(AuroraDevice& device, VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology, AuroraDescriptorPool* descriptorPool);
+            AuroraRenderSystem(AuroraDevice& device, const RenderSystemCreateInfo& createInfo);
             ~AuroraRenderSystem();
 
             AuroraRenderSystem(const AuroraRenderSystem&) = delete;
@@ -43,7 +53,7 @@ namespace aurora {
         private:
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
-            void createUniformBuffers();
+            void createUniformBuffers(AuroraMSDFAtlas* msdfAtlas);
 
             AuroraDevice& auroraDevice;
 

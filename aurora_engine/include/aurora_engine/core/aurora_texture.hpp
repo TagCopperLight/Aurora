@@ -21,6 +21,8 @@ namespace aurora {
             VkImageLayout getImageLayout() const { return textureLayout; }
             VkExtent3D getExtent() const { return extent; }
             VkFormat getFormat() const { return format; }
+            
+            const VkDescriptorImageInfo& getDescriptorInfo() const { return descriptor; }
 
             void updateDescriptor();
             void transitionLayout(VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout);

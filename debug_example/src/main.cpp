@@ -2,7 +2,6 @@
 #include "aurora_app/aurora_app.hpp"
 
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 #include <fontconfig/fontconfig.h>

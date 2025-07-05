@@ -7,8 +7,8 @@
 
 namespace aurora {
     struct PipelineConfigInfo {
-        PipelineConfigInfo(const PipelineConfigInfo&) = default;
-        PipelineConfigInfo& operator=(const PipelineConfigInfo&) = default;
+        PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+        PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
         VkPipelineViewportStateCreateInfo viewportInfo;
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
@@ -32,7 +32,6 @@ namespace aurora {
 
             AuroraPipeline(const AuroraPipeline&) = delete;
             AuroraPipeline& operator=(const AuroraPipeline&) = delete;
-            AuroraPipeline() = default;
 
             void bind(VkCommandBuffer commandBuffer);
             static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, VkPrimitiveTopology topology);

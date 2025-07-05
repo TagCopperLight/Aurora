@@ -87,7 +87,8 @@ namespace aurora {
     }
 
     void AuroraApp::createRenderSystems() {
-        auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(0.8f, 0.8f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
+        auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(2.f, 2.f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
+        cardComponent->transform.translation = glm::vec3(-1.0f, -1.0f, 0.0f);
         renderSystemManager->addComponent(std::move(cardComponent));
         
         auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Hello World !", renderSystemManager->getMSDFAtlas(), 2.5f);

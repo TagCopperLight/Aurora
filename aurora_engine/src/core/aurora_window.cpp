@@ -16,15 +16,15 @@ namespace aurora {
     void AuroraWindow::initWindow() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        // Get primary monitor for fullscreen
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
         
-        // Update width and height to match monitor resolution
         width = mode->width;
         height = mode->height;
+
+        spdlog::info("Creating window: {} with size {}x{}", windowName, width, height);
 
         window = glfwCreateWindow(width, height, windowName.c_str(), monitor, nullptr);
         glfwSetWindowUserPointer(window, this);

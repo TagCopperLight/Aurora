@@ -16,18 +16,17 @@ namespace aurora {
     }
 
     void AuroraCard::initialize() {
-        
-        
-        
-        auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, size, 0.1f, 0.0075f);
+        float radius = 50.0f;
+
+        auto bordersComponent = std::make_unique<AuroraRoundedBorders>(auroraDevice, size, radius, 6.0f);
         bordersComponent->color = borderColor;
         float borderZ = bordersComponent->transform.translation.z;
 
-        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(auroraDevice, size, 0.1f);
+        auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(auroraDevice, size, radius);
         roundedRectComponent->color = {0.196f, 0.196f, 0.196f, 1.0f};
         roundedRectComponent->transform.translation.z = borderZ + 0.01f;
 
-        auto shadowBordersComponent = std::make_unique<AuroraRoundedShadows>(auroraDevice, size, 0.1f, 0.025f);
+        auto shadowBordersComponent = std::make_unique<AuroraRoundedShadows>(auroraDevice, size, radius, 15.0f);
 
         addChild(std::move(bordersComponent));
         addChild(std::move(roundedRectComponent));

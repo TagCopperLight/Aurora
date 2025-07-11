@@ -1,8 +1,10 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
+#include "aurora_app/aurora_clock.hpp"
 
 #include "aurora_app/components/aurora_card.hpp"
 #include "aurora_app/components/aurora_text.hpp"
+#include "aurora_app/components/aurora_triangle.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -13,10 +15,6 @@
 #include <array>
 #include <spdlog/spdlog.h>
 #include <cassert>
-#include <chrono>
-#include <thread>
-#include <fstream>
-#include <iomanip>
 
 namespace aurora {
     AuroraApp::AuroraApp() {
@@ -30,23 +28,17 @@ namespace aurora {
 
     void AuroraApp::run() {
         AuroraCamera camera;
-
-        const int targetFrameRate = 60;
-        const auto targetFrameTime = std::chrono::microseconds(1000000 / targetFrameRate);
-        auto lastFrameTime = std::chrono::high_resolution_clock::now();
-        auto appStartTime = std::chrono::high_resolution_clock::now();
-        
-        std::ofstream frameTimeFile("frame_times.csv");
-        frameTimeFile << "timestamp_ms,frame_time_ms,fps\n";
-        frameTimeFile << std::fixed << std::setprecision(3);
+        AuroraClock clock(60);
         
         while (!auroraWindow.shouldClose()) {
-            auto frameStart = std::chrono::high_resolution_clock::now();
+            clock.beginFrame();
             
             glfwPollEvents();
 
-            float aspect = auroraRenderer.getAspectRatio();
-            camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+            uint32_t width = auroraRenderer.getWidth();
+            uint32_t height = auroraRenderer.getHeight();
+
+            camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
@@ -59,44 +51,22 @@ namespace aurora {
                 spdlog::warn("Failed to begin frame, skipping rendering");
             }
             
-            auto frameEnd = std::chrono::high_resolution_clock::now();
-            auto renderTime = frameEnd - frameStart;
-
-            auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
-            if (renderTimeMicros < targetFrameTime) {
-                auto sleepTime = targetFrameTime - renderTimeMicros;
-                std::this_thread::sleep_for(sleepTime);
-            }
-            
-            auto actualFrameEnd = std::chrono::high_resolution_clock::now();
-            auto frameTime = actualFrameEnd - frameStart;
-            
-            auto timeSinceStart = frameStart - appStartTime;
-            double timestampMs = std::chrono::duration<double, std::milli>(timeSinceStart).count();
-            double frameTimeMs = std::chrono::duration<double, std::milli>(frameTime).count();
-            double fps = 1000.0 / frameTimeMs;
-            
-            frameTimeFile << timestampMs << "," << frameTimeMs << "," << fps << "\n";
-            
-            lastFrameTime = frameStart;
+            clock.endFrame();
+            clock.waitForFrameRate();
         }
 
-        frameTimeFile.close();
-        spdlog::info("Frame time data saved to frame_times.csv");
         vkDeviceWaitIdle(auroraDevice.device());
     }
 
     void AuroraApp::createRenderSystems() {
-        auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(2.f, 2.f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
-        cardComponent->transform.translation = glm::vec3(-1.0f, -1.0f, 0.0f);
+        auto cardComponent = std::make_unique<AuroraCard>(auroraDevice, glm::vec2(500.0f, 500.0f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
+        cardComponent->transform.translation = glm::vec3(100.0f, 100.0f, 0.1f);
         renderSystemManager->addComponent(std::move(cardComponent));
         
-        auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Hello World !", renderSystemManager->getMSDFAtlas(), 2.5f);
-        textComponent->transform.translation = glm::vec3(-0.9f, 0.1f, 0.0f);
+        auto textComponent = std::make_unique<AuroraText>(auroraDevice, "Hello World !", renderSystemManager->getMSDFAtlas(), 50.0f);
+        textComponent->transform.translation = glm::vec3(100.0f, 100.0f, 0.0f);
         renderSystemManager->addComponent(std::move(textComponent));
 
-        spdlog::info("Created {} render systems with {} total components",
-                     renderSystemManager->getRenderSystemCount(),
-                     renderSystemManager->getTotalComponentCount());
+        spdlog::info("Created {} render systems with {} total components", renderSystemManager->getRenderSystemCount(), renderSystemManager->getTotalComponentCount());
     }
 }

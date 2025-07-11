@@ -11,8 +11,8 @@
 namespace aurora {
     class AuroraApp {
         public:
-            static constexpr int WIDTH = 1200;
-            static constexpr int HEIGHT = 900;
+            static constexpr int WIDTH = 1920;
+            static constexpr int HEIGHT = 1080;
 
             AuroraApp();
             ~AuroraApp();

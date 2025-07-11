@@ -7,7 +7,7 @@ namespace aurora {
         projectionMatrix[1][1] = 2.0f / (bottom - top);
         projectionMatrix[2][2] = 1.0f / (far - near);
         projectionMatrix[3][0] = -(right + left) / (right - left);
-        projectionMatrix[3][1] = -(top + bottom) / (bottom - top);
+        projectionMatrix[3][1] = -(bottom + top) / (bottom - top);
         projectionMatrix[3][2] = -near / (far - near);
     }
 }

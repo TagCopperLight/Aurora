@@ -76,6 +76,18 @@ namespace aurora {
                 return children;
             }
             
+            // Calculate world transform including parent transforms
+            glm::mat4 getWorldTransform() const {
+                glm::mat4 worldTransform = transform.mat4();
+                
+                // Multiply by parent transforms recursively
+                if (parent != nullptr) {
+                    worldTransform = parent->getWorldTransform() * worldTransform;
+                }
+                
+                return worldTransform;
+            }
+            
         protected:
             AuroraDevice &auroraDevice;
             std::vector<std::unique_ptr<AuroraComponentInterface>> children;

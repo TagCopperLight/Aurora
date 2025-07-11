@@ -41,7 +41,6 @@ namespace aurora {
             model = std::make_shared<AuroraModel>(auroraDevice, builder);
             return;
         }
-
         
         std::vector<uint32_t> indices;
         for (size_t i = 0; i < vertices.size() / 4; ++i) {
@@ -70,7 +69,7 @@ namespace aurora {
         }
 
         glm::vec2 cursor = {0.0f, 0.0f};
-        float scale = fontSize / 24.0f; 
+        float scale = fontSize / 0.80741f;
         
         float minX = 0.0f, maxX = 0.0f;
         float minY = 0.0f, maxY = 0.0f;
@@ -99,13 +98,12 @@ namespace aurora {
             
             glm::vec2 glyphPos = cursor;
             glyphPos.x += glyphInfo.planeBounds.x * scale;
-            glyphPos.y += glyphInfo.planeBounds.y * scale;
+            glyphPos.y -= (glyphInfo.planeBounds.y + glyphInfo.planeBounds.w) * scale;
             
             glm::vec2 glyphSize = {
                 glyphInfo.planeBounds.z * scale,
                 glyphInfo.planeBounds.w * scale
             };
-
             
             if (first) {
                 minX = glyphPos.x;
@@ -120,35 +118,35 @@ namespace aurora {
                 maxY = std::max(maxY, glyphPos.y + glyphSize.y);
             }
 
-            
-            
             AuroraModel::Vertex v1(glm::vec3(glyphPos.x, glyphPos.y, 0.0f), color);
-            v1.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y);
+            v1.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
             vertices.push_back(v1);
             
-            
             AuroraModel::Vertex v2(glm::vec3(glyphPos.x + glyphSize.x, glyphPos.y, 0.0f), color);
-            v2.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y);
+            v2.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
             vertices.push_back(v2);
             
-            
             AuroraModel::Vertex v3(glm::vec3(glyphPos.x + glyphSize.x, glyphPos.y + glyphSize.y, 0.0f), color);
-            v3.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
+            v3.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y);
             vertices.push_back(v3);
             
-            
             AuroraModel::Vertex v4(glm::vec3(glyphPos.x, glyphPos.y + glyphSize.y, 0.0f), color);
-            v4.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
+            v4.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y);
             vertices.push_back(v4);
-
             
             cursor.x += static_cast<float>(glyphInfo.advance) * scale;
-            
             
             if (i < text.length() - 1) {
                 double kerning = msdfAtlas.getKerning(character, text[i + 1]);
                 cursor.x += static_cast<float>(kerning) * scale;
             }
+        }
+
+        float offsetX = -minX;
+        float offsetY = -minY;
+        for (auto& vertex : vertices) {
+            vertex.position.x += offsetX;
+            vertex.position.y += offsetY;
         }
 
         textBounds = {maxX - minX, maxY - minY};

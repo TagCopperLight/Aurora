@@ -37,10 +37,10 @@ namespace aurora {
         float nRadius = radius - deltaLength;
 
         std::vector<glm::vec2> corners = {
-            {nRadius + deltaLength, -nRadius - deltaLength},                      
-            {nRadius + deltaLength, -size.y + nRadius + deltaLength},            
-            {size.x - nRadius - deltaLength, -size.y + nRadius + deltaLength},         
-            {size.x - nRadius - deltaLength, -nRadius - deltaLength},                  
+            {nRadius + deltaLength, size.y - nRadius - deltaLength},            
+            {nRadius + deltaLength, nRadius + deltaLength},                      
+            {size.x - nRadius - deltaLength, nRadius + deltaLength},                  
+            {size.x - nRadius - deltaLength, size.y - nRadius - deltaLength},         
         };
 
         for (int i = 0; i < 4; ++i) {

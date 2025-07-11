@@ -4,6 +4,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/constants.hpp>
 
+#include "spdlog/spdlog.h"
+
 #include <memory>
 #include <iostream>
 
@@ -25,10 +27,11 @@ namespace aurora {
         std::vector<AuroraModel::Vertex> vertices;
 
         std::vector<glm::vec2> corners = {
-            {radius, -radius},                      
-            {radius, -size.y + radius},            
-            {size.x - radius, -size.y + radius},         
-            {size.x - radius, -radius},                  
+            // Bottom left - Top left - Top right - Bottom right
+            {radius, size.y - radius}, // Bottom left
+            {radius, radius}, // Top left           
+            {size.x - radius, radius}, // Top right
+            {size.x - radius, size.y - radius}, // Bottom right
         };
 
         for (int i = 0; i < 4; ++i) {

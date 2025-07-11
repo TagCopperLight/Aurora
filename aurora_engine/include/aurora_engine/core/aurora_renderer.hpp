@@ -19,6 +19,8 @@ namespace aurora {
 
             VkRenderPass getSwapChainRenderPass() const { return auroraSwapChain->getRenderPass(); }
             float getAspectRatio() const { return auroraSwapChain->extentAspectRatio(); }
+            uint32_t getWidth() const { return auroraSwapChain->width(); }
+            uint32_t getHeight() const { return auroraSwapChain->height(); }
             bool isFrameInProgress() const { return isFrameStarted; }
 
             VkCommandBuffer getCurrentCommandBuffer() const {

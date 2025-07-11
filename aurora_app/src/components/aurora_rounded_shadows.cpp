@@ -23,14 +23,14 @@ namespace aurora {
             vertices.back().color = {0.0f, 0.0f, 0.0f, 0.0f};
             
             vertices.push_back(innerVertices[i]);
-            vertices.back().color = {0.0f, 0.0f, 0.0f, 0.3f};
+            vertices.back().color = {0.0f, 0.0f, 0.0f, 0.2f};
         }
 
         vertices.push_back(outerVertices[0]);
         vertices.back().color = {0.0f, 0.0f, 0.0f, 0.0f};
 
         vertices.push_back(innerVertices[0]);
-        vertices.back().color = {0.0f, 0.0f, 0.0f, 0.3f};
+        vertices.back().color = {0.0f, 0.0f, 0.0f, 0.2f};
 
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
@@ -44,10 +44,10 @@ namespace aurora {
         deltaLength = - deltaLength;
         
         std::vector<glm::vec2> corners = {
-            {nRadius + deltaLength, -nRadius - deltaLength},                      
-            {nRadius + deltaLength, -size.y + nRadius + deltaLength},            
-            {size.x - nRadius - deltaLength, -size.y + nRadius + deltaLength},         
-            {size.x - nRadius - deltaLength, -nRadius - deltaLength},                  
+            {nRadius + deltaLength, size.y - nRadius - deltaLength},            
+            {nRadius + deltaLength, nRadius + deltaLength},                      
+            {size.x - nRadius - deltaLength, nRadius + deltaLength},                  
+            {size.x - nRadius - deltaLength, size.y - nRadius - deltaLength},         
         };
 
         for (int i = 0; i < 4; ++i) {

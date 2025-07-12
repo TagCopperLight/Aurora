@@ -5,7 +5,7 @@
 namespace aurora {
     class AuroraRoundedRectangle : public AuroraComponentInterface {
         public:
-            AuroraRoundedRectangle(AuroraDevice &device, glm::vec2 size, float radius);
+            AuroraRoundedRectangle(AuroraComponentInfo &componentInfo, glm::vec2 size, float radius);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";
@@ -23,7 +23,6 @@ namespace aurora {
 
         private:
             void initialize() override;
-            std::vector<AuroraModel::Vertex> createRoundedRectangleVertices(int numSegments);
 
             glm::vec2 size;
             float radius;

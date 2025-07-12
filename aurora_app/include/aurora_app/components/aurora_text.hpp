@@ -9,7 +9,7 @@
 namespace aurora {
     class AuroraText : public AuroraComponentInterface {
         public:
-            AuroraText(AuroraDevice &device, const std::string& text, const AuroraMSDFAtlas& atlas, float fontSize = 24.0f);
+            AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize = 24.0f);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/text.vert.spv";
@@ -38,13 +38,15 @@ namespace aurora {
             void initialize() override;
             
             std::vector<AuroraModel::Vertex> createTextVertices();
-            void createQuadForCharacter(char character, glm::vec2 position, 
-                                      std::vector<AuroraModel::Vertex>& vertices,
-                                      std::vector<uint32_t>& indices, 
-                                      uint32_t& currentIndex);
+            void createQuadForCharacter(
+                char character,
+                glm::vec2 position, 
+                std::vector<AuroraModel::Vertex>& vertices,
+                std::vector<uint32_t>& indices, 
+                uint32_t& currentIndex
+            );
 
             std::string text;
-            const AuroraMSDFAtlas& msdfAtlas;
             float fontSize;
             glm::vec2 textBounds;
     };

@@ -3,7 +3,7 @@
 #include <memory>
 
 namespace aurora {
-    AuroraTriangle::AuroraTriangle(AuroraDevice &device) : AuroraComponentInterface{device} {
+    AuroraTriangle::AuroraTriangle(AuroraComponentInfo &componentInfo) : AuroraComponentInterface{componentInfo} {
         initialize();
     }
 
@@ -16,7 +16,7 @@ namespace aurora {
 
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(auroraDevice, builder);
+        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
         color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }

@@ -7,7 +7,7 @@
 namespace aurora {
     class AuroraCard : public AuroraComponentInterface {
         public:
-            AuroraCard(AuroraDevice &device, glm::vec2 size, glm::vec4 borderColor, std::string title = "");
+            AuroraCard(AuroraComponentInfo &componentInfo, glm::vec2 size, glm::vec4 borderColor, std::string title = "");
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";

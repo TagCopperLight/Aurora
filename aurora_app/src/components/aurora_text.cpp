@@ -1,11 +1,12 @@
 #include "aurora_app/components/aurora_text.hpp"
+#include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    AuroraText::AuroraText(AuroraDevice &device, const std::string& text, const AuroraMSDFAtlas& atlas, float fontSize)
-        : AuroraComponentInterface{device}, text{text}, msdfAtlas{atlas}, fontSize{fontSize} {
+    AuroraText::AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize)
+        : AuroraComponentInterface{componentInfo}, text{text}, fontSize{fontSize} {
         initialize();
     }
 
@@ -38,7 +39,7 @@ namespace aurora {
         if (vertices.empty()) {
             
             AuroraModel::Builder builder{};
-            model = std::make_shared<AuroraModel>(auroraDevice, builder);
+            model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
             return;
         }
         
@@ -58,12 +59,13 @@ namespace aurora {
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
         builder.indices = indices;
-        model = std::make_shared<AuroraModel>(auroraDevice, builder);
+        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
     }
 
     std::vector<AuroraModel::Vertex> AuroraText::createTextVertices() {
         std::vector<AuroraModel::Vertex> vertices;
-        
+        const AuroraMSDFAtlas& msdfAtlas = componentInfo.renderSystemManager.getMSDFAtlas();
+
         if (text.empty()) {
             return vertices;
         }

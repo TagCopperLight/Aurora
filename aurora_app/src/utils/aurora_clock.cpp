@@ -1,4 +1,4 @@
-#include "aurora_app/aurora_clock.hpp"
+#include "aurora_app/utils/aurora_clock.hpp"
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <iomanip>
@@ -44,7 +44,6 @@ namespace aurora {
             std::this_thread::sleep_for(sleepTime);
         }
         
-        // Update frameEndTime_ to include sleep time for accurate frame time calculation
         frameEndTime_ = std::chrono::high_resolution_clock::now();
         updateTimingData();
     }

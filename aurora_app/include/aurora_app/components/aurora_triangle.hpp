@@ -5,7 +5,7 @@
 namespace aurora {
     class AuroraTriangle : public AuroraComponentInterface {
         public:
-            AuroraTriangle(AuroraDevice &device);
+            AuroraTriangle(AuroraComponentInfo &componentInfo);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";

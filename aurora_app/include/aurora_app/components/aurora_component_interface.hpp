@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aurora_app/graphics/aurora_model.hpp"
-#include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_app/components/aurora_component_info.hpp"
 
 #include <memory>
 
@@ -42,7 +42,7 @@ namespace aurora {
     
     class AuroraComponentInterface {
         public:
-            explicit AuroraComponentInterface(AuroraDevice &device) : auroraDevice{device} {}
+            explicit AuroraComponentInterface(AuroraComponentInfo &componentInfo) : componentInfo{componentInfo} {}
             virtual ~AuroraComponentInterface() = default;
 
             virtual void update(float) {};
@@ -76,11 +76,9 @@ namespace aurora {
                 return children;
             }
             
-            // Calculate world transform including parent transforms
             glm::mat4 getWorldTransform() const {
                 glm::mat4 worldTransform = transform.mat4();
                 
-                // Multiply by parent transforms recursively
                 if (parent != nullptr) {
                     worldTransform = parent->getWorldTransform() * worldTransform;
                 }
@@ -89,7 +87,7 @@ namespace aurora {
             }
             
         protected:
-            AuroraDevice &auroraDevice;
+            AuroraComponentInfo &componentInfo;
             std::vector<std::unique_ptr<AuroraComponentInterface>> children;
             AuroraComponentInterface* parent = nullptr;
             

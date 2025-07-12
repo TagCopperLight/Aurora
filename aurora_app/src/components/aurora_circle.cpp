@@ -7,8 +7,8 @@
 #include <memory>
 
 namespace aurora {
-    AuroraCircle::AuroraCircle(AuroraDevice &device, float radius)
-        : AuroraComponentInterface{device}, radius{radius} {
+    AuroraCircle::AuroraCircle(AuroraComponentInfo &componentInfo, float radius)
+        : AuroraComponentInterface{componentInfo}, radius{radius} {
         initialize();
     }
 
@@ -16,7 +16,7 @@ namespace aurora {
         std::vector<AuroraModel::Vertex> vertices = createCircleVertices(64);
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(auroraDevice, builder);
+        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
         color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 

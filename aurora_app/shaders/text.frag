@@ -28,6 +28,9 @@ void main() {
     float screenPxDistance = screenPxDistance();
     float opacity = clamp((sd - 0.5) * screenPxDistance + 0.5, 0.0, 1.0);
     
+    if (opacity < 0.01) {
+        discard;
+    }
     
     vec3 finalColor = fragColor.rgb * push.color;
     outColor = vec4(finalColor, fragColor.a * opacity);

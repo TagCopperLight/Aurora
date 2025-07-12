@@ -76,6 +76,19 @@ namespace aurora {
                 return children;
             }
             
+            void setDepth(float depth) {
+                transform.translation.z = depth;
+            }
+            
+            void setPosition(float x, float y) {
+                transform.translation.x = x;
+                transform.translation.y = y;
+            }
+            
+            void setPosition(const glm::vec2& position) {
+                setPosition(position.x, position.y);
+            }
+            
             glm::mat4 getWorldTransform() const {
                 glm::mat4 worldTransform = transform.mat4();
                 

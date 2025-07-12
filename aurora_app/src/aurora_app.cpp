@@ -39,7 +39,7 @@ namespace aurora {
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
-            camera.setOrthographicProjection(0, width, height, 0, 0, 1);
+            camera.setOrthographicProjection(0, width, height, 0, 0, 2);
 
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
@@ -63,7 +63,7 @@ namespace aurora {
         AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
 
         auto cardComponent = std::make_unique<AuroraCard>(componentInfo, glm::vec2(500.0f, 500.0f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
-        cardComponent->transform.translation = glm::vec3(20.0f, 20.0f, 0.0f);
+        cardComponent->setPosition(20.0f, 20.0f);
         renderSystemManager->addComponent(std::move(cardComponent));
 
         spdlog::info("Created {} render systems with {} total components", renderSystemManager->getRenderSystemCount(), renderSystemManager->getTotalComponentCount());

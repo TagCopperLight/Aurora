@@ -36,6 +36,8 @@ namespace aurora {
             AuroraRenderSystem* findCompatibleRenderSystem(const AuroraComponentInterface& component);
 
             std::unique_ptr<AuroraRenderSystem> createRenderSystem(const AuroraComponentInterface& component);
+            
+            void addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component, float baseDepth);
 
             AuroraDevice& auroraDevice;
             VkRenderPass renderPass;
@@ -43,5 +45,8 @@ namespace aurora {
             
             std::unique_ptr<AuroraDescriptorPool> globalDescriptorPool;
             std::unique_ptr<AuroraMSDFAtlas> msdfAtlas;
+
+            float currentDepth = 1.0f;
+            static constexpr float DEPTH_INCREMENT = 0.0001f;
     };
 }

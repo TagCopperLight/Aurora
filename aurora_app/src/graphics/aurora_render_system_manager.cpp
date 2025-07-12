@@ -22,14 +22,24 @@ namespace aurora {
             return;
         }
 
+        addComponentRecursive(std::move(component), currentDepth);
+    }
+
+    void AuroraRenderSystemManager::addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component, float baseDepth) {
+        component->setDepth(baseDepth);
+
+        spdlog::info("Adding component with base depth: {:.6f}", baseDepth);
         
         auto& children = component->getChildren();
         std::vector<std::unique_ptr<AuroraComponentInterface>> childrenToAdd;
         childrenToAdd.reserve(children.size());
+        
+        float childDepth = baseDepth;
         for (auto& child : children) {
+            childDepth -= DEPTH_INCREMENT;
             childrenToAdd.push_back(std::move(child));
         }
-        children.clear(); 
+        children.clear();
 
         AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
         
@@ -41,10 +51,13 @@ namespace aurora {
             renderSystems.push_back(std::move(newRenderSystem));
         }
 
-        
+        float childBaseDepth = baseDepth;
         for (auto& child : childrenToAdd) {
-            addComponent(std::move(child));
+            childBaseDepth -= DEPTH_INCREMENT;
+            addComponentRecursive(std::move(child), childBaseDepth);
         }
+        
+        currentDepth = std::min(currentDepth - DEPTH_INCREMENT, childBaseDepth - DEPTH_INCREMENT);
     }
 
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {

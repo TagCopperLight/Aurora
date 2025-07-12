@@ -99,6 +99,10 @@ namespace aurora {
                 return worldTransform;
             }
             
+            void clearParent() {
+                parent = nullptr;
+            }
+            
         protected:
             AuroraComponentInfo &componentInfo;
             std::vector<std::unique_ptr<AuroraComponentInterface>> children;

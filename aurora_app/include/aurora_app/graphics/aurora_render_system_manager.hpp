@@ -2,11 +2,11 @@
 
 #include "aurora_render_system.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_engine/core/aurora_renderer.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
-#include <vulkan/vulkan.h>
 
 #include <memory>
 #include <vector>
@@ -14,7 +14,7 @@
 namespace aurora {
     class AuroraRenderSystemManager {
         public:
-            AuroraRenderSystemManager(AuroraDevice& device, VkRenderPass renderPass);
+            AuroraRenderSystemManager(AuroraDevice& device, AuroraRenderer& renderer);
             ~AuroraRenderSystemManager() = default;
 
             AuroraRenderSystemManager(const AuroraRenderSystemManager&) = delete;
@@ -37,10 +37,10 @@ namespace aurora {
 
             std::unique_ptr<AuroraRenderSystem> createRenderSystem(const AuroraComponentInterface& component);
             
-            void addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component, float baseDepth);
+            void addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component);
 
             AuroraDevice& auroraDevice;
-            VkRenderPass renderPass;
+            AuroraRenderer& auroraRenderer;
             std::vector<std::unique_ptr<AuroraRenderSystem>> renderSystems;
             
             std::unique_ptr<AuroraDescriptorPool> globalDescriptorPool;

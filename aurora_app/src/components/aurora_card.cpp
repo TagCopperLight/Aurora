@@ -11,8 +11,8 @@
 #include <memory>
 
 namespace aurora {
-    AuroraCard::AuroraCard(AuroraComponentInfo &componentInfo, glm::vec2 size, glm::vec4 borderColor, std::string title)
-        : AuroraComponentInterface{componentInfo}, size{size}, borderColor{borderColor}, title{title} {
+    AuroraCard::AuroraCard(AuroraComponentInfo &componentInfo, glm::vec2 size, glm::vec4 borderColor)
+        : AuroraComponentInterface{componentInfo}, size{size}, borderColor{borderColor} {
         initialize();
     }
 
@@ -27,12 +27,8 @@ namespace aurora {
         auto roundedRectComponent = std::make_unique<AuroraRoundedRectangle>(componentInfo, size, radius);
         roundedRectComponent->color = {0.196f, 0.196f, 0.196f, 1.0f};
 
-        auto textComponent = std::make_unique<AuroraText>(componentInfo, "Hello World !", 20.0f);
-        textComponent->setPosition(radius * 0.8f, radius * 0.5f);
-
         addChild(std::move(shadowBordersComponent));
         addChild(std::move(roundedRectComponent));
         addChild(std::move(bordersComponent));
-        addChild(std::move(textComponent));
     }
 }

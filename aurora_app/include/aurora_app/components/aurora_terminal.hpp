@@ -5,9 +5,9 @@
 #include <string>
 
 namespace aurora {
-    class AuroraCard : public AuroraComponentInterface {
+    class AuroraTerminal : public AuroraComponentInterface {
         public:
-            AuroraCard(AuroraComponentInfo &componentInfo, glm::vec2 size, glm::vec4 borderColor);
+            AuroraTerminal(AuroraComponentInfo &componentInfo, glm::vec2 size);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";
@@ -27,6 +27,5 @@ namespace aurora {
             void initialize() override;
 
             glm::vec2 size;
-            glm::vec4 borderColor;
     };
 }

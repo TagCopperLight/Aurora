@@ -3,9 +3,7 @@
 #include "aurora_app/utils/aurora_clock.hpp"
 
 #include "aurora_app/components/aurora_component_info.hpp"
-#include "aurora_app/components/aurora_card.hpp"
-#include "aurora_app/components/aurora_text.hpp"
-#include "aurora_app/components/aurora_triangle.hpp"
+#include "aurora_app/components/aurora_terminal.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -20,7 +18,7 @@
 namespace aurora {
     AuroraApp::AuroraApp() {
         spdlog::info("Initializing Aurora Application");
-        renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer.getSwapChainRenderPass());
+        renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
         createRenderSystems();
         spdlog::info("Aurora Application ready");
     }
@@ -62,9 +60,10 @@ namespace aurora {
     void AuroraApp::createRenderSystems() {
         AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
 
-        auto cardComponent = std::make_unique<AuroraCard>(componentInfo, glm::vec2(500.0f, 500.0f), glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
-        cardComponent->setPosition(20.0f, 20.0f);
-        renderSystemManager->addComponent(std::move(cardComponent));
+        auto terminalComponent = std::make_unique<AuroraTerminal>(componentInfo, glm::vec2(500.0f, 500.0f));
+        terminalComponent->setPosition(20.0f, 20.0f);
+
+        renderSystemManager->addComponent(std::move(terminalComponent));
 
         spdlog::info("Created {} render systems with {} total components", renderSystemManager->getRenderSystemCount(), renderSystemManager->getTotalComponentCount());
     }

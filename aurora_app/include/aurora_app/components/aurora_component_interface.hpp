@@ -58,9 +58,9 @@ namespace aurora {
             glm::vec4 color{};
             TransformComponent transform{};
 
-            virtual void addChild(std::unique_ptr<AuroraComponentInterface> child) {
+            virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {
                 child->parent = this;
-                children.push_back(std::move(child));
+                children.push_back(child);
             }
 
             virtual void updateHierarchy(float deltaTime) {
@@ -72,7 +72,7 @@ namespace aurora {
                 }
             }
             
-            std::vector<std::unique_ptr<AuroraComponentInterface>>& getChildren() {
+            std::vector<std::shared_ptr<AuroraComponentInterface>>& getChildren() {
                 return children;
             }
             
@@ -93,7 +93,11 @@ namespace aurora {
                 glm::mat4 worldTransform = transform.mat4();
                 
                 if (parent != nullptr) {
-                    worldTransform = parent->getWorldTransform() * worldTransform;
+                    glm::mat4 parentTransform = parent->getWorldTransform();
+                    
+                    float ourZDepth = worldTransform[3][2];
+                    worldTransform = parentTransform * worldTransform;
+                    worldTransform[3][2] = ourZDepth;
                 }
                 
                 return worldTransform;
@@ -103,9 +107,13 @@ namespace aurora {
                 parent = nullptr;
             }
             
+            AuroraComponentInterface* getParent() const {
+                return parent;
+            }
+            
         protected:
             AuroraComponentInfo &componentInfo;
-            std::vector<std::unique_ptr<AuroraComponentInterface>> children;
+            std::vector<std::shared_ptr<AuroraComponentInterface>> children;
             AuroraComponentInterface* parent = nullptr;
             
         private:

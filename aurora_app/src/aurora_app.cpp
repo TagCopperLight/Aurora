@@ -4,6 +4,7 @@
 
 #include "aurora_app/components/aurora_component_info.hpp"
 #include "aurora_app/components/aurora_terminal.hpp"
+#include "aurora_app/components/aurora_card.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -37,7 +38,7 @@ namespace aurora {
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
-            camera.setOrthographicProjection(0, width, height, 0, 0, 2);
+            camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
             if (auto commandBuffer = auroraRenderer.beginFrame()) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
@@ -60,10 +61,13 @@ namespace aurora {
     void AuroraApp::createRenderSystems() {
         AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
 
-        auto terminalComponent = std::make_unique<AuroraTerminal>(componentInfo, glm::vec2(500.0f, 500.0f));
+        auto terminalComponent = std::make_shared<AuroraTerminal>(componentInfo, glm::vec2(500.0f, 500.0f));
         terminalComponent->setPosition(20.0f, 20.0f);
+        renderSystemManager->addComponent(terminalComponent);
 
-        renderSystemManager->addComponent(std::move(terminalComponent));
+        terminalComponent->addText("This is a short line");
+        terminalComponent->addText("This is a much longer line that will automatically wrap to the next line when it exceeds the terminal width");
+        terminalComponent->addText("Another line");
 
         spdlog::info("Created {} render systems with {} total components", renderSystemManager->getRenderSystemCount(), renderSystemManager->getTotalComponentCount());
     }

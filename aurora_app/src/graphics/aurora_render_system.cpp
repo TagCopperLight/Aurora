@@ -132,7 +132,7 @@ namespace aurora {
             PushConstantsData push{};
             push.transform = camera.getProjection() * component->getWorldTransform();
             push.color = component->color;
-
+            
             vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantsData), &push);
 
             component->model->bind(commandBuffer);

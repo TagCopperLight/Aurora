@@ -30,8 +30,8 @@ namespace aurora {
 
             void renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera);
 
-            void addComponent(std::unique_ptr<AuroraComponentInterface> component) {
-                components.push_back(std::move(component));
+            void addComponent(std::shared_ptr<AuroraComponentInterface> component) {
+                components.push_back(component);
             }
         
             size_t getComponentCount() const {
@@ -66,7 +66,7 @@ namespace aurora {
             std::vector<std::unique_ptr<AuroraDescriptorSetLayout>> descriptorSetLayouts{};
             std::vector<VkDescriptorSet> descriptorSets{};
 
-            std::vector<std::unique_ptr<AuroraComponentInterface>> components;
+            std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             
             
             std::string vertexShaderPath;

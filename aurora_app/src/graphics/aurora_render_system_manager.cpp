@@ -16,39 +16,31 @@ namespace aurora {
         spdlog::info("RenderSystemManager initialized");
     }
 
-    void AuroraRenderSystemManager::addComponent(std::unique_ptr<AuroraComponentInterface> component) {
+    void AuroraRenderSystemManager::addComponent(std::shared_ptr<AuroraComponentInterface> component) {
         if (!component) {
             spdlog::warn("Attempted to add null component to RenderSystemManager");
             return;
         }
 
-        addComponentRecursive(std::move(component));
+        addComponentRecursive(component);
     }
 
-    void AuroraRenderSystemManager::addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component) {
+    void AuroraRenderSystemManager::addComponentRecursive(std::shared_ptr<AuroraComponentInterface> component) {
         component->setDepth(currentDepth);
         currentDepth -= DEPTH_INCREMENT;
 
-        auto children = std::move(component->getChildren());
+        auto& children = component->getChildren();
         for (auto& child : children) {
-            glm::mat4 childWorldTransform = child->getWorldTransform();
-            
-            child->transform.translation.x = childWorldTransform[3][0];
-            child->transform.translation.y = childWorldTransform[3][1];
-            child->transform.translation.z = childWorldTransform[3][2];
-            
-            child->clearParent();
-            
-            addComponentRecursive(std::move(child));
+            addComponentRecursive(child);
         }
 
         AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
         
         if (compatibleSystem) {
-            compatibleSystem->addComponent(std::move(component));
+            compatibleSystem->addComponent(component);
         } else {
             auto newRenderSystem = createRenderSystem(*component);
-            newRenderSystem->addComponent(std::move(component));
+            newRenderSystem->addComponent(component);
             renderSystems.push_back(std::move(newRenderSystem));
         }
     }
@@ -80,7 +72,7 @@ namespace aurora {
 
     std::unique_ptr<AuroraRenderSystem> AuroraRenderSystemManager::createRenderSystem(const AuroraComponentInterface& component) {
         RenderSystemCreateInfo createInfo{
-            auroraRenderer.getSwapChainRenderPass(), // Get current render pass
+            auroraRenderer.getSwapChainRenderPass(),
             component.getVertexShaderPath(),
             component.getFragmentShaderPath(),
             component.getTopology(),

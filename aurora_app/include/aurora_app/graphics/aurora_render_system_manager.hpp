@@ -20,8 +20,8 @@ namespace aurora {
             AuroraRenderSystemManager(const AuroraRenderSystemManager&) = delete;
             AuroraRenderSystemManager &operator=(const AuroraRenderSystemManager&) = delete;
 
-            void addComponent(std::unique_ptr<AuroraComponentInterface> component);
-
+            void addComponent(std::shared_ptr<AuroraComponentInterface> component);
+            
             void renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera);
 
             size_t getRenderSystemCount() const {
@@ -37,7 +37,7 @@ namespace aurora {
 
             std::unique_ptr<AuroraRenderSystem> createRenderSystem(const AuroraComponentInterface& component);
             
-            void addComponentRecursive(std::unique_ptr<AuroraComponentInterface> component);
+            void addComponentRecursive(std::shared_ptr<AuroraComponentInterface> component);
 
             AuroraDevice& auroraDevice;
             AuroraRenderer& auroraRenderer;
@@ -46,7 +46,7 @@ namespace aurora {
             std::unique_ptr<AuroraDescriptorPool> globalDescriptorPool;
             std::unique_ptr<AuroraMSDFAtlas> msdfAtlas;
 
-            float currentDepth = 1.0f;
+            float currentDepth = 0.9999f;
             static constexpr float DEPTH_INCREMENT = 0.0001f;
     };
 }

@@ -16,8 +16,8 @@ namespace aurora {
     class AuroraMSDFAtlas {
         public:
             struct Config {
-                uint32_t width = 512;
-                uint32_t height = 512;
+                uint32_t width = 1024;
+                uint32_t height = 1024;
             };
             
             AuroraMSDFAtlas(AuroraDevice& device, const std::string& fontPath);

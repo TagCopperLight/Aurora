@@ -64,9 +64,10 @@ namespace aurora {
         msdf_atlas::TightAtlasPacker packer;
         packer.setDimensionsConstraint(msdf_atlas::DimensionsConstraint::SQUARE);
         
-        packer.setMinimumScale(48); 
+        packer.setMinimumScale(96); 
         packer.setPixelRange(4.0); 
-        packer.setMiterLimit(1.0); 
+        packer.setMiterLimit(1.0);
+        packer.setSpacing(2.0);
 
         packer.pack(glyphs.data(), static_cast<int>(glyphs.size()));
 

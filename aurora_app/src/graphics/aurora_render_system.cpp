@@ -139,4 +139,10 @@ namespace aurora {
             component->model->draw(commandBuffer);
         }
     }
+
+    bool AuroraRenderSystem::isCompatibleWith(const AuroraComponentInterface& component) const {
+        return vertexShaderPath == component.getVertexShaderPath() &&
+               fragmentShaderPath == component.getFragmentShaderPath() &&
+               topology == component.getTopology();
+    }
 }

@@ -3,6 +3,8 @@
 #include "aurora_app/graphics/aurora_model.hpp"
 #include "aurora_app/components/aurora_component_info.hpp"
 
+#include "spdlog/spdlog.h"
+
 #include <memory>
 
 namespace aurora {
@@ -40,7 +42,7 @@ namespace aurora {
         };
     };
     
-    class AuroraComponentInterface {
+    class AuroraComponentInterface : public std::enable_shared_from_this<AuroraComponentInterface> {
         public:
             explicit AuroraComponentInterface(AuroraComponentInfo &componentInfo) : componentInfo{componentInfo} {}
             virtual ~AuroraComponentInterface() = default;
@@ -61,17 +63,28 @@ namespace aurora {
             virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {
                 child->parent = this;
                 children.push_back(child);
-            }
 
-            virtual void updateHierarchy(float deltaTime) {
-                update(deltaTime);
-
-                for (auto &child : children) {
-                    child->update(deltaTime);
-                    child->updateHierarchy(deltaTime);
+                if (rendering) {
+                    child->addToRenderSystem();
                 }
             }
-            
+
+            virtual void addToRenderSystem();
+
+            glm::mat4 getWorldTransform() const {
+                glm::mat4 worldTransform = transform.mat4();
+                
+                if (parent != nullptr) {
+                    glm::mat4 parentTransform = parent->getWorldTransform();
+                    
+                    float ourZDepth = worldTransform[3][2];
+                    worldTransform = parentTransform * worldTransform;
+                    worldTransform[3][2] = ourZDepth;
+                }
+                
+                return worldTransform;
+            }
+
             std::vector<std::shared_ptr<AuroraComponentInterface>>& getChildren() {
                 return children;
             }
@@ -88,27 +101,9 @@ namespace aurora {
             void setPosition(const glm::vec2& position) {
                 setPosition(position.x, position.y);
             }
-            
-            glm::mat4 getWorldTransform() const {
-                glm::mat4 worldTransform = transform.mat4();
-                
-                if (parent != nullptr) {
-                    glm::mat4 parentTransform = parent->getWorldTransform();
-                    
-                    float ourZDepth = worldTransform[3][2];
-                    worldTransform = parentTransform * worldTransform;
-                    worldTransform[3][2] = ourZDepth;
-                }
-                
-                return worldTransform;
-            }
-            
-            void clearParent() {
-                parent = nullptr;
-            }
-            
-            AuroraComponentInterface* getParent() const {
-                return parent;
+
+            void setRendering(bool value) {
+                rendering = value;
             }
             
         protected:
@@ -120,6 +115,7 @@ namespace aurora {
             virtual void initialize() {};
 
             bool hidden = false;
+            bool rendering = false;
 
     };
 }

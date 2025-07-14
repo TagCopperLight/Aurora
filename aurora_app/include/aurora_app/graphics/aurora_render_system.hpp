@@ -4,11 +4,15 @@
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
-#include "aurora_app/components/aurora_component_interface.hpp"
+#include "aurora_engine/core/aurora_buffer.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include <memory>
 #include <vector>
+
+namespace aurora {
+    class AuroraComponentInterface;
+}
 
 namespace aurora {
     struct RenderSystemCreateInfo {
@@ -38,12 +42,11 @@ namespace aurora {
                 return components.size();
             }
             
-            
-            bool isCompatibleWith(const AuroraComponentInterface& component) const {
-                return vertexShaderPath == component.getVertexShaderPath() &&
-                       fragmentShaderPath == component.getFragmentShaderPath() &&
-                       topology == component.getTopology();
+            const std::vector<std::shared_ptr<AuroraComponentInterface>>& getComponents() const {
+                return components;
             }
+            
+            bool isCompatibleWith(const AuroraComponentInterface& component) const;
             
             
             const std::string& getVertexShaderPath() const { return vertexShaderPath; }

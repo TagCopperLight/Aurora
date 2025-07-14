@@ -1,4 +1,5 @@
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
+#include "aurora_app/components/aurora_component_interface.hpp"
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -13,27 +14,11 @@ namespace aurora {
             .build();
 
         msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, "/home/tag/Downloads/font.ttf");
+        msdfAtlas->saveAtlasAsPNG("/home/tag/Aurora/msdf_atlas2.png");
         spdlog::info("RenderSystemManager initialized");
     }
 
-    void AuroraRenderSystemManager::addComponent(std::shared_ptr<AuroraComponentInterface> component) {
-        if (!component) {
-            spdlog::warn("Attempted to add null component to RenderSystemManager");
-            return;
-        }
-
-        addComponentRecursive(component);
-    }
-
-    void AuroraRenderSystemManager::addComponentRecursive(std::shared_ptr<AuroraComponentInterface> component) {
-        component->setDepth(currentDepth);
-        currentDepth -= DEPTH_INCREMENT;
-
-        auto& children = component->getChildren();
-        for (auto& child : children) {
-            addComponentRecursive(child);
-        }
-
+    void AuroraRenderSystemManager::addComponentToRenderSystems(std::shared_ptr<AuroraComponentInterface> component) {
         AuroraRenderSystem* compatibleSystem = findCompatibleRenderSystem(*component);
         
         if (compatibleSystem) {
@@ -45,7 +30,28 @@ namespace aurora {
         }
     }
 
+    void AuroraRenderSystemManager::recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float depth, float depthIncrement) {
+        for (const auto& component : components) {
+            component->setDepth(depth);
+            depth -= depthIncrement;
+
+            auto& children = component->getChildren();
+            recalculateAllDepths(children, depth, depthIncrement);
+        }
+    }
+
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
+        if (!componentQueue.empty()) {
+            spdlog::info("Processing component queue with {} components", componentQueue.size());
+            for (const auto& component : componentQueue) {
+                addComponentToRenderSystems(component);
+            }
+            componentQueue.clear();
+
+            recalculateAllDepths(components, MAX_DEPTH, DEPTH_INCREMENT);
+            spdlog::info("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
+        }
+
         for (const auto& renderSystem : renderSystems) {
             if (renderSystem->getComponentCount() > 0) {
                 renderSystem->renderComponents(commandBuffer, camera);

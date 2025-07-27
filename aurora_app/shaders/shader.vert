@@ -6,12 +6,12 @@ layout(location = 2) in vec2 texCoord;
 
 layout(location = 0) out vec4 fragColor;
 
-layout(push_constant) uniform PushConstants {
+layout(set = 0, binding = 0) uniform componentUniform {
     mat4 transform;
     vec3 color;
-} push;
+} componentUbo;
 
 void main() {
-    gl_Position = push.transform * vec4(position, 1.0);
-    fragColor = color * vec4(push.color, 1.0);
+    gl_Position = componentUbo.transform * vec4(position, 1.0);
+    fragColor = color * vec4(componentUbo.color, 1.0);
 }

@@ -53,7 +53,7 @@ namespace aurora {
 
         for (const auto& renderSystem : renderSystems) {
             if (renderSystem->getComponentCount() > 0) {
-                renderSystem->renderComponents(commandBuffer, camera);
+                renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
             }
         }
     }

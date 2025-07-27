@@ -57,7 +57,7 @@ namespace aurora {
             virtual VkPrimitiveTopology getTopology() const = 0;
             
             std::shared_ptr<AuroraModel> model{};
-            glm::vec4 color{};
+            glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             TransformComponent transform{};
 
             virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {

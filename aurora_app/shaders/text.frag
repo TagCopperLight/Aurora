@@ -7,11 +7,6 @@ layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 1) uniform sampler2D msdfTexture;
 
-layout(push_constant) uniform Push {
-    mat4 transform;
-    vec3 color;
-} push;
-
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));
 }
@@ -32,6 +27,5 @@ void main() {
         discard;
     }
     
-    vec3 finalColor = fragColor.rgb * push.color;
-    outColor = vec4(finalColor, fragColor.a * opacity);
+    outColor = vec4(fragColor.rgb, fragColor.a * opacity);
 }

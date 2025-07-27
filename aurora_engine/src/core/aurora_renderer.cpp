@@ -6,7 +6,8 @@
 #include <cassert>
 
 namespace aurora {
-    AuroraRenderer::AuroraRenderer(AuroraWindow& window, AuroraDevice& device) : auroraWindow(window), auroraDevice(device) {
+    AuroraRenderer::AuroraRenderer(AuroraWindow& window, AuroraDevice& device, const glm::vec4& backgroundColor) 
+        : auroraWindow(window), auroraDevice(device), backgroundColor(backgroundColor) {
         currentFrameIndex = 0;
         isFrameStarted = false;
         recreateSwapChain();
@@ -125,7 +126,7 @@ namespace aurora {
         renderPassInfo.renderArea.extent = auroraSwapChain->getSwapChainExtent();
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.314f, 0.314f, 0.314f, 1.0f};
+        clearValues[0].color = {backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a};
         clearValues[1].depthStencil = {1.0f, 0};
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

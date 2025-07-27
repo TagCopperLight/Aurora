@@ -1,4 +1,5 @@
 #include "aurora_app/components/aurora_card.hpp"
+#include "aurora_app/utils/aurora_color_palette.hpp"
 #include "aurora_app/components/aurora_rounded_borders.hpp"
 #include "aurora_app/components/aurora_rounded_rect.hpp"
 #include "aurora_app/components/aurora_rounded_shadows.hpp"
@@ -25,7 +26,7 @@ namespace aurora {
         bordersComponent->color = borderColor;
 
         auto roundedRectComponent = std::make_shared<AuroraRoundedRectangle>(componentInfo, size, radius);
-        roundedRectComponent->color = {0.196f, 0.196f, 0.196f, 1.0f};
+        roundedRectComponent->color = AuroraColorPalette::SURFACE;
 
         addChild(shadowBordersComponent);
         addChild(roundedRectComponent);

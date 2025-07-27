@@ -1,6 +1,7 @@
 #include "aurora_app/components/aurora_terminal.hpp"
 #include "aurora_app/components/aurora_card.hpp"
 #include "aurora_app/components/aurora_text.hpp"
+#include "aurora_app/utils/aurora_color_palette.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -36,7 +37,7 @@ namespace aurora {
     }
 
     void AuroraTerminal::initialize() {
-        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, glm::vec4(0.784f, 0.38f, 0.286f, 1.0f));
+        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraColorPalette::PRIMARY);
         addChild(cardComponent);
 
         // auto textComponent = std::make_shared<AuroraText>(componentInfo, "> Hello World !", 15.0f);
@@ -118,7 +119,7 @@ namespace aurora {
             // spdlog::info("Creating text component {} at position ({}, {}) with text: '{}'", i, x, y, lines[i]);
             
             textComponent->setPosition(x, y);
-            spdlog::info("Adding a terminal text component");
+            // spdlog::info("Adding a terminal text component");
             addChild(textComponent);
         }
         

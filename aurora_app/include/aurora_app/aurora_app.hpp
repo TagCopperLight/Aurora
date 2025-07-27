@@ -4,6 +4,7 @@
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_renderer.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
+#include "aurora_app/utils/aurora_color_palette.hpp"
 
 #include <memory>
 #include <vector>
@@ -27,7 +28,7 @@ namespace aurora {
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};
-            AuroraRenderer auroraRenderer{auroraWindow, auroraDevice};
+            AuroraRenderer auroraRenderer{auroraWindow, auroraDevice, AuroraColorPalette::BACKGROUND};
 
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
     };

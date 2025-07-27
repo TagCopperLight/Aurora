@@ -14,7 +14,6 @@ namespace aurora {
             .build();
 
         msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, "/home/tag/Downloads/font.ttf");
-        msdfAtlas->saveAtlasAsPNG("/home/tag/Aurora/msdf_atlas2.png");
         spdlog::info("RenderSystemManager initialized");
     }
 

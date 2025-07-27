@@ -1,4 +1,5 @@
 #include "aurora_app/components/aurora_text.hpp"
+#include "aurora_app/utils/aurora_color_palette.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
@@ -11,7 +12,7 @@ namespace aurora {
     }
 
     void AuroraText::initialize() {
-        color = {1.0f, 1.0f, 1.0f, 1.0f};
+        color = AuroraColorPalette::TEXT_PRIMARY;
         rebuildGeometry();
     }
 

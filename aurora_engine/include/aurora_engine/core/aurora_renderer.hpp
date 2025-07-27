@@ -4,6 +4,10 @@
 #include "aurora_device.hpp"
 #include "aurora_swap_chain.hpp"
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include <memory>
 #include <vector>
 #include <cassert>
@@ -11,7 +15,7 @@
 namespace aurora {
     class AuroraRenderer {
         public:
-            AuroraRenderer(AuroraWindow& window, AuroraDevice& device);
+            AuroraRenderer(AuroraWindow& window, AuroraDevice& device, const glm::vec4& backgroundColor);
             ~AuroraRenderer();
 
             AuroraRenderer(const AuroraRenderer&) = delete;
@@ -48,6 +52,7 @@ namespace aurora {
             AuroraDevice& auroraDevice;
             std::unique_ptr<AuroraSwapChain> auroraSwapChain;
             std::vector<VkCommandBuffer> commandBuffers;
+            glm::vec4 backgroundColor;
 
             uint32_t currentImageIndex;
             int currentFrameIndex;

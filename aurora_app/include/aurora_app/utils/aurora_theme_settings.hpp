@@ -1,11 +1,10 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <string>
 
 namespace aurora {
-    class AuroraColorPalette {
+    class AuroraThemeSettings {
     public:
         // Primary UI Colors
         static constexpr glm::vec4 PRIMARY = {0.784f, 0.38f, 0.286f, 1.0f};
@@ -38,6 +37,9 @@ namespace aurora {
         static constexpr glm::vec4 WHITE = {1.0f, 1.0f, 1.0f, 1.0f};
         static constexpr glm::vec4 BLACK = {0.0f, 0.0f, 0.0f, 1.0f};
         
+        // Font Path
+        static constexpr const char* FONT_PATH = "/home/tag/Downloads/Monaco.otf";
+
         // Utility Functions
         static glm::vec4 hexToVec4(unsigned int hex, float alpha = 1.0f) {
             float r = ((hex >> 16) & 0xFF) / 255.0f;

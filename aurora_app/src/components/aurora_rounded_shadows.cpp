@@ -1,5 +1,5 @@
 #include "aurora_app/components/aurora_rounded_shadows.hpp"
-#include "aurora_app/utils/aurora_color_palette.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 #include "aurora_app/utils/aurora_utils.hpp"
 
 #include <memory>
@@ -12,8 +12,8 @@ namespace aurora {
     }
 
     void AuroraRoundedShadows::initialize() {
-        std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, -borderWidth, AuroraColorPalette::SHADOW_TRANSPARENT);
-        std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, AuroraColorPalette::SHADOW_MEDIUM);
+        std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, -borderWidth, AuroraThemeSettings::SHADOW_TRANSPARENT);
+        std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, AuroraThemeSettings::SHADOW_MEDIUM);
         std::vector<AuroraModel::Vertex> vertices;
 
         for (size_t i = 0; i < outerVertices.size(); ++i) {

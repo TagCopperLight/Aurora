@@ -1,5 +1,5 @@
 #include "aurora_app/components/aurora_circle.hpp"
-#include "aurora_app/utils/aurora_color_palette.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -18,7 +18,7 @@ namespace aurora {
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
         model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
-        color = AuroraColorPalette::WHITE;
+        color = AuroraThemeSettings::WHITE;
     }
 
     std::vector<AuroraModel::Vertex> AuroraCircle::createCircleVertices(int numSegments) {

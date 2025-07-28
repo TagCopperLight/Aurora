@@ -1,7 +1,7 @@
 #include "aurora_app/components/aurora_terminal.hpp"
 #include "aurora_app/components/aurora_card.hpp"
 #include "aurora_app/components/aurora_text.hpp"
-#include "aurora_app/utils/aurora_color_palette.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -37,7 +37,7 @@ namespace aurora {
     }
 
     void AuroraTerminal::initialize() {
-        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraColorPalette::PRIMARY);
+        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraThemeSettings::PRIMARY);
         addChild(cardComponent);
 
         // auto textComponent = std::make_shared<AuroraText>(componentInfo, "> Hello World !", 15.0f);

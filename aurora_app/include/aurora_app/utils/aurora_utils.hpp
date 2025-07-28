@@ -1,7 +1,7 @@
 #pragma once
 
 #include "aurora_app/graphics/aurora_model.hpp"
-#include "aurora_app/utils/aurora_color_palette.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -12,7 +12,7 @@ namespace aurora {
             float radius, 
             int numSegments, 
             float borderOffset = 0.0f,
-            glm::vec4 color = AuroraColorPalette::WHITE
+            glm::vec4 color = AuroraThemeSettings::WHITE
         );
     }
 }

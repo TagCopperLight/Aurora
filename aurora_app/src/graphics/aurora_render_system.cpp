@@ -74,15 +74,35 @@ namespace aurora {
                 auroraDevice,
                 sizeof(ComponentUniform),
                 1,
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                auroraDevice.properties.limits.minUniformBufferOffsetAlignment
+            );
+
+            auto stagingBuffer = std::make_unique<AuroraBuffer>(
+                auroraDevice,
+                sizeof(ComponentUniform),
+                1,
+                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 auroraDevice.properties.limits.minUniformBufferOffsetAlignment
             );
             
-            uniformBuffer->map();
+            stagingBuffer->map();
             ComponentUniform uniformData{};
             uniformData.color = components[componentIndex]->color;
-            uniformBuffer->writeToBuffer(&uniformData);
+            stagingBuffer->writeToBuffer(&uniformData);
+
+            VkCommandBuffer commandBuffer = auroraDevice.beginSingleTimeCommands();
+
+            VkBufferCopy copyRegion{};
+            copyRegion.srcOffset = 0;
+            copyRegion.dstOffset = 0;
+            copyRegion.size = sizeof(ComponentUniform);
+
+            vkCmdCopyBuffer(commandBuffer, stagingBuffer->getBuffer(), uniformBuffer->getBuffer(), 1, &copyRegion);
+
+            auroraDevice.endSingleTimeCommands(commandBuffer);
             
             componentUniformBuffers[componentIndex][frameIndex] = std::move(uniformBuffer);
             
@@ -105,8 +125,35 @@ namespace aurora {
     }
 
     void AuroraRenderSystem::updateComponentUniform(size_t componentIndex, const ComponentUniform& uniformData, int frameIndex) {
-        ComponentUniform localUniformData = uniformData;
-        componentUniformBuffers[componentIndex][frameIndex]->writeToBuffer(&localUniformData);
+        // Create a temporary staging buffer for updating the device-local uniform buffer
+        auto stagingBuffer = std::make_unique<AuroraBuffer>(
+            auroraDevice,
+            sizeof(ComponentUniform),
+            1,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            auroraDevice.properties.limits.minUniformBufferOffsetAlignment
+        );
+
+        stagingBuffer->map();
+        stagingBuffer->writeToBuffer((void*)&uniformData);
+
+        VkCommandBuffer commandBuffer = auroraDevice.beginSingleTimeCommands();
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = sizeof(ComponentUniform);
+
+        vkCmdCopyBuffer(
+            commandBuffer,
+            stagingBuffer->getBuffer(),
+            componentUniformBuffers[componentIndex][frameIndex]->getBuffer(),
+            1,
+            &copyRegion
+        );
+
+        auroraDevice.endSingleTimeCommands(commandBuffer);
     }
 
     void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex) {

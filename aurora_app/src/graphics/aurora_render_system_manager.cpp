@@ -1,5 +1,6 @@
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -13,7 +14,7 @@ namespace aurora {
             .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100)
             .build();
 
-        msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, "/home/tag/Downloads/font.ttf");
+        msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, AuroraThemeSettings::FONT_PATH);
         spdlog::info("RenderSystemManager initialized");
     }
 

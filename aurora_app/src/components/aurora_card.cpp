@@ -26,7 +26,7 @@ namespace aurora {
         bordersComponent->color = borderColor;
 
         auto roundedRectComponent = std::make_shared<AuroraRoundedRectangle>(componentInfo, size, radius);
-        roundedRectComponent->color = AuroraThemeSettings::SURFACE;
+        roundedRectComponent->color = AuroraThemeSettings::DELIMITER;
 
         addChild(shadowBordersComponent);
         addChild(roundedRectComponent);

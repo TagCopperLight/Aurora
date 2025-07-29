@@ -2,6 +2,7 @@
 
 #include "aurora_component_interface.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #include <string>
 #include <memory>
@@ -9,7 +10,7 @@
 namespace aurora {
     class AuroraText : public AuroraComponentInterface {
         public:
-            AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize = 24.0f);
+            AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize = 24.0f, glm::vec4 fontColor = AuroraThemeSettings::TEXT_PRIMARY);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/text.vert.spv";
@@ -48,6 +49,7 @@ namespace aurora {
 
             std::string text;
             float fontSize;
+            glm::vec4 fontColor;
             glm::vec2 textBounds;
     };
 }

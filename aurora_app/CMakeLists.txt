@@ -64,6 +64,24 @@ target_include_directories(aurora_app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+# Copy assets folder to build directory
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            ${CMAKE_BINARY_DIR}/assets
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets
+    COMMENT "Copying assets to build directory"
+)
+
+add_custom_target(copy_assets ALL
+    DEPENDS ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Ensuring assets are copied to build directory"
+)
+
+# Make sure assets are copied before the library
+add_dependencies(aurora_app copy_assets)
+
 # Link aurora_engine library properly using target
 target_link_libraries(aurora_app PUBLIC
     aurora_engine  # Proper CMake target dependency

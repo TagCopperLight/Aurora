@@ -1,18 +1,17 @@
 #include "aurora_app/components/aurora_text.hpp"
-#include "aurora_app/utils/aurora_theme_settings.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 #include <spdlog/spdlog.h>
 
 namespace aurora {
-    AuroraText::AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize)
-        : AuroraComponentInterface{componentInfo}, text{text}, fontSize{fontSize} {
+    AuroraText::AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize, glm::vec4 fontColor)
+        : AuroraComponentInterface{componentInfo}, text{text}, fontSize{fontSize}, fontColor{fontColor} {
         initialize();
     }
 
     void AuroraText::initialize() {
-        color = AuroraThemeSettings::TEXT_PRIMARY;
+        color = fontColor;
         rebuildGeometry();
     }
 

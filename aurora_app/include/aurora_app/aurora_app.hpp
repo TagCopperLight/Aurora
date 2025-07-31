@@ -31,5 +31,6 @@ namespace aurora {
             AuroraRenderer auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::BACKGROUND};
 
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
+            std::string routes = "12/106";
     };
 }

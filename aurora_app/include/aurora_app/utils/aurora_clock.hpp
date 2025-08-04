@@ -6,12 +6,13 @@
 namespace aurora {
     class AuroraClock {
     public:
-        AuroraClock(int targetFrameRate = 60);
+        AuroraClock(int targetFrameRate = 60, bool enableFrameRateLimit = true);
         ~AuroraClock();
 
         void beginFrame();
         void endFrame();
-        void waitForFrameRate();
+        
+        void setFrameRateLimit(bool enable);
         
         double getFrameTimeMs() const;
         double getFPS() const;
@@ -24,6 +25,7 @@ namespace aurora {
     private:
         int targetFrameRate_;
         std::chrono::microseconds targetFrameTime_;
+        bool enableFrameRateLimit_;
         
         std::chrono::high_resolution_clock::time_point appStartTime_;
         std::chrono::high_resolution_clock::time_point frameStartTime_;

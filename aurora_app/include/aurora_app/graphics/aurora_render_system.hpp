@@ -22,6 +22,12 @@ namespace aurora {
         glm::mat4 transform;
         alignas(16) glm::vec4 color;
     };
+    
+    struct PushConstantData {
+        glm::mat4 transform;  // 64 bytes
+        glm::vec4 color;      // 16 bytes
+        // Total: 80 bytes
+    };
 }
 
 namespace aurora {
@@ -32,6 +38,7 @@ namespace aurora {
         VkPrimitiveTopology topology;
         AuroraDescriptorPool* descriptorPool;
         AuroraMSDFAtlas* msdfAtlas;
+        bool needsTextureBinding;
     };
 
     class AuroraRenderSystem {
@@ -45,8 +52,6 @@ namespace aurora {
             void renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex);
 
             void addComponent(std::shared_ptr<AuroraComponentInterface> component);
-            
-            void updateComponentUniform(size_t componentIndex, const ComponentUniform& uniformData, int frameIndex);
             
             size_t getComponentCount() const {
                 return components.size();
@@ -66,23 +71,18 @@ namespace aurora {
         private:
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
-            void createComponentUniformBuffers(size_t componentIndex, AuroraMSDFAtlas* msdfAtlas);
+            void createComponentDescriptorSets(size_t componentIndex, AuroraMSDFAtlas* msdfAtlas);
 
             AuroraDevice& auroraDevice;
 
             std::unique_ptr<AuroraPipeline> auroraPipeline;
             VkPipelineLayout pipelineLayout;
 
-            // Per-component, per-frame uniform buffers [componentIndex][frameIndex]
-            std::vector<std::vector<std::unique_ptr<AuroraBuffer>>> componentUniformBuffers;
-            
-            // Per-component, per-frame descriptor sets [componentIndex][frameIndex]
-            std::vector<std::vector<VkDescriptorSet>> componentDescriptorSets;
+            VkDescriptorSet sharedDescriptorSet = VK_NULL_HANDLE;
 
             AuroraDescriptorPool* globalDescriptorPool;
             std::vector<std::unique_ptr<AuroraDescriptorSetLayout>> descriptorSetLayouts{};
             
-            // Store reference to MSDF atlas for descriptor set creation
             AuroraMSDFAtlas* msdfAtlas;
 
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
@@ -91,5 +91,6 @@ namespace aurora {
             std::string vertexShaderPath;
             std::string fragmentShaderPath;
             VkPrimitiveTopology topology;
+            bool needsTextureBinding;
     };
 }

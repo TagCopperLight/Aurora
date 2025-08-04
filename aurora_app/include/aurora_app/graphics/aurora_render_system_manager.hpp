@@ -5,7 +5,6 @@
 #include "aurora_engine/core/aurora_renderer.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
-// #include "aurora_app/components/aurora_component_interface.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include <memory>

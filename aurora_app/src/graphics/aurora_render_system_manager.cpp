@@ -83,7 +83,8 @@ namespace aurora {
             component.getFragmentShaderPath(),
             component.getTopology(),
             globalDescriptorPool.get(),
-            msdfAtlas.get()
+            msdfAtlas.get(),
+            component.needsTextureBinding()
         };
 
         return std::make_unique<AuroraRenderSystem>(auroraDevice, createInfo);

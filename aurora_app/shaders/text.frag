@@ -5,7 +5,7 @@ layout(location = 1) in vec2 fragTexCoord;
 
 layout(location = 0) out vec4 outColor;
 
-layout(set = 0, binding = 1) uniform sampler2D msdfTexture;
+layout(set = 0, binding = 0) uniform sampler2D msdfTexture;
 
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));

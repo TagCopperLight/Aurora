@@ -26,6 +26,10 @@ namespace aurora {
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             }
             
+            bool needsTextureBinding() const override {
+                return true;
+            }
+            
             void setText(const std::string& newText);
             const std::string& getText() const { return text; }
             

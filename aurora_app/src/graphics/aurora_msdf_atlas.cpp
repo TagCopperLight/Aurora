@@ -100,6 +100,9 @@ namespace aurora {
         glyphGeometry = std::move(glyphs);
         fontGeometry = msdf_atlas::FontGeometry(&glyphGeometry);
 
+        buildGlyphCache();
+        buildKerningCache();
+
         createAtlasTexture();
 
         return true;
@@ -124,6 +127,36 @@ namespace aurora {
             msdfgen::destroyFont(fontHandle);
             fontHandle = nullptr;
         }
+        
+        glyphCache.clear();
+        kerningCache.clear();
+    }
+
+    void AuroraMSDFAtlas::buildGlyphCache() {
+        glyphCache.clear();
+        glyphCache.reserve(glyphGeometry.size());
+        
+        for (const auto& glyph : glyphGeometry) {
+            char character = static_cast<char>(glyph.getCodepoint());
+            glyphCache[character] = &glyph;
+        }
+        
+        spdlog::debug("Built glyph cache with {} entries", glyphCache.size());
+    }
+
+    void AuroraMSDFAtlas::buildKerningCache() {
+        kerningCache.clear();
+        
+        auto kerningMap = fontGeometry.getKerning();
+        kerningCache.reserve(kerningMap.size());
+        
+        for (const auto& kerningPair : kerningMap) {
+            uint64_t key = (static_cast<uint64_t>(kerningPair.first.first) << 32) | 
+                          static_cast<uint64_t>(kerningPair.first.second);
+            kerningCache[key] = kerningPair.second;
+        }
+        
+        spdlog::debug("Built kerning cache with {} entries", kerningCache.size());
     }
 
     void AuroraMSDFAtlas::uploadAtlasToTexture() {
@@ -207,59 +240,43 @@ namespace aurora {
     }
     
     bool AuroraMSDFAtlas::getGlyphInfo(char character, GlyphInfo& glyphInfo) const {
-        
-        for (const auto& glyph : glyphGeometry) {
-            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(character)) {
-                
-                double left, bottom, right, top;
-                glyph.getQuadAtlasBounds(left, bottom, right, top);
-                
-                
-                glyphInfo.atlasBounds = glm::vec4(
-                    static_cast<float>(left / config.width),
-                    static_cast<float>(bottom / config.height),
-                    static_cast<float>((right - left) / config.width),
-                    static_cast<float>((top - bottom) / config.height)
-                );
-                
-                
-                glyph.getQuadPlaneBounds(left, bottom, right, top);
-                glyphInfo.planeBounds = glm::vec4(
-                    static_cast<float>(left),
-                    static_cast<float>(bottom),
-                    static_cast<float>(right - left),
-                    static_cast<float>(top - bottom)
-                );
-                
-                
-                glyphInfo.advance = glyph.getAdvance();
-                
-                return true;
-            }
+        auto it = glyphCache.find(character);
+        if (it == glyphCache.end()) {
+            return false;
         }
-        return false;
+        
+        const auto& glyph = *it->second;
+        
+        double left, bottom, right, top;
+        glyph.getQuadAtlasBounds(left, bottom, right, top);
+        
+        glyphInfo.atlasBounds = glm::vec4(
+            static_cast<float>(left / config.width),
+            static_cast<float>(bottom / config.height),
+            static_cast<float>((right - left) / config.width),
+            static_cast<float>((top - bottom) / config.height)
+        );
+        
+        glyph.getQuadPlaneBounds(left, bottom, right, top);
+        glyphInfo.planeBounds = glm::vec4(
+            static_cast<float>(left),
+            static_cast<float>(bottom),
+            static_cast<float>(right - left),
+            static_cast<float>(top - bottom)
+        );
+        
+        glyphInfo.advance = glyph.getAdvance();
+        
+        return true;
     }
     
     double AuroraMSDFAtlas::getKerning(char left, char right) const {
+        uint64_t key = (static_cast<uint64_t>(static_cast<unsigned char>(left)) << 32) | 
+                       static_cast<uint64_t>(static_cast<unsigned char>(right));
         
-        const msdf_atlas::GlyphGeometry* leftGlyph = nullptr;
-        const msdf_atlas::GlyphGeometry* rightGlyph = nullptr;
-        
-        for (const auto& glyph : glyphGeometry) {
-            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(left)) {
-                leftGlyph = &glyph;
-            }
-            if (glyph.getCodepoint() == static_cast<msdf_atlas::unicode_t>(right)) {
-                rightGlyph = &glyph;
-            }
-        }
-        
-        if (leftGlyph && rightGlyph) {
-            auto kerningMap = fontGeometry.getKerning();
-            auto it = kerningMap.find({leftGlyph->getCodepoint(), rightGlyph->getCodepoint()});
-            if (it != kerningMap.end()) {
-                return it->second;
-            }
+        auto it = kerningCache.find(key);
+        if (it != kerningCache.end()) {
+            return it->second;
         }
         
         return 0.0;

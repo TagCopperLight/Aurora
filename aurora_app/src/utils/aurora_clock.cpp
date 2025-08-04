@@ -4,15 +4,17 @@
 #include <iomanip>
 
 namespace aurora {
-    AuroraClock::AuroraClock(int targetFrameRate) 
+    AuroraClock::AuroraClock(int targetFrameRate, bool enableFrameRateLimit) 
         : targetFrameRate_(targetFrameRate),
-          targetFrameTime_(std::chrono::microseconds(1000000 / targetFrameRate)),
+          targetFrameTime_(std::chrono::microseconds(1000000 / targetFrameRate) - std::chrono::microseconds(225)),
+          enableFrameRateLimit_(enableFrameRateLimit),
           appStartTime_(std::chrono::high_resolution_clock::now()),
           frameTimeMs_(0.0),
           fps_(0.0),
           timestampMs_(0.0),
           csvLoggingEnabled_(false) {
-        spdlog::info("AuroraClock initialized with target frame rate: {} FPS", targetFrameRate);
+        spdlog::info("AuroraClock initialized with target frame rate: {} FPS, frame rate limit: {}", 
+                     targetFrameRate, enableFrameRateLimit ? "enabled" : "disabled");
     }
 
     AuroraClock::~AuroraClock() {
@@ -28,6 +30,19 @@ namespace aurora {
 
     void AuroraClock::endFrame() {
         frameEndTime_ = std::chrono::high_resolution_clock::now();
+        
+        if (enableFrameRateLimit_) {
+            auto renderTime = frameEndTime_ - frameStartTime_;
+            auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
+            
+            if (renderTimeMicros < targetFrameTime_) {
+                auto sleepTime = targetFrameTime_ - renderTimeMicros;
+                std::this_thread::sleep_for(sleepTime);
+            }
+            
+            frameEndTime_ = std::chrono::high_resolution_clock::now();
+        }
+        
         updateTimingData();
         
         if (csvLoggingEnabled_) {
@@ -35,17 +50,9 @@ namespace aurora {
         }
     }
 
-    void AuroraClock::waitForFrameRate() {
-        auto renderTime = frameEndTime_ - frameStartTime_;
-        auto renderTimeMicros = std::chrono::duration_cast<std::chrono::microseconds>(renderTime);
-        
-        if (renderTimeMicros < targetFrameTime_) {
-            auto sleepTime = targetFrameTime_ - renderTimeMicros;
-            std::this_thread::sleep_for(sleepTime);
-        }
-        
-        frameEndTime_ = std::chrono::high_resolution_clock::now();
-        updateTimingData();
+    void AuroraClock::setFrameRateLimit(bool enable) {
+        enableFrameRateLimit_ = enable;
+        spdlog::info("Frame rate limit {}", enable ? "enabled" : "disabled");
     }
 
     double AuroraClock::getFrameTimeMs() const {

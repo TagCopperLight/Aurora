@@ -4,6 +4,10 @@ project(Aurora VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add profiling flag
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+
 # Find required packages once at the root level
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)

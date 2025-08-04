@@ -11,6 +11,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 namespace aurora {
     class AuroraMSDFAtlas {
@@ -51,6 +52,8 @@ namespace aurora {
 
         private:
             void createAtlasTexture();
+            void buildGlyphCache();
+            void buildKerningCache();
 
             AuroraDevice& auroraDevice;
             Config config;
@@ -65,6 +68,9 @@ namespace aurora {
             
             std::vector<msdf_atlas::GlyphGeometry> glyphGeometry;
             msdf_atlas::FontGeometry fontGeometry;
+
+            mutable std::unordered_map<char, const msdf_atlas::GlyphGeometry*> glyphCache;
+            mutable std::unordered_map<uint64_t, double> kerningCache;
 
             void freeFont();
     };

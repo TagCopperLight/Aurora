@@ -20,7 +20,8 @@ namespace aurora {
           msdfAtlas{createInfo.msdfAtlas},
           vertexShaderPath{createInfo.vertFilePath}, 
           fragmentShaderPath{createInfo.fragFilePath}, 
-          topology{createInfo.topology} {
+          topology{createInfo.topology},
+          needsTextureBinding{createInfo.needsTextureBinding} {
         createPipelineLayout();
         createPipeline(createInfo.renderPass, createInfo.vertFilePath, createInfo.fragFilePath, createInfo.topology);
     }
@@ -30,20 +31,27 @@ namespace aurora {
     }
 
     void AuroraRenderSystem::createPipelineLayout() {
-        auto descriptorSetLayout = AuroraDescriptorSetLayout::Builder(auroraDevice)
-            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-            .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-            .build();
+        std::vector<VkDescriptorSetLayout> setLayouts;
+        
+        if (needsTextureBinding) {
+            auto descriptorSetLayout = AuroraDescriptorSetLayout::Builder(auroraDevice)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                .build();
+            setLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
+            descriptorSetLayouts.push_back(std::move(descriptorSetLayout));
+        }
 
-        std::vector<VkDescriptorSetLayout> setLayouts{descriptorSetLayout->getDescriptorSetLayout()};
-        descriptorSetLayouts.push_back(std::move(descriptorSetLayout));
+        VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(PushConstantData);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
         pipelineLayoutInfo.pSetLayouts = setLayouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
-        pipelineLayoutInfo.pPushConstantRanges = nullptr;
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
         if (vkCreatePipelineLayout(auroraDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create pipeline layout");
@@ -60,104 +68,36 @@ namespace aurora {
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, vertFilePath, fragFilePath, pipelineConfig);
     }
 
-    void AuroraRenderSystem::createComponentUniformBuffers(size_t componentIndex, AuroraMSDFAtlas* msdfAtlas) {
-        if (componentUniformBuffers.size() <= componentIndex) {
-            componentUniformBuffers.resize(componentIndex + 1);
-            componentDescriptorSets.resize(componentIndex + 1);
+    void AuroraRenderSystem::createComponentDescriptorSets(size_t /*componentIndex*/, AuroraMSDFAtlas* msdfAtlas) {
+        if (!needsTextureBinding) {
+            return;
         }
         
-        componentUniformBuffers[componentIndex].resize(AuroraSwapChain::MAX_FRAMES_IN_FLIGHT);
-        componentDescriptorSets[componentIndex].resize(AuroraSwapChain::MAX_FRAMES_IN_FLIGHT);
-        
-        for (int frameIndex = 0; frameIndex < AuroraSwapChain::MAX_FRAMES_IN_FLIGHT; frameIndex++) {
-            auto uniformBuffer = std::make_unique<AuroraBuffer>(
-                auroraDevice,
-                sizeof(ComponentUniform),
-                1,
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                auroraDevice.properties.limits.minUniformBufferOffsetAlignment
-            );
-
-            auto stagingBuffer = std::make_unique<AuroraBuffer>(
-                auroraDevice,
-                sizeof(ComponentUniform),
-                1,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                auroraDevice.properties.limits.minUniformBufferOffsetAlignment
-            );
-            
-            stagingBuffer->map();
-            ComponentUniform uniformData{};
-            uniformData.color = components[componentIndex]->color;
-            stagingBuffer->writeToBuffer(&uniformData);
-
-            VkCommandBuffer commandBuffer = auroraDevice.beginSingleTimeCommands();
-
-            VkBufferCopy copyRegion{};
-            copyRegion.srcOffset = 0;
-            copyRegion.dstOffset = 0;
-            copyRegion.size = sizeof(ComponentUniform);
-
-            vkCmdCopyBuffer(commandBuffer, stagingBuffer->getBuffer(), uniformBuffer->getBuffer(), 1, &copyRegion);
-
-            auroraDevice.endSingleTimeCommands(commandBuffer);
-            
-            componentUniformBuffers[componentIndex][frameIndex] = std::move(uniformBuffer);
-            
-            auto bufferInfo = componentUniformBuffers[componentIndex][frameIndex]->descriptorInfo();
+        if (sharedDescriptorSet == VK_NULL_HANDLE) {
             auto imageInfo = msdfAtlas->getDescriptorInfo();
             
-            globalDescriptorPool->allocateDescriptor(descriptorSetLayouts[0]->getDescriptorSetLayout(), componentDescriptorSets[componentIndex][frameIndex]);
+            globalDescriptorPool->allocateDescriptor(descriptorSetLayouts[0]->getDescriptorSetLayout(), sharedDescriptorSet);
             
             AuroraDescriptorWriter(*descriptorSetLayouts[0], *globalDescriptorPool)
-                .writeBuffer(0, &bufferInfo)
-                .writeImage(1, &imageInfo)
-                .overwrite(componentDescriptorSets[componentIndex][frameIndex]);
+                .writeImage(0, &imageInfo)
+                .overwrite(sharedDescriptorSet);
         }
     }
 
     void AuroraRenderSystem::addComponent(std::shared_ptr<AuroraComponentInterface> component) {
         size_t componentIndex = components.size();
         components.push_back(component);
-        createComponentUniformBuffers(componentIndex, msdfAtlas);
+        createComponentDescriptorSets(componentIndex, msdfAtlas);
     }
 
-    void AuroraRenderSystem::updateComponentUniform(size_t componentIndex, const ComponentUniform& uniformData, int frameIndex) {
-        // Create a temporary staging buffer for updating the device-local uniform buffer
-        auto stagingBuffer = std::make_unique<AuroraBuffer>(
-            auroraDevice,
-            sizeof(ComponentUniform),
-            1,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            auroraDevice.properties.limits.minUniformBufferOffsetAlignment
-        );
-
-        stagingBuffer->map();
-        stagingBuffer->writeToBuffer((void*)&uniformData);
-
-        VkCommandBuffer commandBuffer = auroraDevice.beginSingleTimeCommands();
-
-        VkBufferCopy copyRegion{};
-        copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = 0;
-        copyRegion.size = sizeof(ComponentUniform);
-
-        vkCmdCopyBuffer(
-            commandBuffer,
-            stagingBuffer->getBuffer(),
-            componentUniformBuffers[componentIndex][frameIndex]->getBuffer(),
-            1,
-            &copyRegion
-        );
-
-        auroraDevice.endSingleTimeCommands(commandBuffer);
-    }
-
-    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex) {
+    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int /*frameIndex*/) {
         auroraPipeline->bind(commandBuffer);
+
+        if (needsTextureBinding && sharedDescriptorSet != VK_NULL_HANDLE) {
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sharedDescriptorSet, 0, nullptr);
+        }
+
+        glm::mat4 projectionMatrix = camera.getProjection();
 
         for (size_t i = 0; i < components.size(); i++) {
             const auto& component = components[i];
@@ -166,13 +106,18 @@ namespace aurora {
                 continue;
             }
 
-            ComponentUniform componentUniform{};
-            componentUniform.transform = camera.getProjection() * component->getWorldTransform();
-            componentUniform.color = component->color;
+            PushConstantData pushData{};
+            pushData.transform = component->getMVPMatrix(projectionMatrix);
+            pushData.color = component->color;
 
-            updateComponentUniform(i, componentUniform, frameIndex);
-            
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &componentDescriptorSets[i][frameIndex], 0, nullptr);
+            vkCmdPushConstants(
+                commandBuffer,
+                pipelineLayout,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                0,
+                sizeof(PushConstantData),
+                &pushData
+            );
             
             component->model->bind(commandBuffer);
             component->model->draw(commandBuffer);
@@ -182,6 +127,7 @@ namespace aurora {
     bool AuroraRenderSystem::isCompatibleWith(const AuroraComponentInterface& component) const {
         return vertexShaderPath == component.getVertexShaderPath() &&
                fragmentShaderPath == component.getFragmentShaderPath() &&
-               topology == component.getTopology();
+               topology == component.getTopology() &&
+               needsTextureBinding == component.needsTextureBinding();
     }
 }

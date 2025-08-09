@@ -13,8 +13,7 @@ namespace aurora {
           fps_(0.0),
           timestampMs_(0.0),
           csvLoggingEnabled_(false) {
-        spdlog::info("AuroraClock initialized with target frame rate: {} FPS, frame rate limit: {}", 
-                     targetFrameRate, enableFrameRateLimit ? "enabled" : "disabled");
+        spdlog::info("AuroraClock initialized with target frame rate: {} FPS", targetFrameRate);
     }
 
     AuroraClock::~AuroraClock() {

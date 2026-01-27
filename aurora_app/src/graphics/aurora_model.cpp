@@ -2,7 +2,9 @@
 
 #include <cassert>
 #include <spdlog/spdlog.h>
-#include <memory>
+#include <cassert>
+#include <spdlog/spdlog.h>
+#include <cstring>
 
 namespace aurora {
     AuroraModel::AuroraModel(AuroraDevice& device, const AuroraModel::Builder &builder) : auroraDevice{device} {
@@ -10,34 +12,45 @@ namespace aurora {
         createIndexBuffers(builder.indices);
     }
 
-    AuroraModel::~AuroraModel() {}
+    AuroraModel::~AuroraModel() {
+        if (vertexAllocation.isValid()) {
+            auroraDevice.getVertexBufferPool().free(vertexAllocation);
+        }
+        if (hasIndexBuffer && indexAllocation.isValid()) {
+            auroraDevice.getIndexBufferPool().free(indexAllocation);
+        }
+    }
 
     void AuroraModel::createVertexBuffers(const std::vector<Vertex> &vertices) {
         vertexCount = static_cast<uint32_t>(vertices.size());
         assert(vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
-        uint32_t vertexSize = sizeof(vertices[0]);
 
-        AuroraBuffer stagingBuffer{
-            auroraDevice,
-            vertexSize,
-            vertexCount,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        };
+        vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize);
+        if (!vertexAllocation.isValid()) {
+             spdlog::error("Failed to allocate vertex buffer from pool!");
+             return;
+        }
 
-        stagingBuffer.map();
-        stagingBuffer.writeToBuffer((void *)vertices.data());
+        auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
+        if (!stagingAllocation.isValid()) {
+             spdlog::error("Failed to allocate staging buffer from pool!");
+             return; 
+        }
 
-        vertexBuffer = std::make_unique<AuroraBuffer>(
-            auroraDevice,
-            vertexSize,
-            vertexCount,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        if (stagingAllocation.mappedMemory) {
+             memcpy(stagingAllocation.mappedMemory, vertices.data(), (size_t)bufferSize);
+        }
+
+        auroraDevice.copyBuffer(
+            stagingAllocation.buffer, 
+            vertexAllocation.buffer, 
+            bufferSize, 
+            stagingAllocation.offset, 
+            vertexAllocation.offset
         );
 
-        auroraDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
+        auroraDevice.getStagingBufferPool().free(stagingAllocation);
     }
 
     void AuroraModel::createIndexBuffers(const std::vector<uint32_t> &indices) {
@@ -49,28 +62,32 @@ namespace aurora {
         }
         
         VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
-        uint32_t indexSize = sizeof(indices[0]);
 
-        AuroraBuffer stagingBuffer{
-            auroraDevice,
-            indexSize,
-            indexCount,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        };
+        indexAllocation = auroraDevice.getIndexBufferPool().allocate(bufferSize);
+        if (!indexAllocation.isValid()) {
+             spdlog::error("Failed to allocate index buffer from pool!");
+             return;
+        }
 
-        stagingBuffer.map();
-        stagingBuffer.writeToBuffer((void *)indices.data());
+        auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
+        if (!stagingAllocation.isValid()) {
+             spdlog::error("Failed to allocate staging buffer from pool!");
+             return; 
+        }
 
-        indexBuffer = std::make_unique<AuroraBuffer>(
-            auroraDevice,
-            indexSize,
-            indexCount,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        if (stagingAllocation.mappedMemory) {
+             memcpy(stagingAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
+        }
+
+        auroraDevice.copyBuffer(
+            stagingAllocation.buffer, 
+            indexAllocation.buffer, 
+            bufferSize, 
+            stagingAllocation.offset, 
+            indexAllocation.offset
         );
 
-        auroraDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
+        auroraDevice.getStagingBufferPool().free(stagingAllocation);
     }
 
     void AuroraModel::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) {
@@ -82,12 +99,12 @@ namespace aurora {
     }
 
     void AuroraModel::bind(VkCommandBuffer commandBuffer) {
-        VkBuffer buffers[] = {vertexBuffer->getBuffer()};
-        VkDeviceSize offsets[] = {0};
+        VkBuffer buffers[] = {vertexAllocation.buffer};
+        VkDeviceSize offsets[] = {vertexAllocation.offset};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
         if (hasIndexBuffer) {
-            vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(commandBuffer, indexAllocation.buffer, indexAllocation.offset, VK_INDEX_TYPE_UINT32);
         }
     }
 

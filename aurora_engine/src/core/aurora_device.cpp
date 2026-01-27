@@ -1,7 +1,7 @@
 #include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_engine/core/aurora_buffer_pool.hpp"
 
 #include <cstring>
-#include <iostream>
 #include <set>
 #include <unordered_set>
 #include <spdlog/spdlog.h>
@@ -49,9 +49,34 @@ namespace aurora {
         pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
+
+        vertexBufferPool = std::make_unique<AuroraBufferPool>(
+            *this,
+            64 * 1024 * 1024,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+
+        indexBufferPool = std::make_unique<AuroraBufferPool>(
+            *this,
+            16 * 1024 * 1024,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+
+        stagingBufferPool = std::make_unique<AuroraBufferPool>(
+            *this,
+            64 * 1024 * 1024,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
     }
 
     AuroraDevice::~AuroraDevice() {
+        vertexBufferPool.reset();
+        indexBufferPool.reset();
+        stagingBufferPool.reset();
+
         vkDestroyCommandPool(device_, commandPool, nullptr);
         vkDestroyDevice(device_, nullptr);
 
@@ -446,12 +471,12 @@ namespace aurora {
         vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
     }
 
-    void AuroraDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    void AuroraDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize dstOffset) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkBufferCopy copyRegion{};
-        copyRegion.srcOffset = 0;  
-        copyRegion.dstOffset = 0;  
+        copyRegion.srcOffset = srcOffset;  
+        copyRegion.dstOffset = dstOffset;  
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 

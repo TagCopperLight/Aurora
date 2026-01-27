@@ -46,7 +46,7 @@ Implement **Instanced Rendering** to draw multiple instances of the same model i
 
 ---
 
-## Priority 2: Buffer Sub-allocation Strategy
+## Priority 2: Buffer Sub-allocation Strategy - [DONE]
 
 ### Current Problem
 `AuroraModel::createVertexBuffers` creates a separate `VkBuffer` (and `VkDeviceMemory`) for every single model.

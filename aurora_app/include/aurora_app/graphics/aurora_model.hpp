@@ -1,14 +1,14 @@
 #pragma once
 
 #include "aurora_engine/core/aurora_device.hpp"
-#include "aurora_engine/core/aurora_buffer.hpp"
+#include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_engine/core/aurora_buffer_pool.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 #include <vector>
-#include <memory>
 
 namespace aurora {
     class AuroraModel {
@@ -53,11 +53,11 @@ namespace aurora {
 
             AuroraDevice &auroraDevice;
 
-            std::unique_ptr<AuroraBuffer> vertexBuffer;
+            BufferAllocation vertexAllocation;
             uint32_t vertexCount;
 
             bool hasIndexBuffer = false;
-            std::unique_ptr<AuroraBuffer> indexBuffer;
+            BufferAllocation indexAllocation;
             uint32_t indexCount;
     };
 }

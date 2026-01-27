@@ -12,6 +12,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(glm REQUIRED)
 
 # Find MSDF libraries manually
 find_library(MSDFGEN_CORE_LIB msdfgen-core)

@@ -85,9 +85,9 @@ add_dependencies(aurora_app copy_assets)
 # Link aurora_engine library properly using target
 target_link_libraries(aurora_app PUBLIC
     aurora_engine  # Proper CMake target dependency
-    ${MSDFGEN_CORE_LIB}
-    ${MSDFGEN_EXT_LIB}
     ${MSDF_ATLAS_GEN_LIB}
+    ${MSDFGEN_EXT_LIB}
+    ${MSDFGEN_CORE_LIB}
 )
 
 # Set compiler-specific options

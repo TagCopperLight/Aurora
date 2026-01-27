@@ -11,8 +11,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <stdexcept>
-#include <array>
 #include <spdlog/spdlog.h>
 #include <cassert>
 

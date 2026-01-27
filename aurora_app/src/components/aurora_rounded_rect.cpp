@@ -1,10 +1,7 @@
 #include "aurora_app/components/aurora_rounded_rect.hpp"
 #include "aurora_app/utils/aurora_utils.hpp"
 
-#include "spdlog/spdlog.h"
-
 #include <memory>
-#include <iostream>
 
 namespace aurora {
     AuroraRoundedRectangle::AuroraRoundedRectangle(AuroraComponentInfo &componentInfo, glm::vec2 size, float radius)

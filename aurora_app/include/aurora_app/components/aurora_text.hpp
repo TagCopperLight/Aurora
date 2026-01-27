@@ -1,11 +1,9 @@
 #pragma once
 
 #include "aurora_component_interface.hpp"
-#include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 #include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #include <string>
-#include <memory>
 
 namespace aurora {
     class AuroraText : public AuroraComponentInterface {

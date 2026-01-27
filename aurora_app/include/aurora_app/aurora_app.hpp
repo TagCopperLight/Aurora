@@ -7,7 +7,6 @@
 #include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #include <memory>
-#include <vector>
 
 namespace aurora {
     class AuroraApp {

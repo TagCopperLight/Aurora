@@ -3,8 +3,6 @@
 #include "aurora_app/graphics/aurora_model.hpp"
 #include "aurora_app/components/aurora_component_info.hpp"
 
-#include "spdlog/spdlog.h"
-
 #include <memory>
 
 namespace aurora {

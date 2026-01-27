@@ -2,8 +2,6 @@
 
 #include "aurora_device.hpp"
 
-#include <memory>
-
 namespace aurora {
     class AuroraTexture {
         public:

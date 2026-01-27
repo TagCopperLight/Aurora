@@ -2,7 +2,6 @@
 
 #include "aurora_device.hpp"
 
-#include <string>
 #include <vector>
 #include <memory>
 

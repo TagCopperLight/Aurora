@@ -126,7 +126,7 @@ namespace aurora {
         renderPassInfo.renderArea.extent = auroraSwapChain->getSwapChainExtent();
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a};
+        clearValues[0].color = {{backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a}};
         clearValues[1].depthStencil = {1.0f, 0};
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

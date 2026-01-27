@@ -7,50 +7,71 @@
 #include <cstring>
 
 namespace aurora {
-    AuroraModel::AuroraModel(AuroraDevice& device, const AuroraModel::Builder &builder) : auroraDevice{device} {
+    AuroraModel::AuroraModel(AuroraDevice& device, const AuroraModel::Builder &builder) 
+        : auroraDevice{device}, isDynamicModel{builder.isDynamic} {
         createVertexBuffers(builder.vertices);
         createIndexBuffers(builder.indices);
     }
 
     AuroraModel::~AuroraModel() {
         if (vertexAllocation.isValid()) {
-            auroraDevice.getVertexBufferPool().free(vertexAllocation);
+            if (isDynamicModel) {
+                auroraDevice.getDynamicVertexBufferPool().free(vertexAllocation);
+            } else {
+                auroraDevice.getVertexBufferPool().free(vertexAllocation);
+            }
         }
         if (hasIndexBuffer && indexAllocation.isValid()) {
-            auroraDevice.getIndexBufferPool().free(indexAllocation);
+            if (isDynamicModel) {
+                 auroraDevice.getDynamicIndexBufferPool().free(indexAllocation);
+            } else {
+                 auroraDevice.getIndexBufferPool().free(indexAllocation);
+            }
         }
     }
 
     void AuroraModel::createVertexBuffers(const std::vector<Vertex> &vertices) {
         vertexCount = static_cast<uint32_t>(vertices.size());
-        assert(vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
 
-        vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize);
-        if (!vertexAllocation.isValid()) {
-             spdlog::error("Failed to allocate vertex buffer from pool!");
-             return;
+        if (isDynamicModel) {
+            vertexAllocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
+            if (!vertexAllocation.isValid()) {
+                spdlog::error("Failed to allocate dynamic vertex buffer from pool!");
+                return;
+            }
+            if (vertexAllocation.mappedMemory) {
+                memcpy(vertexAllocation.mappedMemory, vertices.data(), (size_t)bufferSize);
+            } else {
+                 spdlog::error("Dynamic buffer allocation has no mapped memory!");
+            }
+        } else {
+            vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize);
+            if (!vertexAllocation.isValid()) {
+                spdlog::error("Failed to allocate vertex buffer from pool!");
+                return;
+            }
+
+            auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
+            if (!stagingAllocation.isValid()) {
+                spdlog::error("Failed to allocate staging buffer from pool!");
+                return; 
+            }
+
+            if (stagingAllocation.mappedMemory) {
+                memcpy(stagingAllocation.mappedMemory, vertices.data(), (size_t)bufferSize);
+            }
+
+            auroraDevice.copyBuffer(
+                stagingAllocation.buffer, 
+                vertexAllocation.buffer, 
+                bufferSize, 
+                stagingAllocation.offset, 
+                vertexAllocation.offset
+            );
+
+            auroraDevice.getStagingBufferPool().free(stagingAllocation);
         }
-
-        auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
-        if (!stagingAllocation.isValid()) {
-             spdlog::error("Failed to allocate staging buffer from pool!");
-             return; 
-        }
-
-        if (stagingAllocation.mappedMemory) {
-             memcpy(stagingAllocation.mappedMemory, vertices.data(), (size_t)bufferSize);
-        }
-
-        auroraDevice.copyBuffer(
-            stagingAllocation.buffer, 
-            vertexAllocation.buffer, 
-            bufferSize, 
-            stagingAllocation.offset, 
-            vertexAllocation.offset
-        );
-
-        auroraDevice.getStagingBufferPool().free(stagingAllocation);
     }
 
     void AuroraModel::createIndexBuffers(const std::vector<uint32_t> &indices) {
@@ -63,31 +84,44 @@ namespace aurora {
         
         VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
 
-        indexAllocation = auroraDevice.getIndexBufferPool().allocate(bufferSize);
-        if (!indexAllocation.isValid()) {
-             spdlog::error("Failed to allocate index buffer from pool!");
-             return;
+        if (isDynamicModel) {
+            indexAllocation = auroraDevice.getDynamicIndexBufferPool().allocate(bufferSize);
+            if (!indexAllocation.isValid()) {
+                spdlog::error("Failed to allocate dynamic index buffer from pool!");
+                return;
+            }
+             if (indexAllocation.mappedMemory) {
+                memcpy(indexAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
+            } else {
+                 spdlog::error("Dynamic boolean allocation has no mapped memory!");
+            }
+        } else {
+            indexAllocation = auroraDevice.getIndexBufferPool().allocate(bufferSize);
+            if (!indexAllocation.isValid()) {
+                spdlog::error("Failed to allocate index buffer from pool!");
+                return;
+            }
+
+            auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
+            if (!stagingAllocation.isValid()) {
+                spdlog::error("Failed to allocate staging buffer from pool!");
+                return; 
+            }
+
+            if (stagingAllocation.mappedMemory) {
+                memcpy(stagingAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
+            }
+
+            auroraDevice.copyBuffer(
+                stagingAllocation.buffer, 
+                indexAllocation.buffer, 
+                bufferSize, 
+                stagingAllocation.offset, 
+                indexAllocation.offset
+            );
+
+            auroraDevice.getStagingBufferPool().free(stagingAllocation);
         }
-
-        auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
-        if (!stagingAllocation.isValid()) {
-             spdlog::error("Failed to allocate staging buffer from pool!");
-             return; 
-        }
-
-        if (stagingAllocation.mappedMemory) {
-             memcpy(stagingAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
-        }
-
-        auroraDevice.copyBuffer(
-            stagingAllocation.buffer, 
-            indexAllocation.buffer, 
-            bufferSize, 
-            stagingAllocation.offset, 
-            indexAllocation.offset
-        );
-
-        auroraDevice.getStagingBufferPool().free(stagingAllocation);
     }
 
     void AuroraModel::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) {
@@ -95,6 +129,38 @@ namespace aurora {
             vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
         } else {
             vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
+        }
+    }
+
+    void AuroraModel::updateVertexData(const void* data, VkDeviceSize size, VkDeviceSize offset) {
+        if (!isDynamicModel) {
+            spdlog::error("Cannot update static vertex buffer directly!");
+            return;
+        }
+        
+        if (offset + size > vertexAllocation.size) {
+            spdlog::error("Update size out of bounds for vertex buffer!");
+            return;
+        }
+
+        if (vertexAllocation.mappedMemory) {
+            memcpy(static_cast<char*>(vertexAllocation.mappedMemory) + offset, data, (size_t)size);
+        }
+    }
+
+    void AuroraModel::updateIndexData(const void* data, VkDeviceSize size, VkDeviceSize offset) {
+        if (!isDynamicModel) {
+            spdlog::error("Cannot update static index buffer directly!");
+            return;
+        }
+
+        if (offset + size > indexAllocation.size) {
+             spdlog::error("Update size out of bounds for index buffer!");
+             return;
+        }
+
+        if (indexAllocation.mappedMemory) {
+            memcpy(static_cast<char*>(indexAllocation.mappedMemory) + offset, data, (size_t)size);
         }
     }
 

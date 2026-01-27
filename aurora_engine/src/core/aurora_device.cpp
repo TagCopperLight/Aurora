@@ -70,12 +70,28 @@ namespace aurora {
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
+
+        dynamicVertexBufferPool = std::make_unique<AuroraBufferPool>(
+            *this,
+            16 * 1024 * 1024,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+        dynamicIndexBufferPool = std::make_unique<AuroraBufferPool>(
+            *this,
+            4 * 1024 * 1024,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
     }
 
     AuroraDevice::~AuroraDevice() {
         vertexBufferPool.reset();
         indexBufferPool.reset();
         stagingBufferPool.reset();
+        dynamicVertexBufferPool.reset();
+        dynamicIndexBufferPool.reset();
 
         vkDestroyCommandPool(device_, commandPool, nullptr);
         vkDestroyDevice(device_, nullptr);

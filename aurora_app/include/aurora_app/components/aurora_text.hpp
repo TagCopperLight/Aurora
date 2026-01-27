@@ -53,5 +53,8 @@ namespace aurora {
             float fontSize;
             glm::vec4 fontColor;
             glm::vec2 textBounds;
+            
+            size_t currentVertexCapacity = 0;
+            size_t currentIndexCapacity = 0;
     };
 }

@@ -47,6 +47,8 @@ namespace aurora {
             AuroraBufferPool& getVertexBufferPool() { return *vertexBufferPool; }
             AuroraBufferPool& getIndexBufferPool() { return *indexBufferPool; }
             AuroraBufferPool& getStagingBufferPool() { return *stagingBufferPool; }
+            AuroraBufferPool& getDynamicVertexBufferPool() { return *dynamicVertexBufferPool; }
+            AuroraBufferPool& getDynamicIndexBufferPool() { return *dynamicIndexBufferPool; }
 
             SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
             uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -97,5 +99,7 @@ namespace aurora {
             std::unique_ptr<AuroraBufferPool> vertexBufferPool;
             std::unique_ptr<AuroraBufferPool> indexBufferPool;
             std::unique_ptr<AuroraBufferPool> stagingBufferPool;
+            std::unique_ptr<AuroraBufferPool> dynamicVertexBufferPool;
+            std::unique_ptr<AuroraBufferPool> dynamicIndexBufferPool;
     };
 }

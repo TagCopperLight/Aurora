@@ -38,30 +38,52 @@ namespace aurora {
     void AuroraText::rebuildGeometry() {
         std::vector<AuroraModel::Vertex> vertices = createTextVertices();
         
-        if (vertices.empty()) {
-            
-            AuroraModel::Builder builder{};
-            model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
-            return;
-        }
-        
         std::vector<uint32_t> indices;
-        for (size_t i = 0; i < vertices.size() / 4; ++i) {
-            uint32_t baseIndex = static_cast<uint32_t>(i * 4);
-            
-            indices.push_back(baseIndex);
-            indices.push_back(baseIndex + 1);
-            indices.push_back(baseIndex + 2);
-            
-            indices.push_back(baseIndex + 2);
-            indices.push_back(baseIndex + 3);
-            indices.push_back(baseIndex);
+        if (!vertices.empty()) {
+            for (size_t i = 0; i < vertices.size() / 4; ++i) {
+                uint32_t baseIndex = static_cast<uint32_t>(i * 4);
+                
+                indices.push_back(baseIndex);
+                indices.push_back(baseIndex + 1);
+                indices.push_back(baseIndex + 2);
+                
+                indices.push_back(baseIndex + 2);
+                indices.push_back(baseIndex + 3);
+                indices.push_back(baseIndex);
+            }
         }
 
+        if (model && model->isDynamic()) {
+             if (vertices.size() <= currentVertexCapacity && indices.size() <= currentIndexCapacity) {
+                 model->updateVertexData(vertices.data(), vertices.size() * sizeof(AuroraModel::Vertex));
+                 model->updateIndexData(indices.data(), indices.size() * sizeof(uint32_t));
+                 model->setVertexCount(static_cast<uint32_t>(vertices.size()));
+                 model->setIndexCount(static_cast<uint32_t>(indices.size()));
+                 return;
+             }
+        }
+
+        size_t vertexCapacity = vertices.size() > 0 ? vertices.size() * 2 : 128;
+        size_t indexCapacity = indices.size() > 0 ? indices.size() * 2 : 192;    
+        
+        std::vector<AuroraModel::Vertex> allocationVertices = vertices;
+        allocationVertices.resize(vertexCapacity);
+        
+        std::vector<uint32_t> allocationIndices = indices;
+        allocationIndices.resize(indexCapacity);
+
         AuroraModel::Builder builder{};
-        builder.vertices = vertices;
-        builder.indices = indices;
+        builder.vertices = allocationVertices;
+        builder.indices = allocationIndices;
+        builder.isDynamic = true;
+        
         model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
+        
+        model->setVertexCount(static_cast<uint32_t>(vertices.size()));
+        model->setIndexCount(static_cast<uint32_t>(indices.size()));
+        
+        currentVertexCapacity = vertexCapacity;
+        currentIndexCapacity = indexCapacity;
     }
 
     std::vector<AuroraModel::Vertex> AuroraText::createTextVertices() {

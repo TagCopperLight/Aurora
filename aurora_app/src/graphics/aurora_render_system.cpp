@@ -2,7 +2,6 @@
 #include "aurora_app/components/aurora_component_interface.hpp"
 #include "aurora_app/profiling/aurora_profiler.hpp"
 #include "aurora_engine/core/aurora_buffer.hpp"
-#include "aurora_engine/core/aurora_swap_chain.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -91,38 +90,66 @@ namespace aurora {
         createComponentDescriptorSets(componentIndex, msdfAtlas);
     }
 
-    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int /*frameIndex*/) {
+    void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex) {
         auroraPipeline->bind(commandBuffer);
 
         if (needsTextureBinding && sharedDescriptorSet != VK_NULL_HANDLE) {
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sharedDescriptorSet, 0, nullptr);
         }
 
-        glm::mat4 projectionMatrix = camera.getProjection();
+        frameInstanceBuffers[frameIndex].clear();
 
-        for (size_t i = 0; i < components.size(); i++) {
-            const auto& component = components[i];
-            
+        PushConstantData pushData{};
+        pushData.projectionViewMatrix = camera.getProjection();
+        
+        vkCmdPushConstants(
+            commandBuffer,
+            pipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(PushConstantData),
+            &pushData
+        );
+
+        std::unordered_map<AuroraModel*, std::vector<AuroraModel::InstanceData>> batches;
+        
+        for (const auto& component : components) {
             if (component->isHidden() || !component->model) {
                 continue;
             }
-
-            PushConstantData pushData{};
-            pushData.transform = component->getMVPMatrix(projectionMatrix);
-            pushData.color = component->color;
-
-            vkCmdPushConstants(
-                commandBuffer,
-                pipelineLayout,
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                0,
-                sizeof(PushConstantData),
-                &pushData
-            );
             
-            component->model->bind(commandBuffer);
-            component->model->draw(commandBuffer);
-            AuroraProfiler::instance().incrementCounter("Draw Calls");
+            AuroraModel::InstanceData data{};
+            data.modelMatrix = component->getWorldTransform();
+            data.color = component->color;
+            
+            batches[component->model.get()].push_back(data);
+        }
+
+        for (auto& [model, instances] : batches) {
+             auto instanceBuffer = std::make_unique<AuroraBuffer>(
+                 auroraDevice,
+                 sizeof(AuroraModel::InstanceData),
+                 static_cast<uint32_t>(instances.size()),
+                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+             );
+             
+             instanceBuffer->map();
+             instanceBuffer->writeToBuffer((void*)instances.data());
+             
+             frameInstanceBuffers[frameIndex].push_back(std::move(instanceBuffer));
+             
+             AuroraBuffer* bufferPtr = frameInstanceBuffers[frameIndex].back().get();
+
+             model->bind(commandBuffer);
+             
+             VkBuffer buffers[] = {bufferPtr->getBuffer()};
+             VkDeviceSize offsets[] = {0};
+             vkCmdBindVertexBuffers(commandBuffer, 1, 1, buffers, offsets);
+             
+             model->draw(commandBuffer, static_cast<uint32_t>(instances.size()));
+             
+             AuroraProfiler::instance().incrementCounter("Draw Calls");
         }
     }
 

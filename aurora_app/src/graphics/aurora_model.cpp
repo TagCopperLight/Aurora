@@ -1,7 +1,6 @@
 #include "aurora_app/graphics/aurora_model.hpp"
 
 #include <cassert>
-#include <cstring>
 #include <spdlog/spdlog.h>
 #include <memory>
 
@@ -74,11 +73,11 @@ namespace aurora {
         auroraDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
     }
 
-    void AuroraModel::draw(VkCommandBuffer commandBuffer) {
+    void AuroraModel::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) {
         if (hasIndexBuffer) {
-            vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
         } else {
-            vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+            vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
         }
     }
 
@@ -93,32 +92,35 @@ namespace aurora {
     }
 
     std::vector<VkVertexInputBindingDescription> AuroraModel::Vertex::getBindingDescriptions() {
-        std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions(2);
 
+        // Vertex Data
         bindingDescriptions[0].binding = 0;
         bindingDescriptions[0].stride = sizeof(Vertex);
         bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        // Instance Data
+        bindingDescriptions[1].binding = 1;
+        bindingDescriptions[1].stride = sizeof(InstanceData);
+        bindingDescriptions[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+        
         return bindingDescriptions;
     }
 
     std::vector<VkVertexInputAttributeDescription> AuroraModel::Vertex::getAttributeDescriptions() {
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, position);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+        attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
+        attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, color)});
+        attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)});
         
+        attributeDescriptions.push_back({3, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(InstanceData, modelMatrix)});
+        attributeDescriptions.push_back({4, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(InstanceData, modelMatrix) + sizeof(glm::vec4)});
+        attributeDescriptions.push_back({5, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(InstanceData, modelMatrix) + 2 * sizeof(glm::vec4)});
+        attributeDescriptions.push_back({6, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(InstanceData, modelMatrix) + 3 * sizeof(glm::vec4)});
+
+        attributeDescriptions.push_back({7, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(InstanceData, color)});
+
         return attributeDescriptions;
     }
 }

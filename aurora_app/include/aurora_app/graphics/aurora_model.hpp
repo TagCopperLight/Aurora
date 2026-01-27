@@ -13,6 +13,11 @@
 namespace aurora {
     class AuroraModel {
         public:
+            struct InstanceData {
+                glm::mat4 modelMatrix;
+                glm::vec4 color;
+            };
+
             struct Vertex {
                 glm::vec3 position;
                 glm::vec4 color;
@@ -40,7 +45,7 @@ namespace aurora {
             AuroraModel &operator=(const AuroraModel &) = delete;
 
             void bind(VkCommandBuffer commandBuffer);
-            void draw(VkCommandBuffer commandBuffer);
+            void draw(VkCommandBuffer commandBuffer, uint32_t instanceCount = 1);
 
         private:
             void createVertexBuffers(const std::vector<Vertex> &vertices);

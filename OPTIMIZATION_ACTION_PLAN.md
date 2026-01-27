@@ -4,7 +4,7 @@
 This document outlines a comprehensive optimization strategy for the Aurora graphics engine.
 **Status Update**: A review of the codebase revealed that some previously proposed optimizations (Push Constants, Profiler) are already implemented. The plan has been updated to focus on high-impact missing features.
 
-## Priority 1: Instanced Rendering System
+## Priority 1: Instanced Rendering System - [DONE]
 
 ### Current Problem
 The `AuroraRenderSystem` iterates over every component and issues a separate draw call (`vkCmdDraw` or `vkCmdDrawIndexed`) for each one.

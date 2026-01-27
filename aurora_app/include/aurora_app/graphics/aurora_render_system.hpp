@@ -5,7 +5,6 @@
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_engine/core/aurora_buffer.hpp"
-#include "aurora_engine/core/aurora_swap_chain.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include <memory>
@@ -24,9 +23,7 @@ namespace aurora {
     };
     
     struct PushConstantData {
-        glm::mat4 transform;  // 64 bytes
-        glm::vec4 color;      // 16 bytes
-        // Total: 80 bytes
+        glm::mat4 projectionViewMatrix;
     };
 }
 
@@ -87,6 +84,7 @@ namespace aurora {
 
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             
+            std::map<int, std::vector<std::unique_ptr<AuroraBuffer>>> frameInstanceBuffers;
             
             std::string vertexShaderPath;
             std::string fragmentShaderPath;

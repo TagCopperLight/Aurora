@@ -59,6 +59,9 @@ add_library(aurora_app STATIC ${SOURCES})
 # Make sure shaders are compiled before the library
 add_dependencies(aurora_app compile_shaders_app)
 
+# Enable profiling globally for the app
+target_compile_definitions(aurora_app PUBLIC AURORA_PROFILING_ENABLED)
+
 # Set include directories for the library
 target_include_directories(aurora_app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

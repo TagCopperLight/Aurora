@@ -1,4 +1,3 @@
-#define AURORA_PROFILING_ENABLED
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 #include "aurora_app/utils/aurora_clock.hpp"
@@ -42,7 +41,6 @@ namespace aurora {
         profilerUI->addProfiledFunction("Render Components");
         profilerUI->addProfiledFunction("End Frame");
         profilerUI->addTrackedCounter("Draw Calls");
-        profilerUI->setUpdateFrequency(60.0f);
         
         clock.enableCSVLogging();
         

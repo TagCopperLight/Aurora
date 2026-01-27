@@ -165,3 +165,32 @@ Transition from Object-Oriented Hierarchy to Data-Oriented Arrays for hot paths.
 ## Notes on Removed Items from Previous Plan
 - **Push Constants**: Removed because `AuroraRenderSystem` already uses `vkCmdPushConstants`.
 - **Profiler**: Removed because `AuroraProfiler` and `AuroraProfilerUI` are already implemented and integrated in `AuroraApp`.
+
+---
+
+## Priority 6: Optimizing Text Rendering
+
+### Current Problem
+`AuroraText::setText` is extremely expensive because it triggers `rebuildGeometry()`, which destroys the old `AuroraModel` and creates a brand new one.
+```cpp
+// aurora_text.cpp
+model = std::make_shared<AuroraModel>(...); 
+```
+`AuroraModel` constructor allocates new `VkDeviceMemory` and creating new `VkBuffer` objects every time text changes. For a UI updating every frame (like FPS counter or Profiler), this causes:
+- Massive memory allocation/deallocation overhead.
+- Pipeline stalls waiting for upload.
+- High "Profiler UI Update" times (~4-5ms).
+
+### Solution Strategy
+Implement **Dynamic Text Buffers** to reuse memory.
+
+#### Phase 6A: Dynamic Model Support
+- Modify `AuroraModel` to support `updateVertexBuffer` on existing buffers.
+- Use `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` for text buffers so we can map and write directly without staging buffers.
+
+#### Phase 6B: Double Buffering
+- To avoid race conditions (writing to a buffer the GPU is reading), implement **Double Buffering** or **Ring Buffering** for dynamic text.
+- If the new text is smaller than the capacity, just overwrite. If larger, reallocate (with growth factor).
+
+**Expected Performance Gain:** Near-zero cost for `setText` (just `memcpy`).
+

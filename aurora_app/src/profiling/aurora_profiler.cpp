@@ -10,7 +10,7 @@ namespace aurora {
         std::string nameStr(name);
         auto& stats = stats_[nameStr];
         
-        stats.current = timeMs;
+        stats.current += timeMs;
         stats.sampleCount++;
         
         if (stats.sampleCount == 1) {
@@ -72,8 +72,6 @@ namespace aurora {
             stats.current = 0.0;
             stats.framePercentage = 0.0;
         }
-        // Don't clear counters map, but maybe reset values? 
-        // For counters like "Total Draw Calls", we re-calculate them every frame, so we should reset them.
         for (auto& [name, value] : counters_) {
            value = 0;
         }

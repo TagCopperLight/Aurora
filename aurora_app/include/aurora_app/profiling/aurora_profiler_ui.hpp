@@ -15,7 +15,6 @@ namespace aurora {
         
         void addProfiledFunction(const char* functionName);
         void addTrackedCounter(const char* counterName);
-        void setUpdateFrequency(float hz) { updateFrequency_ = hz; }
         void update(float deltaTime) override;
         
         const std::string& getVertexShaderPath() const override {
@@ -39,9 +38,6 @@ namespace aurora {
         std::vector<std::shared_ptr<AuroraText>> displayElements_;
         
         std::shared_ptr<AuroraText> fpsText_;
-        
-        float updateFrequency_ = 60.0f;
-        float timeSinceLastUpdate_ = 0.0f;
         
         std::array<char, 64> formatBuffer_;
         

@@ -71,12 +71,8 @@ namespace aurora {
     }
     
     void AuroraProfilerUI::update(float deltaTime) {
-        timeSinceLastUpdate_ += deltaTime;
-        
-        if (timeSinceLastUpdate_ >= (1.0f / updateFrequency_)) {
-            updateDisplayStrings();
-            timeSinceLastUpdate_ = 0.0f;
-        }
+        AURORA_PROFILE("Profiler UI Update");
+        updateDisplayStrings();
     }
     
     void AuroraProfilerUI::updateDisplayStrings() {

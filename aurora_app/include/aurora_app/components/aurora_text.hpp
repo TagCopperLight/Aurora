@@ -40,7 +40,7 @@ namespace aurora {
         private:
             void initialize() override;
             
-            std::vector<AuroraModel::Vertex> createTextVertices();
+            void updateTextVertices();
             void createQuadForCharacter(
                 char character,
                 glm::vec2 position, 
@@ -55,6 +55,7 @@ namespace aurora {
             glm::vec2 textBounds;
             
             size_t currentVertexCapacity = 0;
-            size_t currentIndexCapacity = 0;
+            
+            std::vector<AuroraModel::Vertex> cachedVertices;
     };
 }

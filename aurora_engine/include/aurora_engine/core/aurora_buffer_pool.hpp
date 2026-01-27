@@ -6,7 +6,10 @@
 #include <vector>
 #include <memory>
 #include <mutex>
-#include <list>
+#include <vector>
+#include <memory>
+#include <mutex>
+#include <map>
 
 namespace aurora {
 
@@ -42,11 +45,7 @@ namespace aurora {
             VkDeviceSize size;
             VkDeviceSize allocatedSize;
             
-            struct FreeBlock {
-                VkDeviceSize offset;
-                VkDeviceSize size;
-            };
-            std::list<FreeBlock> freeList;
+            std::map<VkDeviceSize, VkDeviceSize> freeMap;
 
             bool allocate(VkDeviceSize size, VkDeviceSize alignment, VkDeviceSize& outOffset);
             void free(VkDeviceSize offset, VkDeviceSize size);

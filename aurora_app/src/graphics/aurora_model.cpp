@@ -10,7 +10,15 @@ namespace aurora {
     AuroraModel::AuroraModel(AuroraDevice& device, const AuroraModel::Builder &builder) 
         : auroraDevice{device}, isDynamicModel{builder.isDynamic} {
         createVertexBuffers(builder.vertices);
-        createIndexBuffers(builder.indices);
+        
+        if (builder.sharedIndexAllocation) {
+            indexAllocation = *builder.sharedIndexAllocation;
+            indexCount = static_cast<uint32_t>(builder.indices.size());
+            hasIndexBuffer = true;
+            ownsIndexBuffer = false;
+        } else {
+            createIndexBuffers(builder.indices);
+        }
     }
 
     AuroraModel::~AuroraModel() {
@@ -21,7 +29,7 @@ namespace aurora {
                 auroraDevice.getVertexBufferPool().free(vertexAllocation);
             }
         }
-        if (hasIndexBuffer && indexAllocation.isValid()) {
+        if (hasIndexBuffer && indexAllocation.isValid() && ownsIndexBuffer) {
             if (isDynamicModel) {
                  auroraDevice.getDynamicIndexBufferPool().free(indexAllocation);
             } else {
@@ -93,7 +101,7 @@ namespace aurora {
              if (indexAllocation.mappedMemory) {
                 memcpy(indexAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
             } else {
-                 spdlog::error("Dynamic boolean allocation has no mapped memory!");
+                 spdlog::error("Dynamic index allocation has no mapped memory!");
             }
         } else {
             indexAllocation = auroraDevice.getIndexBufferPool().allocate(bufferSize);
@@ -162,6 +170,30 @@ namespace aurora {
         if (indexAllocation.mappedMemory) {
             memcpy(static_cast<char*>(indexAllocation.mappedMemory) + offset, data, (size_t)size);
         }
+    }
+
+    void AuroraModel::resizeVertexBuffer(VkDeviceSize newSize) {
+        if (!isDynamicModel) {
+            spdlog::error("Cannot resize static vertex buffer!");
+            return;
+        }
+
+        if (newSize <= vertexAllocation.size) {
+            return;
+        }
+
+        auto newAlloc = auroraDevice.getDynamicVertexBufferPool().allocate(newSize);
+        if (!newAlloc.isValid()) {
+             spdlog::error("Failed to resize dynamic vertex buffer!");
+             return;
+        }
+
+        if (vertexAllocation.mappedMemory && newAlloc.mappedMemory) {
+            memcpy(newAlloc.mappedMemory, vertexAllocation.mappedMemory, (size_t)vertexAllocation.size);
+        }
+
+        auroraDevice.getDynamicVertexBufferPool().free(vertexAllocation);
+        vertexAllocation = newAlloc;
     }
 
     void AuroraModel::bind(VkCommandBuffer commandBuffer) {

@@ -89,35 +89,32 @@ namespace aurora {
         page->size = pageSize;
         page->allocatedSize = 0;
         
-        page->freeList.push_back({0, pageSize});
+        page->freeMap.insert({0, pageSize});
         
         pages.push_back(std::move(page));
         spdlog::info("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
     }
 
     bool AuroraBufferPool::Page::allocate(VkDeviceSize size, VkDeviceSize alignment, VkDeviceSize& outOffset) {
-        for (auto it = freeList.begin(); it != freeList.end(); ++it) {
-            VkDeviceSize alignedOffset = (it->offset + alignment - 1) & ~(alignment - 1);
-            VkDeviceSize padding = alignedOffset - it->offset;
-            
-            if (it->size >= size + padding) {
+        for (auto it = freeMap.begin(); it != freeMap.end(); ++it) {
+            VkDeviceSize currentOffset = it->first;
+            VkDeviceSize currentSize = it->second;
+
+            VkDeviceSize alignedOffset = (currentOffset + alignment - 1) & ~(alignment - 1);
+            VkDeviceSize padding = alignedOffset - currentOffset;
+
+            if (currentSize >= size + padding) {
                 outOffset = alignedOffset;
-                
-                VkDeviceSize remainingSize = it->size - (size + padding);
-                
+                VkDeviceSize remainingSize = currentSize - (size + padding);
+
+                freeMap.erase(it);
+
                 if (padding > 0) {
-                     it->size = padding;
-                     
-                     if (remainingSize > 0) {
-                         freeList.insert(std::next(it), {outOffset + size, remainingSize});
-                     }
-                } else {
-                    if (remainingSize > 0) {
-                        it->offset += size;
-                        it->size = remainingSize;
-                    } else {
-                        freeList.erase(it);
-                    }
+                    freeMap[currentOffset] = padding;
+                }
+
+                if (remainingSize > 0) {
+                    freeMap[outOffset + size] = remainingSize;
                 }
                 
                 allocatedSize += size;
@@ -128,24 +125,26 @@ namespace aurora {
     }
 
     void AuroraBufferPool::Page::free(VkDeviceSize offset, VkDeviceSize size) {
-        auto it = freeList.begin();
-        while (it != freeList.end() && it->offset < offset) {
-            ++it;
+        auto next = freeMap.lower_bound(offset);
+        auto prev = (next == freeMap.begin()) ? freeMap.end() : std::prev(next);
+
+        bool mergedWithPrev = false;
+        if (prev != freeMap.end() && (prev->first + prev->second) == offset) {
+            prev->second += size;
+            mergedWithPrev = true;
         }
-        
-        auto inserted = freeList.insert(it, {offset, size});
-        
-        auto next = std::next(inserted);
-        if (next != freeList.end() && (inserted->offset + inserted->size) == next->offset) {
-            inserted->size += next->size;
-            freeList.erase(next);
-        }
-        
-        if (inserted != freeList.begin()) {
-            auto prev = std::prev(inserted);
-            if ((prev->offset + prev->size) == inserted->offset) {
-                prev->size += inserted->size;
-                freeList.erase(inserted);
+        if (next != freeMap.end() && (offset + size) == next->first) {
+            if (mergedWithPrev) {
+                prev->second += next->second;
+                freeMap.erase(next);
+            } else {
+                VkDeviceSize nextSize = next->second;
+                freeMap.erase(next);
+                freeMap[offset] = size + nextSize;
+            }
+        } else {
+            if (!mergedWithPrev) {
+                freeMap[offset] = size;
             }
         }
         

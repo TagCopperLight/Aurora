@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <spdlog/spdlog.h>
+#include <set>
 
 namespace aurora {
     AuroraText::AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize, glm::vec4 fontColor)
@@ -35,63 +36,76 @@ namespace aurora {
         return textBounds;
     }
 
-    void AuroraText::rebuildGeometry() {
-        std::vector<AuroraModel::Vertex> vertices = createTextVertices();
-        
+    static BufferAllocation s_sharedIndexAllocation{};
+    static const size_t MAX_TEXT_CHARS = 16384; 
+
+    static void ensureSharedIndexBuffer(AuroraDevice& device) {
+        if (s_sharedIndexAllocation.isValid()) return;
+
         std::vector<uint32_t> indices;
-        if (!vertices.empty()) {
-            for (size_t i = 0; i < vertices.size() / 4; ++i) {
-                uint32_t baseIndex = static_cast<uint32_t>(i * 4);
-                
-                indices.push_back(baseIndex);
-                indices.push_back(baseIndex + 1);
-                indices.push_back(baseIndex + 2);
-                
-                indices.push_back(baseIndex + 2);
-                indices.push_back(baseIndex + 3);
-                indices.push_back(baseIndex);
-            }
+        indices.reserve(MAX_TEXT_CHARS * 6);
+        for (size_t i=0; i<MAX_TEXT_CHARS; ++i) {
+            uint32_t base = static_cast<uint32_t>(i * 4);
+            indices.push_back(base);
+            indices.push_back(base+1);
+            indices.push_back(base+2);
+            indices.push_back(base+2);
+            indices.push_back(base+3);
+            indices.push_back(base);
         }
+
+        VkDeviceSize size = indices.size() * sizeof(uint32_t);
+        s_sharedIndexAllocation = device.getIndexBufferPool().allocate(size);
+
+        auto staging = device.getStagingBufferPool().allocate(size);
+        if (staging.mappedMemory) {
+            memcpy(staging.mappedMemory, indices.data(), (size_t)size);
+        }
+        device.copyBuffer(staging.buffer, s_sharedIndexAllocation.buffer, size, staging.offset, s_sharedIndexAllocation.offset);
+        device.getStagingBufferPool().free(staging);
+    }
+
+    void AuroraText::rebuildGeometry() {
+        updateTextVertices();
+        
+        ensureSharedIndexBuffer(componentInfo.auroraDevice);
 
         if (model && model->isDynamic()) {
-             if (vertices.size() <= currentVertexCapacity && indices.size() <= currentIndexCapacity) {
-                 model->updateVertexData(vertices.data(), vertices.size() * sizeof(AuroraModel::Vertex));
-                 model->updateIndexData(indices.data(), indices.size() * sizeof(uint32_t));
-                 model->setVertexCount(static_cast<uint32_t>(vertices.size()));
-                 model->setIndexCount(static_cast<uint32_t>(indices.size()));
-                 return;
-             }
+            VkDeviceSize requiredSize = cachedVertices.size() * sizeof(AuroraModel::Vertex);
+            model->resizeVertexBuffer(requiredSize);
+            model->updateVertexData(cachedVertices.data(), requiredSize);
+            model->setVertexCount(static_cast<uint32_t>(cachedVertices.size()));
+            model->setIndexCount(static_cast<uint32_t>(cachedVertices.size() / 4 * 6));
+            return;
         }
 
-        size_t vertexCapacity = vertices.size() > 0 ? vertices.size() * 2 : 128;
-        size_t indexCapacity = indices.size() > 0 ? indices.size() * 2 : 192;    
+        size_t vertexCapacity = cachedVertices.size() > 0 ? cachedVertices.size() * 2 : 128;
         
-        std::vector<AuroraModel::Vertex> allocationVertices = vertices;
-        allocationVertices.resize(vertexCapacity);
-        
-        std::vector<uint32_t> allocationIndices = indices;
-        allocationIndices.resize(indexCapacity);
+        if (cachedVertices.capacity() < vertexCapacity) cachedVertices.reserve(vertexCapacity);
 
         AuroraModel::Builder builder{};
-        builder.vertices = allocationVertices;
-        builder.indices = allocationIndices;
+        
+        std::vector<AuroraModel::Vertex> capacityVertices = cachedVertices;
+        capacityVertices.resize(vertexCapacity);
+        
+        builder.vertices = capacityVertices;
+        builder.sharedIndexAllocation = &s_sharedIndexAllocation;
         builder.isDynamic = true;
         
         model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
         
-        model->setVertexCount(static_cast<uint32_t>(vertices.size()));
-        model->setIndexCount(static_cast<uint32_t>(indices.size()));
+        model->setVertexCount(static_cast<uint32_t>(cachedVertices.size()));
+        model->setIndexCount(static_cast<uint32_t>(cachedVertices.size() / 4 * 6));
         
         currentVertexCapacity = vertexCapacity;
-        currentIndexCapacity = indexCapacity;
     }
 
-    std::vector<AuroraModel::Vertex> AuroraText::createTextVertices() {
-        std::vector<AuroraModel::Vertex> vertices;
+    void AuroraText::updateTextVertices() {
+        cachedVertices.clear();
         const AuroraMSDFAtlas& msdfAtlas = componentInfo.renderSystemManager.getMSDFAtlas();
 
         if (text.empty()) {
-            return vertices;
+            return;
         }
 
         glm::vec2 cursor = {0.0f, 0.0f};
@@ -117,7 +131,11 @@ namespace aurora {
 
             AuroraMSDFAtlas::GlyphInfo glyphInfo;
             if (!msdfAtlas.getGlyphInfo(character, glyphInfo)) {
-                spdlog::warn("Glyph not found for character: '{}'", character);
+                static std::set<char> missingChars;
+                if (missingChars.find(character) == missingChars.end()) {
+                    spdlog::warn("Glyph not found for character: '{}'", character);
+                    missingChars.insert(character);
+                }
                 continue;
             }
 
@@ -146,19 +164,19 @@ namespace aurora {
 
             AuroraModel::Vertex v1(glm::vec3(glyphPos.x, glyphPos.y, 0.0f), color);
             v1.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
-            vertices.push_back(v1);
+            cachedVertices.push_back(v1);
             
             AuroraModel::Vertex v2(glm::vec3(glyphPos.x + glyphSize.x, glyphPos.y, 0.0f), color);
             v2.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y + glyphInfo.atlasBounds.w);
-            vertices.push_back(v2);
+            cachedVertices.push_back(v2);
             
             AuroraModel::Vertex v3(glm::vec3(glyphPos.x + glyphSize.x, glyphPos.y + glyphSize.y, 0.0f), color);
             v3.texCoord = glm::vec2(glyphInfo.atlasBounds.x + glyphInfo.atlasBounds.z, glyphInfo.atlasBounds.y);
-            vertices.push_back(v3);
+            cachedVertices.push_back(v3);
             
             AuroraModel::Vertex v4(glm::vec3(glyphPos.x, glyphPos.y + glyphSize.y, 0.0f), color);
             v4.texCoord = glm::vec2(glyphInfo.atlasBounds.x, glyphInfo.atlasBounds.y);
-            vertices.push_back(v4);
+            cachedVertices.push_back(v4);
             
             cursor.x += static_cast<float>(glyphInfo.advance) * scale;
             
@@ -170,12 +188,11 @@ namespace aurora {
 
         float offsetX = -minX;
         float offsetY = -minY;
-        for (auto& vertex : vertices) {
+        for (auto& vertex : cachedVertices) {
             vertex.position.x += offsetX;
             vertex.position.y += offsetY;
         }
 
         textBounds = {maxX - minX, maxY - minY};
-        return vertices;
     }
 }

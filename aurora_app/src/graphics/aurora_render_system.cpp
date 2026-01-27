@@ -1,7 +1,6 @@
 #include "aurora_app/graphics/aurora_render_system.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
 #include "aurora_app/profiling/aurora_profiler.hpp"
-#include "aurora_engine/core/aurora_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -97,7 +96,10 @@ namespace aurora {
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sharedDescriptorSet, 0, nullptr);
         }
 
-        frameInstanceBuffers[frameIndex].clear();
+        for (auto& allocation : frameInstanceAllocations[frameIndex]) {
+            auroraDevice.getDynamicVertexBufferPool().free(allocation);
+        }
+        frameInstanceAllocations[frameIndex].clear();
 
         PushConstantData pushData{};
         pushData.projectionViewMatrix = camera.getProjection();
@@ -126,25 +128,24 @@ namespace aurora {
         }
 
         for (auto& [model, instances] : batches) {
-             auto instanceBuffer = std::make_unique<AuroraBuffer>(
-                 auroraDevice,
-                 sizeof(AuroraModel::InstanceData),
-                 static_cast<uint32_t>(instances.size()),
-                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-             );
+             VkDeviceSize bufferSize = sizeof(AuroraModel::InstanceData) * instances.size();
+             auto allocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
              
-             instanceBuffer->map();
-             instanceBuffer->writeToBuffer((void*)instances.data());
+             if (!allocation.isValid()) {
+                 spdlog::error("Failed to allocate instance buffer from pool!");
+                 continue;
+             }
              
-             frameInstanceBuffers[frameIndex].push_back(std::move(instanceBuffer));
+             if (allocation.mappedMemory) {
+                memcpy(allocation.mappedMemory, instances.data(), (size_t)bufferSize);
+             }
              
-             AuroraBuffer* bufferPtr = frameInstanceBuffers[frameIndex].back().get();
+             frameInstanceAllocations[frameIndex].push_back(allocation);
 
              model->bind(commandBuffer);
              
-             VkBuffer buffers[] = {bufferPtr->getBuffer()};
-             VkDeviceSize offsets[] = {0};
+             VkBuffer buffers[] = {allocation.buffer};
+             VkDeviceSize offsets[] = {allocation.offset};
              vkCmdBindVertexBuffers(commandBuffer, 1, 1, buffers, offsets);
              
              model->draw(commandBuffer, static_cast<uint32_t>(instances.size()));

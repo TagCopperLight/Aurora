@@ -4,7 +4,7 @@
 #include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
-#include "aurora_engine/core/aurora_buffer.hpp"
+#include "aurora_engine/core/aurora_buffer_pool.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 
 #include <memory>
@@ -84,7 +84,7 @@ namespace aurora {
 
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             
-            std::map<int, std::vector<std::unique_ptr<AuroraBuffer>>> frameInstanceBuffers;
+            std::map<int, std::vector<BufferAllocation>> frameInstanceAllocations;
             
             std::string vertexShaderPath;
             std::string fragmentShaderPath;

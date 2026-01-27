@@ -21,6 +21,7 @@ namespace aurora {
     };
 
     class AuroraBufferPool;
+    class AuroraBuffer;
 
     class AuroraDevice {
         public:
@@ -51,7 +52,6 @@ namespace aurora {
             AuroraBufferPool& getDynamicIndexBufferPool() { return *dynamicIndexBufferPool; }
 
             SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
-            uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
             QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice); }
             VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
@@ -66,6 +66,8 @@ namespace aurora {
             VkPhysicalDeviceProperties properties;
 
         private:
+            friend class AuroraBuffer;
+            uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
             void createInstance();
             void setupDebugMessenger();
             void createSurface();

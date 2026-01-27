@@ -36,6 +36,7 @@ namespace aurora {
             struct Builder {
                 std::vector<Vertex> vertices{};
                 std::vector<uint32_t> indices{};
+                BufferAllocation* sharedIndexAllocation = nullptr;
                 bool isDynamic = false;
             };
 
@@ -50,6 +51,8 @@ namespace aurora {
 
             void updateVertexData(const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
             void updateIndexData(const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
+            
+            void resizeVertexBuffer(VkDeviceSize newSize);
 
             void setVertexCount(uint32_t count) { vertexCount = count; }
             uint32_t getVertexCount() const { return vertexCount; }
@@ -69,6 +72,7 @@ namespace aurora {
             uint32_t vertexCount;
 
             bool hasIndexBuffer = false;
+            bool ownsIndexBuffer = true;
             BufferAllocation indexAllocation;
             uint32_t indexCount;
             

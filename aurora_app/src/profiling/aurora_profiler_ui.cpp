@@ -55,6 +55,20 @@ namespace aurora {
         
         currentLine_ += 3;
     }
+
+    void AuroraProfilerUI::addTrackedCounter(const char* counterName) {
+        trackedCounters_.push_back(std::string(counterName));
+        
+        float yOffset = 40.0f + (currentLine_ * lineHeight_);
+        
+        auto counterText = std::make_shared<AuroraText>(componentInfo, counterName, 16.0f);
+        counterText->setPosition(50.0f, yOffset);
+        counterText->color = AuroraThemeSettings::TEXT_PRIMARY;
+        counterText->addToRenderSystem();
+        displayElements_.push_back(counterText);
+        
+        currentLine_++;
+    }
     
     void AuroraProfilerUI::update(float deltaTime) {
         timeSinceLastUpdate_ += deltaTime;
@@ -111,6 +125,15 @@ namespace aurora {
                     displayElements_[elementIndex]->setText(minMaxStr);
                     elementIndex++;
                 }
+            }
+        }
+
+        for (const auto& counterName : trackedCounters_) {
+            if (elementIndex < displayElements_.size()) {
+                uint64_t value = profiler_.getCounter(counterName.c_str());
+                std::string counterStr = counterName + ": " + std::to_string(value);
+                displayElements_[elementIndex]->setText(counterStr);
+                elementIndex++;
             }
         }
     }

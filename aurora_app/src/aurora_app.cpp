@@ -37,7 +37,11 @@ namespace aurora {
         profiler.setEnabled(true);
 
         auto profilerUI = std::make_shared<AuroraProfilerUI>(componentInfo, 400.f);
+        profilerUI->addProfiledFunction("Poll Events");
+        profilerUI->addProfiledFunction("Begin Frame");
         profilerUI->addProfiledFunction("Render Components");
+        profilerUI->addProfiledFunction("End Frame");
+        profilerUI->addTrackedCounter("Draw Calls");
         profilerUI->setUpdateFrequency(60.0f);
         
         clock.enableCSVLogging();
@@ -45,14 +49,22 @@ namespace aurora {
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();
             
-            glfwPollEvents();
+            {
+                AURORA_PROFILE("Poll Events");
+                glfwPollEvents();
+            }
 
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
             camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
-            auto commandBuffer = auroraRenderer.beginFrame();
+            VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+            {
+                AURORA_PROFILE("Begin Frame");
+                commandBuffer = auroraRenderer.beginFrame();
+            }
+
             if (commandBuffer) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
@@ -63,7 +75,10 @@ namespace aurora {
 
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
 
-                auroraRenderer.endFrame();
+                {
+                    AURORA_PROFILE("End Frame");
+                    auroraRenderer.endFrame();
+                }
             } else {
                 spdlog::warn("Failed to begin frame, skipping rendering");
             }
@@ -72,9 +87,9 @@ namespace aurora {
             
             profilerUI->update(clock.getFrameTimeMs() / 1000.0f);
             
-            profiler.newFrame();
-
             clock.endFrame();
+            
+            profiler.newFrame();
         }
 
         vkDeviceWaitIdle(auroraDevice.device());

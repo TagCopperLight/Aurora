@@ -41,11 +41,41 @@ namespace aurora {
         return defaultStats;
     }
 
+    void AuroraProfiler::setCounter(const char* name, uint64_t value) {
+        if (!enabled_) return;
+        std::lock_guard<std::mutex> lock(dataMutex_);
+        counters_[name] = value;
+    }
+
+    void AuroraProfiler::incrementCounter(const char* name, uint64_t value) {
+        if (!enabled_) return;
+        std::lock_guard<std::mutex> lock(dataMutex_);
+        counters_[name] += value;
+    }
+
+    uint64_t AuroraProfiler::getCounter(const char* name) const {
+        std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(dataMutex_));
+        auto it = counters_.find(name);
+        if (it != counters_.end()) {
+            return it->second;
+        }
+        return 0;
+    }
+
+    const std::unordered_map<std::string, uint64_t>& AuroraProfiler::getCounters() const {
+        return counters_;
+    }
+
     void AuroraProfiler::newFrame() {
         std::lock_guard<std::mutex> lock(dataMutex_);
         for (auto& [name, stats] : stats_) {
             stats.current = 0.0;
             stats.framePercentage = 0.0;
+        }
+        // Don't clear counters map, but maybe reset values? 
+        // For counters like "Total Draw Calls", we re-calculate them every frame, so we should reset them.
+        for (auto& [name, value] : counters_) {
+           value = 0;
         }
     }
 }

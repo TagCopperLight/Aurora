@@ -1,5 +1,6 @@
 #include "aurora_app/graphics/aurora_render_system.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
+#include "aurora_app/profiling/aurora_profiler.hpp"
 #include "aurora_engine/core/aurora_buffer.hpp"
 #include "aurora_engine/core/aurora_swap_chain.hpp"
 
@@ -121,6 +122,7 @@ namespace aurora {
             
             component->model->bind(commandBuffer);
             component->model->draw(commandBuffer);
+            AuroraProfiler::instance().incrementCounter("Draw Calls");
         }
     }
 

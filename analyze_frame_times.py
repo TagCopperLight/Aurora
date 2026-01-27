@@ -9,16 +9,18 @@ import numpy as np
 import argparse
 from pathlib import Path
 
-def analyze_frame_times(csv_file):
+def analyze_frame_times(csv_file, skip_count=60):
     """Analyze frame time data and generate performance insights"""
     
     # Read the CSV data
     df = pd.read_csv(csv_file)
     
-    # Skip the first 10 points (initialization noise)
-    if len(df) > 10:
-        df = df.iloc[10:].reset_index(drop=True)
-        print("Note: Skipped first 10 data points (initialization)")
+    # Skip the first N points (initialization noise)
+    if len(df) > skip_count:
+        df = df.iloc[skip_count:].reset_index(drop=True)
+        print(f"Note: Skipped first {skip_count} data points (initialization)")
+    else:
+        print(f"Warning: Not enough data points to skip {skip_count} frames. Using all available data.")
     
     print("=== Aurora Engine Frame Time Analysis ===\n")
     
@@ -31,6 +33,27 @@ def analyze_frame_times(csv_file):
     print(f"Min frame time: {df['frame_time_ms'].min():.3f} ms")
     print(f"Max frame time: {df['frame_time_ms'].max():.3f} ms")
     print(f"Frame time std dev: {df['frame_time_ms'].std():.3f} ms")
+
+    if 'render_components_ms' in df.columns:
+         print("\nRender Stats:")
+         print(f"Average Render Time: {df['render_components_ms'].mean():.3f} ms")
+         print(f"Max Render Time: {df['render_components_ms'].max():.3f} ms")
+         print(f"Min Render Time: {df['render_components_ms'].min():.3f} ms")
+         print(f"Render Time std dev: {df['render_components_ms'].std():.3f} ms")
+    
+    if 'draw_calls' in df.columns:
+        print("\nDraw Calls Stats:")
+        print(f"Average Draw Calls: {df['draw_calls'].mean():.1f}")
+        print(f"Max Draw Calls: {df['draw_calls'].max()}")
+        print(f"Min Draw Calls: {df['draw_calls'].min()}")
+        print(f"Draw Calls std dev: {df['draw_calls'].std():.1f}")
+
+    if 'begin_frame_ms' in df.columns:
+        print("\nPipeline Stats (Avg):")
+        print(f"Poll Events: {df['poll_events_ms'].mean():.3f} ms")
+        print(f"Begin Frame: {df['begin_frame_ms'].mean():.3f} ms")
+        print(f"End Frame: {df['end_frame_ms'].mean():.3f} ms")
+
     print()
     
     # Performance percentiles
@@ -53,64 +76,92 @@ def analyze_frame_times(csv_file):
     print(f"Stutters (>2x avg): {len(stutters)} ({len(stutters)/len(df)*100:.2f}%)")
     print()
     
-    # Generate plots
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    # Determine plot layout based on available data
+    has_render_stats = 'render_components_ms' in df.columns and 'draw_calls' in df.columns
+    has_detailed_stats = 'begin_frame_ms' in df.columns
+    
+    rows = 3 if has_render_stats else 2
+    cols = 2
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
     fig.suptitle('Aurora Engine Performance Analysis', fontsize=16)
     
     # Frame time over time
     axes[0, 0].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], alpha=0.7)
-    # axes[0, 0].axhline(y=target_frame_time, color='r', linestyle='--', label='60 FPS target')
     axes[0, 0].set_xlabel('Time (seconds)')
     axes[0, 0].set_ylabel('Frame Time (ms)')
     axes[0, 0].set_title('Frame Time Over Time')
-    # axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
     
     # FPS over time
     axes[0, 1].plot(df['timestamp_ms'] / 1000, df['fps'], alpha=0.7, color='green')
-    # axes[0, 1].axhline(y=60, color='r', linestyle='--', label='60 FPS target')
     axes[0, 1].set_xlabel('Time (seconds)')
     axes[0, 1].set_ylabel('FPS')
     axes[0, 1].set_title('FPS Over Time')
-    # axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
     
     # Frame time histogram
     axes[1, 0].hist(df['frame_time_ms'], bins=50, alpha=0.7, color='orange')
-    # axes[1, 0].axvline(x=target_frame_time, color='r', linestyle='--', label='60 FPS target')
     axes[1, 0].axvline(x=df['frame_time_ms'].mean(), color='g', linestyle='--', label='Average')
     axes[1, 0].set_xlabel('Frame Time (ms)')
     axes[1, 0].set_ylabel('Frequency')
     axes[1, 0].set_title('Frame Time Distribution')
-    # axes[1, 0].legend()
     axes[1, 0].grid(True, alpha=0.3)
     
-    # Rolling average (smoothed performance)
+    # Rolling average
     window_size = 60  # 1 second at 60 FPS
     if len(df) > window_size:
         rolling_avg = df['frame_time_ms'].rolling(window=window_size).mean()
         axes[1, 1].plot(df['timestamp_ms'] / 1000, rolling_avg, color='purple')
-        # axes[1, 1].axhline(y=target_frame_time, color='r', linestyle='--', label='60 FPS target')
         axes[1, 1].set_xlabel('Time (seconds)')
         axes[1, 1].set_ylabel('Frame Time (ms)')
         axes[1, 1].set_title(f'Rolling Average ({window_size} frames)')
-        # axes[1, 1].legend()
         axes[1, 1].grid(True, alpha=0.3)
     
+    # New plots for Render Stats
+    if has_render_stats:
+        # Draw Calls
+        axes[2, 0].plot(df['timestamp_ms'] / 1000, df['draw_calls'], alpha=0.7, color='brown')
+        axes[2, 0].set_xlabel('Time (seconds)')
+        axes[2, 0].set_ylabel('Draw Calls')
+        axes[2, 0].set_title('Draw Calls Over Time')
+        axes[2, 0].grid(True, alpha=0.3)
+
+        if has_detailed_stats:
+            # Stacked Plot for Time Breakdown
+            labels = ['Poll Events', 'Begin Frame', 'Render Components', 'End Frame']
+            data = [
+                df['poll_events_ms'],
+                df['begin_frame_ms'],
+                df['render_components_ms'],
+                df['end_frame_ms']
+            ]
+            
+            axes[2, 1].stackplot(df['timestamp_ms'] / 1000, data, labels=labels, alpha=0.7)
+            # axes[2, 1].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], color='black', linestyle='--', label='Total Frame Time', alpha=0.5)
+            
+            axes[2, 1].set_xlabel('Time (seconds)')
+            axes[2, 1].set_ylabel('Time (ms)')
+            axes[2, 1].set_title('Frame Time Breakdown (Stacked)')
+            axes[2, 1].legend(loc='upper left')
+            axes[2, 1].grid(True, alpha=0.3)
+        else:
+            # Render Time vs Frame Time (Legacy)
+            axes[2, 1].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], alpha=0.5, label='Total Frame Time')
+            axes[2, 1].plot(df['timestamp_ms'] / 1000, df['render_components_ms'], alpha=0.7, color='red', label='Render Components')
+            axes[2, 1].set_xlabel('Time (seconds)')
+            axes[2, 1].set_ylabel('Time (ms)')
+            axes[2, 1].set_title('Render Time vs Total Frame Time')
+            axes[2, 1].legend()
+            axes[2, 1].grid(True, alpha=0.3)
+
     plt.tight_layout()
-    
-    # Save the plot
-    # output_file = csv_file.stem + '_analysis.png'
-    # plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    # print(f"Performance analysis plot saved to: {output_file}")
-    
-    # Show the plot
     plt.show()
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze Aurora engine frame time data')
     parser.add_argument('csv_file', type=str, help='Path to the frame_times.csv file')
-    parser.add_argument('--no-plot', action='store_true', help='Skip generating plots')
+    parser.add_argument('--skip', type=int, default=30, help='Number of initial frames to skip (default: 30)')
     
     args = parser.parse_args()
     
@@ -119,7 +170,7 @@ def main():
         print(f"Error: File {csv_path} not found")
         return
     
-    analyze_frame_times(csv_path)
+    analyze_frame_times(csv_path, args.skip)
 
 if __name__ == "__main__":
     main()

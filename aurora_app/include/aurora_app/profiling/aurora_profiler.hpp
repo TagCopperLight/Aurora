@@ -63,6 +63,12 @@ namespace aurora {
         }
         double getFrameTime() const { return currentFrameTime_; }
 
+        void setCounter(const char* name, uint64_t value);
+        void incrementCounter(const char* name, uint64_t value = 1);
+        uint64_t getCounter(const char* name) const;
+        const std::unordered_map<std::string, uint64_t>& getCounters() const;
+        const std::unordered_map<std::string, StatisticalData>& getAllStats() const { return stats_; }
+
     private:
         AuroraProfiler() = default;
         ~AuroraProfiler() = default;
@@ -70,6 +76,7 @@ namespace aurora {
         AuroraProfiler& operator=(const AuroraProfiler&) = delete;
 
         std::unordered_map<std::string, StatisticalData> stats_;
+        std::unordered_map<std::string, uint64_t> counters_;
         std::atomic<bool> enabled_{true};
         std::mutex dataMutex_;
         double currentFrameTime_ = 0.0;

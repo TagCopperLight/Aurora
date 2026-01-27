@@ -14,6 +14,7 @@ namespace aurora {
         AuroraProfilerUI(AuroraComponentInfo& componentInfo, float width);
         
         void addProfiledFunction(const char* functionName);
+        void addTrackedCounter(const char* counterName);
         void setUpdateFrequency(float hz) { updateFrequency_ = hz; }
         void update(float deltaTime) override;
         
@@ -34,6 +35,7 @@ namespace aurora {
     private:
         AuroraProfiler& profiler_;
         std::vector<std::string> trackedFunctions_;
+        std::vector<std::string> trackedCounters_;
         std::vector<std::shared_ptr<AuroraText>> displayElements_;
         
         std::shared_ptr<AuroraText> fpsText_;

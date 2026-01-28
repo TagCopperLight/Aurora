@@ -70,7 +70,7 @@ namespace aurora {
         currentLine_++;
     }
     
-    void AuroraProfilerUI::update(float deltaTime) {
+    void AuroraProfilerUI::update(float /*deltaTime*/) {
         AURORA_PROFILE("Profiler UI Update");
         updateDisplayStrings();
     }

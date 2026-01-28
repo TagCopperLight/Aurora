@@ -1,7 +1,7 @@
 #include "aurora_app/aurora_app.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
 #include "aurora_app/utils/aurora_clock.hpp"
-#include "aurora_app/profiling/aurora_profiler.hpp"
+#include "aurora_engine/profiling/aurora_profiler.hpp"
 #include "aurora_app/profiling/aurora_profiler_ui.hpp"
 
 #include "aurora_app/components/aurora_component_info.hpp"
@@ -11,8 +11,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <stdexcept>
-#include <array>
 #include <spdlog/spdlog.h>
 #include <cassert>
 

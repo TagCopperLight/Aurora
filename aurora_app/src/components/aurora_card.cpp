@@ -3,7 +3,6 @@
 #include "aurora_app/components/aurora_rounded_borders.hpp"
 #include "aurora_app/components/aurora_rounded_rect.hpp"
 #include "aurora_app/components/aurora_rounded_shadows.hpp"
-#include "aurora_app/components/aurora_text.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

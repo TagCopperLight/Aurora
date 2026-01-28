@@ -2,14 +2,13 @@
 
 #include "aurora_device.hpp"
 
-#include <string>
 #include <vector>
 #include <memory>
 
 namespace aurora {
     class AuroraSwapChain {
         public:
-            static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+            static constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 
             AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D windowExtent);
             AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D windowExtent, std::shared_ptr<AuroraSwapChain> previous);

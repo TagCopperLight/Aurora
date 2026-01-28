@@ -1,11 +1,9 @@
 #pragma once
 
 #include "aurora_component_interface.hpp"
-#include "aurora_app/graphics/aurora_msdf_atlas.hpp"
 #include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #include <string>
-#include <memory>
 
 namespace aurora {
     class AuroraText : public AuroraComponentInterface {
@@ -42,7 +40,7 @@ namespace aurora {
         private:
             void initialize() override;
             
-            std::vector<AuroraModel::Vertex> createTextVertices();
+            void updateTextVertices();
             void createQuadForCharacter(
                 char character,
                 glm::vec2 position, 
@@ -55,5 +53,9 @@ namespace aurora {
             float fontSize;
             glm::vec4 fontColor;
             glm::vec2 textBounds;
+            
+            size_t currentVertexCapacity = 0;
+            
+            std::vector<AuroraModel::Vertex> cachedVertices;
     };
 }

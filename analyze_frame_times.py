@@ -55,10 +55,6 @@ def analyze_frame_times(csv_file, skip_count=60):
          print("\nRender Stats:")
          print_stats("Render Time", df['render_components_ms'])
     
-    if 'draw_calls' in df.columns:
-        print("\nDraw Calls Stats:")
-        print_stats("Draw Calls", df['draw_calls'], unit='')
-
     if 'begin_frame_ms' in df.columns:
         print("\nPipeline Stats:")
         print_stats("Poll Events", df['poll_events_ms'])
@@ -68,10 +64,6 @@ def analyze_frame_times(csv_file, skip_count=60):
     if 'profiler_ui_ms' in df.columns:
         print("\nProfiler Internal Stats:")
         print_stats("Profiler UI Update", df['profiler_ui_ms'])
-
-    if 'text_update_ms' in df.columns:
-         print("\nComponent Stats:")
-         print_stats("AuroraText::setText", df['text_update_ms'])
     
     # Calculate Unaccounted time
     # Frame Time - (Render + Begin + End + Poll + UI)
@@ -112,7 +104,7 @@ def analyze_frame_times(csv_file, skip_count=60):
     print()
     
     # Determine plot layout based on available data
-    has_render_stats = 'render_components_ms' in df.columns and 'draw_calls' in df.columns
+    has_render_stats = 'render_components_ms' in df.columns
     has_detailed_stats = 'begin_frame_ms' in df.columns
     
     rows = 3 if has_render_stats else 2
@@ -154,48 +146,26 @@ def analyze_frame_times(csv_file, skip_count=60):
         axes[1, 1].grid(True, alpha=0.3)
     
     # New plots for Render Stats
-    if has_render_stats:
-        # Draw Calls
-        axes[2, 0].plot(df['timestamp_ms'] / 1000, df['draw_calls'], alpha=0.7, color='brown')
-        axes[2, 0].set_xlabel('Time (seconds)')
-        axes[2, 0].set_ylabel('Draw Calls')
-        axes[2, 0].set_title('Draw Calls Over Time')
-        axes[2, 0].grid(True, alpha=0.3)
-
-        if has_detailed_stats:
-            # Stacked Plot for Time Breakdown
-            labels = ['Poll Events', 'Begin Frame', 'Render Components', 'End Frame']
-            data = [
-                df['poll_events_ms'],
-                df['begin_frame_ms'],
-                df['render_components_ms'],
-                df['end_frame_ms']
-            ]
+    if has_render_stats and has_detailed_stats:
+        # Stacked Plot for Time Breakdown
+        labels = ['Poll Events', 'Begin Frame', 'Render Components', 'End Frame']
+        data = [df['poll_events_ms'], df['begin_frame_ms'], df['render_components_ms'], df['end_frame_ms']]
+        
+        if 'profiler_ui_ms' in df.columns:
+            labels.append('Profiler UI')
+            data.append(df['profiler_ui_ms'])
             
-            if 'profiler_ui_ms' in df.columns:
-                labels.append('Profiler UI')
-                data.append(df['profiler_ui_ms'])
-                
-            labels.append('Unaccounted')
-            data.append(df['unaccounted_ms'])
-            
-            axes[2, 1].stackplot(df['timestamp_ms'] / 1000, data, labels=labels, alpha=0.7)
-            axes[2, 1].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], color='black', linestyle='--', label='Total Frame Time', alpha=0.5)
-            
-            axes[2, 1].set_xlabel('Time (seconds)')
-            axes[2, 1].set_ylabel('Time (ms)')
-            axes[2, 1].set_title('Frame Time Breakdown (Stacked)')
-            axes[2, 1].legend(loc='upper left')
-            axes[2, 1].grid(True, alpha=0.3)
-        else:
-            # Render Time vs Frame Time (Legacy)
-            axes[2, 1].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], alpha=0.5, label='Total Frame Time')
-            axes[2, 1].plot(df['timestamp_ms'] / 1000, df['render_components_ms'], alpha=0.7, color='red', label='Render Components')
-            axes[2, 1].set_xlabel('Time (seconds)')
-            axes[2, 1].set_ylabel('Time (ms)')
-            axes[2, 1].set_title('Render Time vs Total Frame Time')
-            axes[2, 1].legend()
-            axes[2, 1].grid(True, alpha=0.3)
+        labels.append('Unaccounted')
+        data.append(df['unaccounted_ms'])
+        
+        axes[2, 1].stackplot(df['timestamp_ms'] / 1000, data, labels=labels, alpha=0.7)
+        axes[2, 1].plot(df['timestamp_ms'] / 1000, df['frame_time_ms'], color='black', linestyle='--', label='Total Frame Time', alpha=0.5)
+        
+        axes[2, 1].set_xlabel('Time (seconds)')
+        axes[2, 1].set_ylabel('Time (ms)')
+        axes[2, 1].set_title('Frame Time Breakdown (Stacked)')
+        axes[2, 1].legend(loc='upper left')
+        axes[2, 1].grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.show()
@@ -229,12 +199,7 @@ def analyze_frame_times(csv_file, skip_count=60):
 
     # Prepare data for stacking
     labels = ['Poll Events', 'Begin Frame', 'Render Components', 'End Frame']
-    data = [
-        df['poll_events_ms'],
-        df['begin_frame_ms'],
-        df['render_components_ms'],
-        df['end_frame_ms']
-    ]
+    data = [df['poll_events_ms'], df['begin_frame_ms'], df['render_components_ms'], df['end_frame_ms']]
     
     if 'profiler_ui_ms' in df.columns:
         labels.append('Profiler UI')
@@ -256,12 +221,7 @@ def analyze_frame_times(csv_file, skip_count=60):
     if len(df) > 200:
         last_200 = df.iloc[-200:]
         
-        data_200 = [
-            last_200['poll_events_ms'],
-            last_200['begin_frame_ms'],
-            last_200['render_components_ms'],
-            last_200['end_frame_ms']
-        ]
+        data_200 = [last_200['poll_events_ms'], last_200['begin_frame_ms'], last_200['render_components_ms'], last_200['end_frame_ms']]
         
         if 'profiler_ui_ms' in df.columns:
             data_200.append(last_200['profiler_ui_ms'])
@@ -273,7 +233,6 @@ def analyze_frame_times(csv_file, skip_count=60):
         axes3[1].set_xlabel('Time (seconds)')
         axes3[1].set_ylabel('Time (ms)')
         axes3[1].set_title('Last 200 Frames Breakdown (Zoomed Stacked)')
-        # axes3[1].legend(loc='upper left') # Legend already on top plot
         axes3[1].grid(True, alpha=0.3)
     
     plt.tight_layout()
@@ -283,13 +242,12 @@ def analyze_frame_times(csv_file, skip_count=60):
     print("\n=== Frame Group Analysis ===")
     
     # Define groups based on user observations
-    # Group 1: ~0.2ms (Ultra Fast)
-    # Group 2: ~0.8ms (Fast)
-    # Group 3: ~2.1ms (Medium)
-    # Group 4: > 4ms (Spikes)
+    # Group 1: ~0.8ms (Fast)
+    # Group 2: ~2.1ms (Medium)
+    # Group 3: > 3ms (Spikes)
     
-    bins = [0, 0.5, 1.5, 3.0, float('inf')]
-    labels = ['Ultra Fast (~0.2ms)', 'Fast (~0.8ms)', 'Medium (~2.1ms)', 'Spikes (>3.0ms)']
+    bins = [0, 1.5, 3.0, float('inf')]
+    labels = ['Fast (~0.8ms)', 'Medium (~2.1ms)', 'Spikes (>3.0ms)']
     
     df['group'] = pd.cut(df['frame_time_ms'], bins=bins, labels=labels)
     
@@ -305,10 +263,6 @@ def analyze_frame_times(csv_file, skip_count=60):
         stats_cols.append('end_frame_ms')
     if 'profiler_ui_ms' in df.columns:
         stats_cols.append('profiler_ui_ms')
-            
-    if 'text_update_ms' in df.columns:
-        stats_cols.append('text_update_ms')
-
     if 'unaccounted_ms' in df.columns:
         stats_cols.append('unaccounted_ms')
 
@@ -322,40 +276,6 @@ def analyze_frame_times(csv_file, skip_count=60):
         for col in stats_cols:
             unit = '' if col == 'draw_calls' else 'ms'
             print_stats(col, group[col], unit=unit, indent='  ')
-
-    # --- Periodicity Analysis for Spikes ---
-    print("\n=== Periodicity Analysis (Spikes) ===")
-    spike_df = df[df['group'] == 'Spikes (>3.0ms)']
-    
-    if len(spike_df) > 2:
-        # Calculate frame intervals (difference in index)
-        indices = spike_df.index.to_series()
-        intervals = indices.diff().dropna()
-        
-        avg_interval = intervals.mean()
-        std_interval = intervals.std()
-        mode_interval = intervals.mode()[0] if not intervals.mode().empty else 0
-        
-        print(f"Spike Intervals (Frames):")
-        print(f"  Average Distance: {avg_interval:.2f} frames")
-        print(f"  Most Common Distance (Mode): {mode_interval} frames")
-        print(f"  Std Dev: {std_interval:.2f}")
-        
-        if std_interval < 1.0:
-            print("  -> DETERMINISTIC PERIODICITY DETECTED!")
-        elif std_interval < avg_interval * 0.2:
-             print("  -> STRONG PERIODICITY DETECTED")
-        else:
-             print("  -> Irregular/Noisy distribution")
-
-        # Time intervals
-        timestamps = spike_df['timestamp_ms']
-        time_diffs = timestamps.diff().dropna()
-        print(f"Spike Intervals (Time):")
-        print(f"  Average Time Diff: {time_diffs.mean():.2f} ms")
-        
-    else:
-        print("Not enough spikes to analyze periodicity.")
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze Aurora engine frame time data')

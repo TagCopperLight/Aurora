@@ -14,6 +14,7 @@ namespace aurora {
             glm::vec4 color
         ) {
             std::vector<AuroraModel::Vertex> vertices;
+            vertices.reserve((numSegments + 1) * 4);
             
             std::vector<glm::vec2> corners = {
                 {radius, size.y - radius},

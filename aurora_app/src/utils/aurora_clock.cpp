@@ -1,5 +1,5 @@
 #include "aurora_app/utils/aurora_clock.hpp"
-#include "aurora_app/profiling/aurora_profiler.hpp"
+#include "aurora_engine/profiling/aurora_profiler.hpp"
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <iomanip>
@@ -74,7 +74,7 @@ namespace aurora {
         
         csvFile_.open(filename);
         if (csvFile_.is_open()) {
-            csvFile_ << "timestamp_ms,frame_time_ms,fps,draw_calls,render_components_ms,poll_events_ms,begin_frame_ms,end_frame_ms,profiler_ui_ms,text_update_ms\n";
+            csvFile_ << "timestamp_ms,frame_time_ms,fps,render_components_ms,poll_events_ms,begin_frame_ms,end_frame_ms,profiler_ui_ms\n";
             csvFile_ << std::fixed << std::setprecision(3);
             csvLoggingEnabled_ = true;
             spdlog::info("CSV logging enabled, writing to: {}", filename);
@@ -95,15 +95,13 @@ namespace aurora {
     void AuroraClock::logFrameTimeToCSV() {
         if (csvLoggingEnabled_ && csvFile_.is_open()) {
             auto& profiler = AuroraProfiler::instance();
-            uint64_t drawCalls = profiler.getCounter("Draw Calls");
             double renderTime = profiler.getStats("Render Components").current;
             double pollTime = profiler.getStats("Poll Events").current;
             double beginTime = profiler.getStats("Begin Frame").current;
             double endTime = profiler.getStats("End Frame").current;
             double uiTime = profiler.getStats("Profiler UI Update").current;
-            double textUpdate = profiler.getStats("AuroraText::setText").current;
             
-            csvFile_ << timestampMs_ << "," << frameTimeMs_ << "," << fps_ << "," << drawCalls << "," << renderTime << "," << pollTime << "," << beginTime << "," << endTime << "," << uiTime << "," << textUpdate << "\n";
+            csvFile_ << timestampMs_ << "," << frameTimeMs_ << "," << fps_ << "," << renderTime << "," << pollTime << "," << beginTime << "," << endTime << "," << uiTime << "\n";
         }
     }
 

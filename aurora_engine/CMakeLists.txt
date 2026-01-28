@@ -29,3 +29,5 @@ target_link_libraries(aurora_engine PUBLIC
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(aurora_engine PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+target_compile_definitions(aurora_engine PUBLIC AURORA_PROFILING_ENABLED)

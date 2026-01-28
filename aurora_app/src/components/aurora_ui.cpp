@@ -1,7 +1,6 @@
 #include "aurora_app/components/aurora_ui.hpp"
 #include "aurora_app/components/aurora_text.hpp"
 
-#include "spdlog/spdlog.h"
 #include <string>
 
 namespace aurora {

@@ -3,9 +3,7 @@
 #include <array>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <limits>
-#include <set>
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 
@@ -92,11 +90,6 @@ namespace aurora {
     }
 
     VkResult AuroraSwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex) {
-        if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
-            vkWaitForFences(device.device(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
-        }
-        imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
-
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 

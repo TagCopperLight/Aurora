@@ -3,7 +3,6 @@
 #include "aurora_app/utils/aurora_utils.hpp"
 
 #include <memory>
-#include <iostream>
 
 namespace aurora {
     AuroraRoundedShadows::AuroraRoundedShadows(AuroraComponentInfo &componentInfo, glm::vec2 size, float radius, float borderWidth)

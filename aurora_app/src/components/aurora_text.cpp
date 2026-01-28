@@ -1,6 +1,5 @@
 #include "aurora_app/components/aurora_text.hpp"
 #include "aurora_app/graphics/aurora_render_system_manager.hpp"
-#include "aurora_app/profiling/aurora_profiler.hpp"
 
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -18,7 +17,6 @@ namespace aurora {
     }
 
     void AuroraText::setText(const std::string& newText) {
-        AURORA_PROFILE("AuroraText::setText");
         if (text != newText) {
             text = newText;
             rebuildGeometry();

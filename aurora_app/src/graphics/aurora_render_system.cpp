@@ -1,6 +1,6 @@
 #include "aurora_app/graphics/aurora_render_system.hpp"
 #include "aurora_app/components/aurora_component_interface.hpp"
-#include "aurora_app/profiling/aurora_profiler.hpp"
+#include "aurora_engine/profiling/aurora_profiler.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

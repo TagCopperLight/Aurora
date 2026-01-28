@@ -1,4 +1,4 @@
-#include "aurora_app/profiling/aurora_profiler.hpp"
+#include "aurora_engine/profiling/aurora_profiler.hpp"
 #include <algorithm>
 
 namespace aurora {

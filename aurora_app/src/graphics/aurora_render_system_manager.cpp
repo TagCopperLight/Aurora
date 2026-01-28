@@ -53,7 +53,13 @@ namespace aurora {
         }
 
         for (const auto& renderSystem : renderSystems) {
-            if (renderSystem->getComponentCount() > 0) {
+            if (!renderSystem->isTransparent() && renderSystem->getComponentCount() > 0) {
+                renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
+            }
+        }
+
+        for (const auto& renderSystem : renderSystems) {
+            if (renderSystem->isTransparent() && renderSystem->getComponentCount() > 0) {
                 renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
             }
         }
@@ -84,7 +90,8 @@ namespace aurora {
             component.getTopology(),
             globalDescriptorPool.get(),
             msdfAtlas.get(),
-            component.needsTextureBinding()
+            component.needsTextureBinding(),
+            component.isTransparent()
         };
 
         return std::make_unique<AuroraRenderSystem>(auroraDevice, createInfo);

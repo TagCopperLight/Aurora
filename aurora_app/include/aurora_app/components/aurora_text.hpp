@@ -27,6 +27,10 @@ namespace aurora {
             bool needsTextureBinding() const override {
                 return true;
             }
+
+            bool isTransparent() const override {
+                return true;
+            }
             
             void setText(const std::string& newText);
             const std::string& getText() const { return text; }

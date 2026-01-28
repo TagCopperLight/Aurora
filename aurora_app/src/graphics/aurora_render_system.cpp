@@ -20,7 +20,8 @@ namespace aurora {
           vertexShaderPath{createInfo.vertFilePath}, 
           fragmentShaderPath{createInfo.fragFilePath}, 
           topology{createInfo.topology},
-          needsTextureBinding{createInfo.needsTextureBinding} {
+          needsTextureBinding{createInfo.needsTextureBinding},
+          transparent{createInfo.isTransparent} {
         createPipelineLayout();
         createPipeline(createInfo.renderPass, createInfo.vertFilePath, createInfo.fragFilePath, createInfo.topology);
     }
@@ -62,6 +63,11 @@ namespace aurora {
 
         PipelineConfigInfo pipelineConfig{};
         AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig, topology);
+        
+        if (transparent) {
+             pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
+        }
+
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
         auroraPipeline = std::make_unique<AuroraPipeline>(auroraDevice, vertFilePath, fragFilePath, pipelineConfig);
@@ -158,6 +164,7 @@ namespace aurora {
         return vertexShaderPath == component.getVertexShaderPath() &&
                fragmentShaderPath == component.getFragmentShaderPath() &&
                topology == component.getTopology() &&
-               needsTextureBinding == component.needsTextureBinding();
+               needsTextureBinding == component.needsTextureBinding() &&
+               transparent == component.isTransparent();
     }
 }

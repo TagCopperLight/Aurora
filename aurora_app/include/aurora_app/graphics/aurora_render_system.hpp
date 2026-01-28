@@ -36,6 +36,7 @@ namespace aurora {
         AuroraDescriptorPool* descriptorPool;
         AuroraMSDFAtlas* msdfAtlas;
         bool needsTextureBinding;
+        bool isTransparent;
     };
 
     class AuroraRenderSystem {
@@ -59,6 +60,7 @@ namespace aurora {
             }
             
             bool isCompatibleWith(const AuroraComponentInterface& component) const;
+            bool isTransparent() const { return transparent; }
             
             
             const std::string& getVertexShaderPath() const { return vertexShaderPath; }
@@ -90,5 +92,6 @@ namespace aurora {
             std::string fragmentShaderPath;
             VkPrimitiveTopology topology;
             bool needsTextureBinding;
+            bool transparent;
     };
 }

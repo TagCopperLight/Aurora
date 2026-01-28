@@ -60,6 +60,10 @@ namespace aurora {
                 return false;
             }
             
+            virtual bool isTransparent() const {
+                return false;
+            }
+            
             std::shared_ptr<AuroraModel> model{};
             glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             TransformComponent transform{};

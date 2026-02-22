@@ -42,7 +42,7 @@ namespace aurora {
         }
 
         VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(PushConstantData);
 
@@ -62,7 +62,7 @@ namespace aurora {
         assert(pipelineLayout != nullptr && "Pipeline layout must be created before creating the pipeline");
 
         PipelineConfigInfo pipelineConfig{};
-        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig, topology);
+        AuroraPipeline::defaultPipelineConfigInfo(pipelineConfig, topology, auroraDevice.msaaSamples);
         
         if (transparent) {
              pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
@@ -95,6 +95,13 @@ namespace aurora {
         createComponentDescriptorSets(componentIndex, msdfAtlas);
     }
 
+    void AuroraRenderSystem::removeComponent(std::shared_ptr<AuroraComponentInterface> component) {
+        auto it = std::find(components.begin(), components.end(), component);
+        if (it != components.end()) {
+            components.erase(it);
+        }
+    }
+
     void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex) {
         auroraPipeline->bind(commandBuffer);
 
@@ -113,13 +120,15 @@ namespace aurora {
         vkCmdPushConstants(
             commandBuffer,
             pipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            VK_SHADER_STAGE_VERTEX_BIT,
             0,
             sizeof(PushConstantData),
             &pushData
         );
 
-        std::unordered_map<AuroraModel*, std::vector<AuroraModel::InstanceData>> batches;
+        for (auto& [model, instances] : batches) {
+            instances.clear();
+        }
         
         for (const auto& component : components) {
             if (component->isHidden() || !component->model) {
@@ -134,6 +143,8 @@ namespace aurora {
         }
 
         for (auto& [model, instances] : batches) {
+             if (instances.empty()) continue;
+             
              VkDeviceSize bufferSize = sizeof(AuroraModel::InstanceData) * instances.size();
              auto allocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
              

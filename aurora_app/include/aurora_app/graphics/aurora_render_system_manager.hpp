@@ -28,12 +28,15 @@ namespace aurora {
 
             size_t getTotalComponentCount() const;
             
+            AuroraMSDFAtlas& getMSDFAtlas() { return *msdfAtlas; }
             const AuroraMSDFAtlas& getMSDFAtlas() const { return *msdfAtlas; }
 
             void addComponentToQueue(std::shared_ptr<AuroraComponentInterface> component) {
                 componentQueue.push_back(component);
                 components.push_back(component);
             }
+
+            void removeComponent(std::shared_ptr<AuroraComponentInterface> component);
 
         private:
             AuroraRenderSystem* findCompatibleRenderSystem(const AuroraComponentInterface& component);
@@ -42,7 +45,7 @@ namespace aurora {
             
             void addComponentToRenderSystems(std::shared_ptr<AuroraComponentInterface> component);
 
-            void recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float depth, float depthIncrement);
+            void recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float& depth, float depthIncrement);
 
             AuroraDevice& auroraDevice;
             AuroraRenderer& auroraRenderer;

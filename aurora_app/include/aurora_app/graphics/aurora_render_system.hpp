@@ -6,9 +6,12 @@
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_engine/core/aurora_buffer_pool.hpp"
 #include "aurora_app/graphics/aurora_msdf_atlas.hpp"
+#include "aurora_app/graphics/aurora_model.hpp"
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -17,11 +20,7 @@
 namespace aurora {
     class AuroraComponentInterface;
     
-    struct ComponentUniform {
-        glm::mat4 transform;
-        alignas(16) glm::vec4 color;
-    };
-    
+
     struct PushConstantData {
         glm::mat4 projectionViewMatrix;
     };
@@ -50,6 +49,7 @@ namespace aurora {
             void renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex);
 
             void addComponent(std::shared_ptr<AuroraComponentInterface> component);
+            void removeComponent(std::shared_ptr<AuroraComponentInterface> component);
             
             size_t getComponentCount() const {
                 return components.size();
@@ -87,6 +87,7 @@ namespace aurora {
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             
             std::map<int, std::vector<BufferAllocation>> frameInstanceAllocations;
+            std::unordered_map<AuroraModel*, std::vector<AuroraModel::InstanceData>> batches;
             
             std::string vertexShaderPath;
             std::string fragmentShaderPath;

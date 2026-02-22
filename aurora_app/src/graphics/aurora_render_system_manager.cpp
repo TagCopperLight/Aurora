@@ -10,7 +10,6 @@ namespace aurora {
     : auroraDevice{device}, auroraRenderer{renderer} {
         globalDescriptorPool = AuroraDescriptorPool::Builder(auroraDevice)
             .setMaxSets(100)
-            .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100)
             .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100)
             .build();
 
@@ -30,38 +29,64 @@ namespace aurora {
         }
     }
 
-    void AuroraRenderSystemManager::recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float depth, float depthIncrement) {
+    void AuroraRenderSystemManager::removeComponent(std::shared_ptr<AuroraComponentInterface> component) {
+        auto it = std::find(components.begin(), components.end(), component);
+        if (it != components.end()) {
+            components.erase(it);
+        }
+        auto itQueue = std::find(componentQueue.begin(), componentQueue.end(), component);
+        if (itQueue != componentQueue.end()) {
+            componentQueue.erase(itQueue);
+        }
+        for (auto& sys : renderSystems) {
+            sys->removeComponent(component);
+        }
+    }
+
+    void AuroraRenderSystemManager::recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float& depth, float depthIncrement) {
         for (const auto& component : components) {
             component->setDepth(depth);
             depth -= depthIncrement;
 
             auto& children = component->getChildren();
-            recalculateAllDepths(children, depth, depthIncrement);
+            if (!children.empty()) {
+                recalculateAllDepths(children, depth, depthIncrement);
+            }
         }
     }
 
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
         if (!componentQueue.empty()) {
-            spdlog::info("Processing component queue with {} components", componentQueue.size());
+            spdlog::debug("Processing component queue with {} components", componentQueue.size());
             for (const auto& component : componentQueue) {
                 addComponentToRenderSystems(component);
             }
             componentQueue.clear();
 
-            recalculateAllDepths(components, MAX_DEPTH, DEPTH_INCREMENT);
-            spdlog::info("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
+            float depth = MAX_DEPTH;
+            recalculateAllDepths(components, depth, DEPTH_INCREMENT);
+            spdlog::debug("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
         }
 
+        std::vector<AuroraRenderSystem*> opaqueSystems;
+        std::vector<AuroraRenderSystem*> transparentSystems;
+
         for (const auto& renderSystem : renderSystems) {
-            if (!renderSystem->isTransparent() && renderSystem->getComponentCount() > 0) {
-                renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
+            if (renderSystem->getComponentCount() > 0) {
+                if (renderSystem->isTransparent()) {
+                    transparentSystems.push_back(renderSystem.get());
+                } else {
+                    opaqueSystems.push_back(renderSystem.get());
+                }
             }
         }
 
-        for (const auto& renderSystem : renderSystems) {
-            if (renderSystem->isTransparent() && renderSystem->getComponentCount() > 0) {
-                renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
-            }
+        for (auto renderSystem : opaqueSystems) {
+            renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
+        }
+
+        for (auto renderSystem : transparentSystems) {
+            renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
         }
     }
 

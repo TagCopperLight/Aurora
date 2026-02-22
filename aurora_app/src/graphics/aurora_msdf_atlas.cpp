@@ -281,4 +281,37 @@ namespace aurora {
         
         return 0.0;
     }
+
+    const BufferAllocation& AuroraMSDFAtlas::getSharedIndexAllocation() {
+        if (!sharedIndexAllocation.isValid()) {
+            ensureSharedIndexBuffer();
+        }
+        return sharedIndexAllocation;
+    }
+
+    void AuroraMSDFAtlas::ensureSharedIndexBuffer() {
+        if (sharedIndexAllocation.isValid()) return;
+
+        std::vector<uint32_t> indices;
+        indices.reserve(MAX_TEXT_CHARS * 6);
+        for (size_t i=0; i<MAX_TEXT_CHARS; ++i) {
+            uint32_t base = static_cast<uint32_t>(i * 4);
+            indices.push_back(base);
+            indices.push_back(base+1);
+            indices.push_back(base+2);
+            indices.push_back(base+2);
+            indices.push_back(base+3);
+            indices.push_back(base);
+        }
+
+        VkDeviceSize size = indices.size() * sizeof(uint32_t);
+        sharedIndexAllocation = auroraDevice.getIndexBufferPool().allocate(size);
+
+        auto staging = auroraDevice.getStagingBufferPool().allocate(size);
+        if (staging.mappedMemory) {
+            memcpy(staging.mappedMemory, indices.data(), (size_t)size);
+        }
+        auroraDevice.copyBuffer(staging.buffer, sharedIndexAllocation.buffer, size, staging.offset, sharedIndexAllocation.offset);
+        auroraDevice.getStagingBufferPool().free(staging);
+    }
 }

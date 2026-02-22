@@ -34,39 +34,12 @@ namespace aurora {
         return textBounds;
     }
 
-    static BufferAllocation s_sharedIndexAllocation{};
-    static const size_t MAX_TEXT_CHARS = 16384; 
 
-    static void ensureSharedIndexBuffer(AuroraDevice& device) {
-        if (s_sharedIndexAllocation.isValid()) return;
-
-        std::vector<uint32_t> indices;
-        indices.reserve(MAX_TEXT_CHARS * 6);
-        for (size_t i=0; i<MAX_TEXT_CHARS; ++i) {
-            uint32_t base = static_cast<uint32_t>(i * 4);
-            indices.push_back(base);
-            indices.push_back(base+1);
-            indices.push_back(base+2);
-            indices.push_back(base+2);
-            indices.push_back(base+3);
-            indices.push_back(base);
-        }
-
-        VkDeviceSize size = indices.size() * sizeof(uint32_t);
-        s_sharedIndexAllocation = device.getIndexBufferPool().allocate(size);
-
-        auto staging = device.getStagingBufferPool().allocate(size);
-        if (staging.mappedMemory) {
-            memcpy(staging.mappedMemory, indices.data(), (size_t)size);
-        }
-        device.copyBuffer(staging.buffer, s_sharedIndexAllocation.buffer, size, staging.offset, s_sharedIndexAllocation.offset);
-        device.getStagingBufferPool().free(staging);
-    }
 
     void AuroraText::rebuildGeometry() {
         updateTextVertices();
         
-        ensureSharedIndexBuffer(componentInfo.auroraDevice);
+        AuroraMSDFAtlas& msdfAtlas = componentInfo.renderSystemManager.getMSDFAtlas();
 
         if (model && model->isDynamic()) {
             VkDeviceSize requiredSize = cachedVertices.size() * sizeof(AuroraModel::Vertex);
@@ -82,12 +55,10 @@ namespace aurora {
         if (cachedVertices.capacity() < vertexCapacity) cachedVertices.reserve(vertexCapacity);
 
         AuroraModel::Builder builder{};
+        builder.vertices = cachedVertices;
+        builder.vertices.resize(vertexCapacity);
         
-        std::vector<AuroraModel::Vertex> capacityVertices = cachedVertices;
-        capacityVertices.resize(vertexCapacity);
-        
-        builder.vertices = capacityVertices;
-        builder.sharedIndexAllocation = &s_sharedIndexAllocation;
+        builder.sharedIndexAllocation = &msdfAtlas.getSharedIndexAllocation();
         builder.isDynamic = true;
         
         model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);

@@ -8,6 +8,7 @@
 
 #include "aurora_engine/core/aurora_texture.hpp"
 #include "aurora_engine/core/aurora_device.hpp"
+#include "aurora_engine/core/aurora_buffer_pool.hpp"
 
 #include <string>
 #include <memory>
@@ -50,6 +51,8 @@ namespace aurora {
             bool getGlyphInfo(char character, GlyphInfo& glyphInfo) const;
             double getKerning(char left, char right) const;
 
+            const BufferAllocation& getSharedIndexAllocation();
+
         private:
             void createAtlasTexture();
             void buildGlyphCache();
@@ -71,6 +74,10 @@ namespace aurora {
 
             mutable std::unordered_map<char, const msdf_atlas::GlyphGeometry*> glyphCache;
             mutable std::unordered_map<uint64_t, double> kerningCache;
+
+            BufferAllocation sharedIndexAllocation{};
+            static constexpr size_t MAX_TEXT_CHARS = 16384;
+            void ensureSharedIndexBuffer();
 
             void freeFont();
     };

@@ -4,6 +4,8 @@
 #include "aurora_app/components/aurora_component_info.hpp"
 
 #include <memory>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace aurora {
     struct TransformComponent {
@@ -12,31 +14,11 @@ namespace aurora {
         float rotation = 0.0f;
 
         glm::mat4 mat4() const {
-            const float s = glm::sin(rotation);
-            const float c = glm::cos(rotation);
-            
-            glm::mat4 rotationMat = glm::mat4(
-                c, s, 0.f, 0.f,
-                -s, c, 0.f, 0.f,
-                0.f, 0.f, 1.f, 0.f,
-                0.f, 0.f, 0.f, 1.f
-            );
-            
-            glm::mat4 scaleMat = glm::mat4(
-                scale.x, 0.f, 0.f, 0.f,
-                0.f, scale.y, 0.f, 0.f,
-                0.f, 0.f, 1.f, 0.f,
-                0.f, 0.f, 0.f, 1.f
-            );
-            
-            glm::mat4 translationMat = glm::mat4(
-                1.f, 0.f, 0.f, 0.f,
-                0.f, 1.f, 0.f, 0.f,
-                0.f, 0.f, 1.f, 0.f,
-                translation.x, translation.y, translation.z, 1.f
-            );
-            
-            return translationMat * rotationMat * scaleMat;
+            glm::mat4 transform = glm::mat4(1.0f);
+            transform = glm::translate(transform, translation);
+            transform = glm::rotate(transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+            transform = glm::scale(transform, glm::vec3(scale.x, scale.y, 1.0f));
+            return transform;
         }
     };
     
@@ -69,7 +51,7 @@ namespace aurora {
             TransformComponent transform{};
 
             virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {
-                child->parent = this;
+                child->parent = weak_from_this();
                 children.push_back(child);
 
                 if (rendering) {
@@ -81,14 +63,6 @@ namespace aurora {
 
             glm::mat4 getWorldTransform() const {
                 return worldTransform;
-            }
-
-            glm::mat4 getMVPMatrix(const glm::mat4& projectionMatrix) {
-                if (worldTransformDirty) {
-                    mvpMatrix = projectionMatrix * worldTransform;
-                    worldTransformDirty = false;
-                }
-                return mvpMatrix;
             }
 
             std::vector<std::shared_ptr<AuroraComponentInterface>>& getChildren() {
@@ -140,7 +114,7 @@ namespace aurora {
         protected:
             AuroraComponentInfo &componentInfo;
             std::vector<std::shared_ptr<AuroraComponentInterface>> children;
-            AuroraComponentInterface* parent = nullptr;
+            std::weak_ptr<AuroraComponentInterface> parent;
             
         private:
             virtual void initialize() {};
@@ -149,21 +123,17 @@ namespace aurora {
             bool rendering = false;
 
             glm::mat4 worldTransform{1.0f};
-            glm::mat4 mvpMatrix{1.0f};
-            mutable bool worldTransformDirty = true;
 
             void updateWorldTransform() {
                 glm::mat4 localTransform = transform.mat4();
                 
-                if (parent != nullptr) {
+                if (auto parentPtr = parent.lock()) {
                     float ourZDepth = localTransform[3][2];
-                    worldTransform = parent->getWorldTransform() * localTransform;
+                    worldTransform = parentPtr->getWorldTransform() * localTransform;
                     worldTransform[3][2] = ourZDepth;
                 } else {
                     worldTransform = localTransform;
                 }
-                
-                worldTransformDirty = true;
                 
                 for (const auto& child : children) {
                     child->updateWorldTransform();

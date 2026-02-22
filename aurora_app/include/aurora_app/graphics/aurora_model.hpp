@@ -1,7 +1,6 @@
 #pragma once
 
 #include "aurora_engine/core/aurora_device.hpp"
-#include "aurora_engine/core/aurora_device.hpp"
 #include "aurora_engine/core/aurora_buffer_pool.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -36,7 +35,7 @@ namespace aurora {
             struct Builder {
                 std::vector<Vertex> vertices{};
                 std::vector<uint32_t> indices{};
-                BufferAllocation* sharedIndexAllocation = nullptr;
+                const BufferAllocation* sharedIndexAllocation = nullptr;
                 bool isDynamic = false;
             };
 

@@ -5,6 +5,7 @@
 #include "aurora_app/profiling/aurora_profiler_ui.hpp"
 
 #include "aurora_app/components/aurora_component_info.hpp"
+#include "aurora_app/components/aurora_terminal.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -18,7 +19,6 @@ namespace aurora {
     AuroraApp::AuroraApp() {
         spdlog::info("Initializing Aurora Application");
         renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
-        createRenderSystems();
         spdlog::info("Aurora Application ready");
     }
 
@@ -32,14 +32,20 @@ namespace aurora {
         
         auto& profiler = AuroraProfiler::instance();
         profiler.setEnabled(true);
-
+        
         auto profilerUI = std::make_shared<AuroraProfilerUI>(componentInfo, 400.f);
         profilerUI->addProfiledFunction("Poll Events");
         profilerUI->addProfiledFunction("Begin Frame");
         profilerUI->addProfiledFunction("Render Components");
         profilerUI->addProfiledFunction("End Frame");
         profilerUI->addTrackedCounter("Draw Calls");
-        
+
+        auto terminal = std::make_shared<AuroraTerminal>(componentInfo, glm::vec2(1000.f, 1000.f));
+        terminal->addText("Hello World");
+        terminal->addText("Malo Joannon");
+        terminal->addText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+        // terminal->addToRenderSystem();
+
         clock.enableCSVLogging();
         
         while (!auroraWindow.shouldClose()) {
@@ -53,7 +59,7 @@ namespace aurora {
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
-            camera.setOrthographicProjection(0, width, height, 0, 0, 1);
+                camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
             VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
             {
@@ -78,7 +84,7 @@ namespace aurora {
             } else {
                 spdlog::warn("Failed to begin frame, skipping rendering");
             }
-            
+
             profiler.setFrameTime(clock.getFrameTimeMs());
             
             profilerUI->update(clock.getFrameTimeMs() / 1000.0f);
@@ -89,8 +95,5 @@ namespace aurora {
         }
 
         vkDeviceWaitIdle(auroraDevice.device());
-    }
-
-    void AuroraApp::createRenderSystems() {
     }
 }

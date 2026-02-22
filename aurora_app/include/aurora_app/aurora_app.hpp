@@ -23,7 +23,6 @@ namespace aurora {
             void run();
 
         private:
-            void createRenderSystems();
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};

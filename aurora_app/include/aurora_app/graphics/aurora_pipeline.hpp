@@ -34,7 +34,7 @@ namespace aurora {
             AuroraPipeline& operator=(const AuroraPipeline&) = delete;
 
             void bind(VkCommandBuffer commandBuffer);
-            static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, VkPrimitiveTopology topology);
+            static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, VkPrimitiveTopology topology, VkSampleCountFlagBits msaaSamples);
 
         private:
             static std::vector<char> readFile(const std::string& filePath);

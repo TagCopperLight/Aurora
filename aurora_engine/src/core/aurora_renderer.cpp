@@ -103,9 +103,7 @@ namespace aurora {
             spdlog::debug("Swap chain out of date or window resized, recreating swap chain");
             auroraWindow.resetWindowResizedFlag();
             recreateSwapChain();
-        }
-
-        if (result != VK_SUCCESS) {
+        } else if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit command buffers");
         }
 
@@ -125,9 +123,10 @@ namespace aurora {
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = auroraSwapChain->getSwapChainExtent();
 
-        std::array<VkClearValue, 2> clearValues{};
+        std::array<VkClearValue, 3> clearValues{};
         clearValues[0].color = {{backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a}};
         clearValues[1].depthStencil = {1.0f, 0};
+        clearValues[2].color = {{0.0f, 0.0f, 0.0f, 0.0f}};
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 

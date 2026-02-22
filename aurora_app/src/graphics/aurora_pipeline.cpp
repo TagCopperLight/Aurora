@@ -112,7 +112,7 @@ namespace aurora {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
     }
 
-    void AuroraPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, VkPrimitiveTopology topology) {
+    void AuroraPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, VkPrimitiveTopology topology, VkSampleCountFlagBits msaaSamples) {
         configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         configInfo.inputAssemblyInfo.topology = topology;
         configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
@@ -137,7 +137,7 @@ namespace aurora {
 
         configInfo.multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         configInfo.multisampleInfo.sampleShadingEnable = VK_FALSE;
-        configInfo.multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_8_BIT;
+        configInfo.multisampleInfo.rasterizationSamples = msaaSamples;
         configInfo.multisampleInfo.minSampleShading = 1.0f;
         configInfo.multisampleInfo.pSampleMask = nullptr;
         configInfo.multisampleInfo.alphaToCoverageEnable = VK_FALSE;

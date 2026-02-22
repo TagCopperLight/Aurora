@@ -6,6 +6,7 @@
 #include <limits>
 #include <stdexcept>
 #include <spdlog/spdlog.h>
+#include <vulkan/vulkan_core.h>
 
 namespace aurora {
     AuroraSwapChain::AuroraSwapChain(AuroraDevice &deviceRef, VkExtent2D extent)
@@ -105,6 +106,11 @@ namespace aurora {
         VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[*imageIndex]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
+
+        if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
+            vkWaitForFences(device.device(), 1, &imagesInFlight[*imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        }
+        imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
 
         vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
         if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
@@ -228,7 +234,7 @@ namespace aurora {
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             imageInfo.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-            imageInfo.samples = VK_SAMPLE_COUNT_8_BIT;
+            imageInfo.samples = device.msaaSamples;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfo.flags = 0;
 
@@ -255,9 +261,9 @@ namespace aurora {
         
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = getSwapChainImageFormat();
-        colorAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
+        colorAttachment.samples = device.msaaSamples;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -270,7 +276,7 @@ namespace aurora {
         
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
-        depthAttachment.samples = VK_SAMPLE_COUNT_8_BIT;
+        depthAttachment.samples = device.msaaSamples;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -378,7 +384,7 @@ namespace aurora {
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-            imageInfo.samples = VK_SAMPLE_COUNT_8_BIT;
+            imageInfo.samples = device.msaaSamples;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfo.flags = 0;
 
@@ -441,16 +447,10 @@ namespace aurora {
     VkPresentModeKHR AuroraSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                spdlog::info("Present mode: Mailbox");
                 return availablePresentMode;
             }
         }
-
-        
-        
-        
-        
-        
-        
 
         spdlog::info("Present mode: V-Sync");
         return VK_PRESENT_MODE_FIFO_KHR;

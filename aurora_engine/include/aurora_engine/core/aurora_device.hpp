@@ -13,8 +13,8 @@ namespace aurora {
     };
 
     struct QueueFamilyIndices {
-        uint32_t graphicsFamily;
-        uint32_t presentFamily;
+        uint32_t graphicsFamily = 0;
+        uint32_t presentFamily = 0;
         bool graphicsFamilyHasValue = false;
         bool presentFamilyHasValue = false;
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
@@ -26,9 +26,9 @@ namespace aurora {
     class AuroraDevice {
         public:
             #ifdef NDEBUG
-                const bool enableValidationLayers = false;
+                static constexpr bool enableValidationLayers = false;
             #else
-                const bool enableValidationLayers = true;
+                static constexpr bool enableValidationLayers = true;
             #endif
 
             AuroraDevice(AuroraWindow &window);
@@ -64,6 +64,8 @@ namespace aurora {
             void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 
             VkPhysicalDeviceProperties properties;
+            VkPhysicalDeviceMemoryProperties memoryProperties;
+            VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
         private:
             friend class AuroraBuffer;

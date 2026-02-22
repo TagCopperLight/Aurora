@@ -74,14 +74,14 @@ namespace aurora {
         dynamicVertexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
             16 * 1024 * 1024,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
         dynamicIndexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
             4 * 1024 * 1024,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
     }
@@ -166,7 +166,15 @@ namespace aurora {
         }
 
         vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-        spdlog::info("Selected physical device: {}", properties.deviceName);
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+        VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts & properties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_8_BIT) { msaaSamples = VK_SAMPLE_COUNT_8_BIT; }
+        else if (counts & VK_SAMPLE_COUNT_4_BIT) { msaaSamples = VK_SAMPLE_COUNT_4_BIT; }
+        else if (counts & VK_SAMPLE_COUNT_2_BIT) { msaaSamples = VK_SAMPLE_COUNT_2_BIT; }
+        else { msaaSamples = VK_SAMPLE_COUNT_1_BIT; }
+
+        spdlog::info("Selected physical device: {}, with max MSAA samples: {}", properties.deviceName, static_cast<int>(msaaSamples));
     }
 
     void AuroraDevice::createLogicalDevice() {
@@ -418,10 +426,8 @@ namespace aurora {
     }
 
     uint32_t AuroraDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-        VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+        for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
                 return i;
             }
         }
@@ -481,8 +487,15 @@ namespace aurora {
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(graphicsQueue_);
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        VkFence fence;
+        vkCreateFence(device_, &fenceInfo, nullptr, &fence);
+
+        vkQueueSubmit(graphicsQueue_, 1, &submitInfo, fence);
+        vkWaitForFences(device_, 1, &fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+
+        vkDestroyFence(device_, fence, nullptr);
 
         vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
     }

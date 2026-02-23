@@ -37,7 +37,7 @@ namespace aurora {
     }
 
     void AuroraTerminal::initialize() {
-        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraThemeSettings::get().PRIMARY);
+        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraThemeSettings::get().PURPLE);
         addChild(cardComponent);
 
         // auto textComponent = std::make_shared<AuroraText>(componentInfo, "> Hello World !", 15.0f);

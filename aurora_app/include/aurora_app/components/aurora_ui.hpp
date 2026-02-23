@@ -24,16 +24,11 @@ namespace aurora {
             }
 
             void addTitle(std::string title);
-            void addStringVariable(std::string title, std::string* variable);
-            void refreshVariables();
 
         private:
             void initialize() override;
 
             float width;
             glm::vec2 cursorPosition = {50.f, 30.f};
-
-            std::vector<std::shared_ptr<AuroraText>> variableComponents;
-            std::vector<std::string*> variables;
     };
 }

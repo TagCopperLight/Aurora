@@ -8,6 +8,7 @@
 #include "aurora_app/components/aurora_circle.hpp"
 #include "aurora_app/components/aurora_text.hpp"
 #include "aurora_app/utils/aurora_theme_settings.hpp"
+#include "aurora_app/components/aurora_ui.hpp"
 
 #include <vector>
 #include <string>
@@ -37,52 +38,9 @@ namespace aurora {
         
         auto& profiler = AuroraProfiler::instance();
         profiler.setEnabled(true);
-        
-        auto profilerUI = std::make_shared<AuroraProfilerUI>(componentInfo, 400.f);
 
-        struct ColorInfo {
-            std::string name;
-            glm::vec4 color;
-        };
-
-        std::vector<ColorInfo> colors = {
-            {"PRIMARY", AuroraThemeSettings::get().PRIMARY},
-            {"SECONDARY", AuroraThemeSettings::get().SECONDARY},
-            {"ORANGE", AuroraThemeSettings::get().ORANGE},
-            {"DISABLED", AuroraThemeSettings::get().DISABLED},
-            {"BACKGROUND", AuroraThemeSettings::get().BACKGROUND},
-            {"DELIMITER", AuroraThemeSettings::get().DELIMITER},
-            {"TEXT_PRIMARY", AuroraThemeSettings::get().TEXT_PRIMARY},
-            {"TEXT_SECONDARY", AuroraThemeSettings::get().TEXT_SECONDARY},
-            {"TEXT_DISABLED", AuroraThemeSettings::get().TEXT_DISABLED},
-            {"SHADOW_LIGHT", AuroraThemeSettings::get().SHADOW_LIGHT},
-            {"SHADOW_MEDIUM", AuroraThemeSettings::get().SHADOW_MEDIUM},
-            {"SHADOW_HEAVY", AuroraThemeSettings::get().SHADOW_HEAVY},
-            {"SHADOW_TRANSPARENT", AuroraThemeSettings::get().SHADOW_TRANSPARENT},
-            {"SUCCESS", AuroraThemeSettings::get().SUCCESS},
-            {"WARNING", AuroraThemeSettings::get().WARNING},
-            {"ERROR", AuroraThemeSettings::get().ERROR},
-            {"INFO", AuroraThemeSettings::get().INFO},
-            {"TRANSPARENT", AuroraThemeSettings::get().TRANSPARENT},
-            {"WHITE", AuroraThemeSettings::get().WHITE},
-            {"BLACK", AuroraThemeSettings::get().BLACK}
-        };
-
-        float startY = 200.0f;
-        float startX = 50.0f;
-        float spacingY = 40.0f;
-
-        for (size_t i = 0; i < colors.size(); ++i) {
-            auto circle = std::make_shared<AuroraCircle>(componentInfo, 10.0f, colors[i].color);
-            circle->setPosition({startX, startY + i * spacingY});
-            renderSystemManager->addComponentToQueue(circle);
-
-            auto text = std::make_shared<AuroraText>(componentInfo, colors[i].name, 20.0f);
-            text->setPosition({startX + 30.0f, startY + i * spacingY - 10.0f});
-            renderSystemManager->addComponentToQueue(text);
-        }
-
-        // clock.enableCSVLogging();
+        auto ui = std::make_shared<AuroraUI>(componentInfo, 400.f);
+        ui->addToRenderSystem();
         
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();
@@ -110,7 +68,7 @@ namespace aurora {
             }
 
             profiler.setFrameTime(clock.getFrameTimeMs());
-            profilerUI->update(clock.getFrameTimeMs() / 1000.0f);
+            // profilerUI->update(clock.getFrameTimeMs() / 1000.0f);
             
             clock.endFrame();
             

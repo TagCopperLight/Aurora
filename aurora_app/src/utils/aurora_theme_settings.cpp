@@ -43,26 +43,30 @@ namespace aurora {
 
     AuroraThemeSettings::Colors AuroraThemeSettings::init() {
         Colors c{};
-        c.PRIMARY          = fromHex(PRIMARY);
-        c.SECONDARY        = fromHex(SECONDARY);
-        c.ORANGE           = fromHex(ORANGE);
-        c.DISABLED         = fromHex(DISABLED);
-        c.BACKGROUND       = fromHex(BACKGROUND);
-        c.DELIMITER        = fromHex(DELIMITER);
-        c.TEXT_PRIMARY     = fromHex(TEXT_PRIMARY);
-        c.TEXT_SECONDARY   = fromHex(TEXT_SECONDARY);
-        c.TEXT_DISABLED    = fromHex(TEXT_DISABLED);
-        c.SHADOW_LIGHT     = fromHex(SHADOW_LIGHT);
-        c.SHADOW_MEDIUM    = fromHex(SHADOW_MEDIUM);
-        c.SHADOW_HEAVY     = fromHex(SHADOW_HEAVY);
+
+        c.BACKGROUND = fromHex(BACKGROUND);
+        c.PURPLE     = fromHex(PURPLE);
+        c.BLUE       = fromHex(BLUE);
+        c.ORANGE     = fromHex(ORANGE);
+        c.GRAY       = fromHex(GRAY);
+        c.DELIMITER  = fromHex(DELIMITER);
+
+        c.TEXT_PRIMARY   = fromHex(TEXT_PRIMARY);
+        c.TEXT_SECONDARY = fromHex(TEXT_SECONDARY);
+        c.TEXT_DISABLED  = fromHex(TEXT_DISABLED);
+
+        c.SHADOW_LIGHT       = fromHex(SHADOW_LIGHT);
+        c.SHADOW_MEDIUM      = fromHex(SHADOW_MEDIUM);
+        c.SHADOW_HEAVY       = fromHex(SHADOW_HEAVY);
         c.SHADOW_TRANSPARENT = fromHex(SHADOW_TRANSPARENT);
-        c.SUCCESS          = fromHex(SUCCESS);
-        c.WARNING          = fromHex(WARNING);
-        c.ERROR            = fromHex(ERROR);
-        c.INFO             = fromHex(INFO);
-        c.TRANSPARENT      = fromHex(TRANSPARENT);
-        c.WHITE            = fromHex(WHITE);
-        c.BLACK            = fromHex(BLACK);
+
+        c.SUCCESS = fromHex(SUCCESS);
+        c.ERROR   = fromHex(ERROR);
+
+        c.TRANSPARENT = fromHex(TRANSPARENT);
+        c.WHITE       = fromHex(WHITE);
+        c.BLACK       = fromHex(BLACK);
+        
         return c;
     }
 

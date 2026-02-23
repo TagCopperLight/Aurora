@@ -92,7 +92,7 @@ namespace aurora {
         page->freeMap.insert({0, pageSize});
         
         pages.push_back(std::move(page));
-        spdlog::info("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
+        spdlog::debug("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
     }
 
     bool AuroraBufferPool::Page::allocate(VkDeviceSize size, VkDeviceSize alignment, VkDeviceSize& outOffset) {

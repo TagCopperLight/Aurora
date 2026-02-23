@@ -174,7 +174,8 @@ namespace aurora {
         else if (counts & VK_SAMPLE_COUNT_2_BIT) { msaaSamples = VK_SAMPLE_COUNT_2_BIT; }
         else { msaaSamples = VK_SAMPLE_COUNT_1_BIT; }
 
-        spdlog::info("Selected physical device: {}, with max MSAA samples: {}", properties.deviceName, static_cast<int>(msaaSamples));
+        spdlog::info("Selected physical device: {}", properties.deviceName);
+        spdlog::info("Max MSAA samples: {}", static_cast<int>(msaaSamples));
     }
 
     void AuroraDevice::createLogicalDevice() {

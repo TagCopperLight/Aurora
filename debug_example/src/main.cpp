@@ -6,7 +6,7 @@
 #include <fontconfig/fontconfig.h>
 
 int main(){
-    spdlog::set_level(spdlog::level::info);
+    spdlog::set_level(spdlog::level::debug);
 
     FcInit();
 

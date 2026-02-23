@@ -8,7 +8,7 @@
 namespace aurora {
     class AuroraText : public AuroraComponentInterface {
         public:
-            AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize = 24.0f, glm::vec4 fontColor = AuroraThemeSettings::TEXT_PRIMARY);
+            AuroraText(AuroraComponentInfo &componentInfo, const std::string& text, float fontSize = 24.0f, glm::vec4 fontColor = AuroraThemeSettings::get().TEXT_PRIMARY);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/text.vert.spv";

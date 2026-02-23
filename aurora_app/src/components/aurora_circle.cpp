@@ -1,5 +1,4 @@
 #include "aurora_app/components/aurora_circle.hpp"
-#include "aurora_app/utils/aurora_theme_settings.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,8 +7,9 @@
 #include <memory>
 
 namespace aurora {
-    AuroraCircle::AuroraCircle(AuroraComponentInfo &componentInfo, float radius)
+    AuroraCircle::AuroraCircle(AuroraComponentInfo &componentInfo, float radius, glm::vec4 color)
         : AuroraComponentInterface{componentInfo}, radius{radius} {
+        this->color = color;
         initialize();
     }
 
@@ -18,7 +18,6 @@ namespace aurora {
         AuroraModel::Builder builder{};
         builder.vertices = vertices;
         model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
-        color = AuroraThemeSettings::WHITE;
     }
 
     std::vector<AuroraModel::Vertex> AuroraCircle::createCircleVertices(int numSegments) {
@@ -28,7 +27,7 @@ namespace aurora {
         for (int i = 0; i < numSegments; ++i) {
             float angle = i * angleIncrement;
             glm::vec2 position = {radius * glm::cos(angle), radius * glm::sin(angle)};
-            vertices.push_back({position, color});
+            vertices.push_back({position, glm::vec4(1.0f)});
         }
 
         return vertices;

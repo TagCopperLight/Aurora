@@ -12,7 +12,7 @@ namespace aurora {
             float radius, 
             int numSegments, 
             float borderOffset = 0.0f,
-            glm::vec4 color = AuroraThemeSettings::WHITE
+            glm::vec4 color = AuroraThemeSettings::get().WHITE
         );
     }
 }

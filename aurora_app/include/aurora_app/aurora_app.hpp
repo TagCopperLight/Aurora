@@ -26,7 +26,7 @@ namespace aurora {
 
             AuroraWindow auroraWindow{WIDTH, HEIGHT, "Aurora Vulkan App"};
             AuroraDevice auroraDevice{auroraWindow};
-            AuroraRenderer auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::BACKGROUND};
+            AuroraRenderer auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::get().BACKGROUND};
 
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
     };

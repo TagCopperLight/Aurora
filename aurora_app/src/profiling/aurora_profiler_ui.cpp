@@ -12,7 +12,7 @@ namespace aurora {
         
         auto title = std::make_shared<AuroraText>(componentInfo, "[PROFILER]", 16.0f);
         title->setPosition(50.0f, 30.0f);
-        title->color = AuroraThemeSettings::TEXT_SECONDARY;
+        title->color = AuroraThemeSettings::get().TEXT_SECONDARY;
         title->addToRenderSystem();
         displayElements_.push_back(title);
         
@@ -21,7 +21,7 @@ namespace aurora {
         float yOffset = 40.0f + (currentLine_ * lineHeight_);
         fpsText_ = std::make_shared<AuroraText>(componentInfo, "FPS: 0.0 | Frame Time: 0.00ms", 16.0f);
         fpsText_->setPosition(50.0f, yOffset);
-        fpsText_->color = AuroraThemeSettings::TEXT_PRIMARY;
+        fpsText_->color = AuroraThemeSettings::get().TEXT_PRIMARY;
         fpsText_->addToRenderSystem();
         displayElements_.push_back(fpsText_);
         
@@ -35,7 +35,7 @@ namespace aurora {
         
         auto funcText = std::make_shared<AuroraText>(componentInfo, functionName, 16.0f);
         funcText->setPosition(50.0f, yOffset);
-        funcText->color = AuroraThemeSettings::TEXT_PRIMARY;
+        funcText->color = AuroraThemeSettings::get().TEXT_PRIMARY;
         funcText->addToRenderSystem();
         displayElements_.push_back(funcText);
         
@@ -43,13 +43,13 @@ namespace aurora {
         
         auto avgText = std::make_shared<AuroraText>(componentInfo, "  Avg: 0.00ms", 16.0f);
         avgText->setPosition(70.0f, yOffset + 30.0f);
-        avgText->color = AuroraThemeSettings::TEXT_PRIMARY;
+        avgText->color = AuroraThemeSettings::get().TEXT_PRIMARY;
         avgText->addToRenderSystem();
         displayElements_.push_back(avgText);
         
         auto minMaxText = std::make_shared<AuroraText>(componentInfo, "  Min: 0.00ms Max: 0.00ms", 16.0f);
         minMaxText->setPosition(70.0f, yOffset + 60.0f);
-        minMaxText->color = AuroraThemeSettings::TEXT_PRIMARY;
+        minMaxText->color = AuroraThemeSettings::get().TEXT_PRIMARY;
         minMaxText->addToRenderSystem();
         displayElements_.push_back(minMaxText);
         
@@ -63,7 +63,7 @@ namespace aurora {
         
         auto counterText = std::make_shared<AuroraText>(componentInfo, counterName, 16.0f);
         counterText->setPosition(50.0f, yOffset);
-        counterText->color = AuroraThemeSettings::TEXT_PRIMARY;
+        counterText->color = AuroraThemeSettings::get().TEXT_PRIMARY;
         counterText->addToRenderSystem();
         displayElements_.push_back(counterText);
         

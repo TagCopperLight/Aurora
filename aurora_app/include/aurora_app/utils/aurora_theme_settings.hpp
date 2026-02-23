@@ -5,43 +5,56 @@
 namespace aurora {
     class AuroraThemeSettings {
     public:
-        // Primary UI Colors
-        static constexpr glm::vec4 PRIMARY = {0.808, 0.769f, 0.965f, 1.0f};
-        static constexpr glm::vec4 SECONDARY = {0.451f, 0.749f, 0.976f, 1.0f};
-        static constexpr glm::vec4 ORANGE = {0.933f, 0.729f, 0.4f, 1.0f};
-        static constexpr glm::vec4 DISABLED = {0.251f, 0.263f, 0.322f, 1.0f};
+        static constexpr const char* PRIMARY         = "#CEC4F6";
+        static constexpr const char* SECONDARY       = "#73BFF9";
+        static constexpr const char* ORANGE          = "#EEBA66";
+        static constexpr const char* DISABLED        = "#404352";
+        static constexpr const char* BACKGROUND      = "#0D0E13";
+        static constexpr const char* DELIMITER       = "#5A5A62";
+        static constexpr const char* TEXT_PRIMARY    = "#D9D9D9";
+        static constexpr const char* TEXT_SECONDARY  = "#CBC6E6";
+        static constexpr const char* TEXT_DISABLED   = "#8B8C91";
+        static constexpr const char* SHADOW_LIGHT        = "#0000001A";
+        static constexpr const char* SHADOW_MEDIUM       = "#00000033";
+        static constexpr const char* SHADOW_HEAVY        = "#00000066";
+        static constexpr const char* SHADOW_TRANSPARENT  = "#00000000";
+        static constexpr const char* SUCCESS         = "#DFF3AC";
+        static constexpr const char* WARNING         = "#FF9800";
+        static constexpr const char* ERROR           = "#EDB3B6";
+        static constexpr const char* INFO            = "#2196F3";
+        static constexpr const char* TRANSPARENT     = "#00000000";
+        static constexpr const char* WHITE           = "#FFFFFFFF";
+        static constexpr const char* BLACK           = "#000000FF";
 
-        // Background Colors
-        // static constexpr glm::vec4 BACKGROUND = {0.314f, 0.314f, 0.314f, 1.0f};
-        static constexpr glm::vec4 BACKGROUND = {0.051f, 0.055f, 0.075f, 1.0f};
-        
-        // Surface Colors
-        static constexpr glm::vec4 DELIMITER = {0.353f, 0.353f, 0.384f, 1.0f};
-        
-        // Text Colors
-        // static constexpr glm::vec4 TEXT_PRIMARY = {1.0f, 1.0f, 1.0f, 1.0f};           // White text
-        static constexpr glm::vec4 TEXT_PRIMARY = {0.85, 0.85, 0.85, 1.0f};
-        static constexpr glm::vec4 TEXT_SECONDARY = {0.796f, 0.776f, 0.902f, 1.0f};         // Light gray text
-        static constexpr glm::vec4 TEXT_DISABLED = {0.545f, 0.549f, 0.569f, 1.0f};          // Disabled text
+        struct Colors {
+            glm::vec4 PRIMARY;
+            glm::vec4 SECONDARY;
+            glm::vec4 ORANGE;
+            glm::vec4 DISABLED;
+            glm::vec4 BACKGROUND;
+            glm::vec4 DELIMITER;
+            glm::vec4 TEXT_PRIMARY;
+            glm::vec4 TEXT_SECONDARY;
+            glm::vec4 TEXT_DISABLED;
+            glm::vec4 SHADOW_LIGHT;
+            glm::vec4 SHADOW_MEDIUM;
+            glm::vec4 SHADOW_HEAVY;
+            glm::vec4 SHADOW_TRANSPARENT;
+            glm::vec4 SUCCESS;
+            glm::vec4 WARNING;
+            glm::vec4 ERROR;
+            glm::vec4 INFO;
+            glm::vec4 TRANSPARENT;
+            glm::vec4 WHITE;
+            glm::vec4 BLACK;
+        };
 
-        // Shadow Colors
-        static constexpr glm::vec4 SHADOW_LIGHT = {0.0f, 0.0f, 0.0f, 0.1f};           // Light shadow
-        static constexpr glm::vec4 SHADOW_MEDIUM = {0.0f, 0.0f, 0.0f, 0.2f};          // Medium shadow
-        static constexpr glm::vec4 SHADOW_HEAVY = {0.0f, 0.0f, 0.0f, 0.4f};           // Heavy shadow
-        static constexpr glm::vec4 SHADOW_TRANSPARENT = {0.0f, 0.0f, 0.0f, 0.0f};     // No shadow
+        static const Colors& get();
 
-        // Status Colors
-        static constexpr glm::vec4 SUCCESS = {0.875f, 0.954f, 0.675f, 1.0f};          // Green
-        static constexpr glm::vec4 WARNING = {1.0f, 0.596f, 0.0f, 1.0f};              // Orange
-        static constexpr glm::vec4 ERROR = {0.931f, 0.702f, 0.714f, 1.0f};            // Red
-        static constexpr glm::vec4 INFO = {0.129f, 0.588f, 0.953f, 1.0f};             // Blue
-
-        // Utility Colors
-        static constexpr glm::vec4 TRANSPARENT = {0.0f, 0.0f, 0.0f, 0.0f};
-        static constexpr glm::vec4 WHITE = {1.0f, 1.0f, 1.0f, 1.0f};
-        static constexpr glm::vec4 BLACK = {0.0f, 0.0f, 0.0f, 1.0f};
-        
-        // Font Path
         static constexpr const char* FONT_PATH = "assets/Monaco.otf";
+
+    private:
+        static glm::vec4 fromHex(const char* hex);
+        static Colors init();
     };
 }

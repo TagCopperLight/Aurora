@@ -33,11 +33,11 @@ namespace aurora {
         maxLines = std::max(1, maxLines);
         maxCharsPerLine = std::max(10, maxCharsPerLine);
         
-        spdlog::info("Terminal dimensions: {}x{}, maxLines: {}, maxCharsPerLine: {}", size.x, size.y, maxLines, maxCharsPerLine);
+        spdlog::debug("Terminal dimensions: {}x{}, maxLines: {}, maxCharsPerLine: {}", size.x, size.y, maxLines, maxCharsPerLine);
     }
 
     void AuroraTerminal::initialize() {
-        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraThemeSettings::PRIMARY);
+        auto cardComponent = std::make_shared<AuroraCard>(componentInfo, size, AuroraThemeSettings::get().PRIMARY);
         addChild(cardComponent);
 
         // auto textComponent = std::make_shared<AuroraText>(componentInfo, "> Hello World !", 15.0f);

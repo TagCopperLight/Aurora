@@ -5,7 +5,7 @@
 namespace aurora {
     class AuroraCircle : public AuroraComponentInterface {
         public:
-            AuroraCircle(AuroraComponentInfo &componentInfo, float radius);
+            AuroraCircle(AuroraComponentInfo &componentInfo, float radius, glm::vec4 color);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";

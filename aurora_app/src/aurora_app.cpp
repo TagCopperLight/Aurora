@@ -5,7 +5,12 @@
 #include "aurora_app/profiling/aurora_profiler_ui.hpp"
 
 #include "aurora_app/components/aurora_component_info.hpp"
-#include "aurora_app/components/aurora_terminal.hpp"
+#include "aurora_app/components/aurora_circle.hpp"
+#include "aurora_app/components/aurora_text.hpp"
+#include "aurora_app/utils/aurora_theme_settings.hpp"
+
+#include <vector>
+#include <string>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -26,7 +31,7 @@ namespace aurora {
 
     void AuroraApp::run() {
         AuroraCamera camera;
-        AuroraClock clock(60, false);
+        AuroraClock clock(60, true);
 
         AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
         
@@ -34,59 +39,77 @@ namespace aurora {
         profiler.setEnabled(true);
         
         auto profilerUI = std::make_shared<AuroraProfilerUI>(componentInfo, 400.f);
-        profilerUI->addProfiledFunction("Poll Events");
-        profilerUI->addProfiledFunction("Begin Frame");
-        profilerUI->addProfiledFunction("Render Components");
-        profilerUI->addProfiledFunction("End Frame");
-        profilerUI->addTrackedCounter("Draw Calls");
 
-        auto terminal = std::make_shared<AuroraTerminal>(componentInfo, glm::vec2(1000.f, 1000.f));
-        terminal->addText("Hello World");
-        terminal->addText("Malo Joannon");
-        terminal->addText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-        // terminal->addToRenderSystem();
+        struct ColorInfo {
+            std::string name;
+            glm::vec4 color;
+        };
 
-        clock.enableCSVLogging();
+        std::vector<ColorInfo> colors = {
+            {"PRIMARY", AuroraThemeSettings::get().PRIMARY},
+            {"SECONDARY", AuroraThemeSettings::get().SECONDARY},
+            {"ORANGE", AuroraThemeSettings::get().ORANGE},
+            {"DISABLED", AuroraThemeSettings::get().DISABLED},
+            {"BACKGROUND", AuroraThemeSettings::get().BACKGROUND},
+            {"DELIMITER", AuroraThemeSettings::get().DELIMITER},
+            {"TEXT_PRIMARY", AuroraThemeSettings::get().TEXT_PRIMARY},
+            {"TEXT_SECONDARY", AuroraThemeSettings::get().TEXT_SECONDARY},
+            {"TEXT_DISABLED", AuroraThemeSettings::get().TEXT_DISABLED},
+            {"SHADOW_LIGHT", AuroraThemeSettings::get().SHADOW_LIGHT},
+            {"SHADOW_MEDIUM", AuroraThemeSettings::get().SHADOW_MEDIUM},
+            {"SHADOW_HEAVY", AuroraThemeSettings::get().SHADOW_HEAVY},
+            {"SHADOW_TRANSPARENT", AuroraThemeSettings::get().SHADOW_TRANSPARENT},
+            {"SUCCESS", AuroraThemeSettings::get().SUCCESS},
+            {"WARNING", AuroraThemeSettings::get().WARNING},
+            {"ERROR", AuroraThemeSettings::get().ERROR},
+            {"INFO", AuroraThemeSettings::get().INFO},
+            {"TRANSPARENT", AuroraThemeSettings::get().TRANSPARENT},
+            {"WHITE", AuroraThemeSettings::get().WHITE},
+            {"BLACK", AuroraThemeSettings::get().BLACK}
+        };
+
+        float startY = 200.0f;
+        float startX = 50.0f;
+        float spacingY = 40.0f;
+
+        for (size_t i = 0; i < colors.size(); ++i) {
+            auto circle = std::make_shared<AuroraCircle>(componentInfo, 10.0f, colors[i].color);
+            circle->setPosition({startX, startY + i * spacingY});
+            renderSystemManager->addComponentToQueue(circle);
+
+            auto text = std::make_shared<AuroraText>(componentInfo, colors[i].name, 20.0f);
+            text->setPosition({startX + 30.0f, startY + i * spacingY - 10.0f});
+            renderSystemManager->addComponentToQueue(text);
+        }
+
+        // clock.enableCSVLogging();
         
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();
             
-            {
-                AURORA_PROFILE("Poll Events");
-                glfwPollEvents();
-            }
+            glfwPollEvents();
 
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
-                camera.setOrthographicProjection(0, width, height, 0, 0, 1);
+            camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
             VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-            {
-                AURORA_PROFILE("Begin Frame");
-                commandBuffer = auroraRenderer.beginFrame();
-            }
+            commandBuffer = auroraRenderer.beginFrame();
 
             if (commandBuffer) {
                 auroraRenderer.beginSwapChainRenderPass(commandBuffer);
 
-                {
-                AURORA_PROFILE("Render Components");
                 renderSystemManager->renderAllComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
-                }
 
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
 
-                {
-                    AURORA_PROFILE("End Frame");
-                    auroraRenderer.endFrame();
-                }
+                auroraRenderer.endFrame();
             } else {
                 spdlog::warn("Failed to begin frame, skipping rendering");
             }
 
             profiler.setFrameTime(clock.getFrameTimeMs());
-            
             profilerUI->update(clock.getFrameTimeMs() / 1000.0f);
             
             clock.endFrame();

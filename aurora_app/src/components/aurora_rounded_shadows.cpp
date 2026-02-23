@@ -11,8 +11,8 @@ namespace aurora {
     }
 
     void AuroraRoundedShadows::initialize() {
-        std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, -borderWidth, AuroraThemeSettings::SHADOW_TRANSPARENT);
-        std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, AuroraThemeSettings::SHADOW_MEDIUM);
+        std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, -borderWidth, AuroraThemeSettings::get().SHADOW_TRANSPARENT);
+        std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, AuroraThemeSettings::get().SHADOW_MEDIUM);
         std::vector<AuroraModel::Vertex> vertices;
 
         for (size_t i = 0; i < outerVertices.size(); ++i) {

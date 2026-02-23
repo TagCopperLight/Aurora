@@ -10,7 +10,7 @@ namespace aurora {
     }
 
     void AuroraUI::initialize() {
-        auto title1 = std::make_shared<AuroraText>(componentInfo, "[NETWORK STATUS]", 16.f, AuroraThemeSettings::TEXT_SECONDARY);
+        auto title1 = std::make_shared<AuroraText>(componentInfo, "[NETWORK STATUS]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
         title1->setPosition(50.f, 30.f);
         // addChild(title1);
 
@@ -26,7 +26,7 @@ namespace aurora {
         data_age->setPosition(50.f, 100.f);
         addChild(data_age);
 
-        auto data_age_data = std::make_shared<AuroraText>(componentInfo, "3s", 16.f, AuroraThemeSettings::SUCCESS);
+        auto data_age_data = std::make_shared<AuroraText>(componentInfo, "3s", 16.f, AuroraThemeSettings::get().SUCCESS);
         data_age_data->setPosition(400.f - data_age_data->getTextBounds().x, 100.f);
         addChild(data_age_data);
 
@@ -38,7 +38,7 @@ namespace aurora {
         update_rate_data->setPosition(400.f - update_rate_data->getTextBounds().x, 130.f);
         addChild(update_rate_data);
 
-        auto title2 = std::make_shared<AuroraText>(componentInfo, "[API STATUS]", 16.f, AuroraThemeSettings::TEXT_SECONDARY);
+        auto title2 = std::make_shared<AuroraText>(componentInfo, "[API STATUS]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
         title2->setPosition(50.f, 190.f);
         addChild(title2);
 
@@ -46,7 +46,7 @@ namespace aurora {
         fiveorg->setPosition(50.f, 230.f);
         addChild(fiveorg);
 
-        auto fiveorg_data = std::make_shared<AuroraText>(componentInfo, "[ OK ]", 16.f, AuroraThemeSettings::SUCCESS);
+        auto fiveorg_data = std::make_shared<AuroraText>(componentInfo, "[ OK ]", 16.f, AuroraThemeSettings::get().SUCCESS);
         fiveorg_data->setPosition(400.f - fiveorg_data->getTextBounds().x, 230.f);
         addChild(fiveorg_data);
 
@@ -54,13 +54,13 @@ namespace aurora {
         bartapi->setPosition(50.f, 260.f);
         addChild(bartapi);
 
-        auto bartapi_data = std::make_shared<AuroraText>(componentInfo, "[FAIL]", 16.f, AuroraThemeSettings::ERROR);
+        auto bartapi_data = std::make_shared<AuroraText>(componentInfo, "[FAIL]", 16.f, AuroraThemeSettings::get().ERROR);
         bartapi_data->setPosition(400.f - bartapi_data->getTextBounds().x, 260.f);
         addChild(bartapi_data);
     }
 
     void AuroraUI::addTitle(std::string title){
-        auto titleComponent = std::make_shared<AuroraText>(componentInfo, "[" + title + "]", 16.f, AuroraThemeSettings::TEXT_SECONDARY);
+        auto titleComponent = std::make_shared<AuroraText>(componentInfo, "[" + title + "]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
         titleComponent->setPosition(cursorPosition);
         addChild(titleComponent);
         cursorPosition.y += 40.f;

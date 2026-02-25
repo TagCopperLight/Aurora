@@ -1,16 +1,16 @@
-#include "aurora_ui/components/aurora_ui.hpp"
+#include "aurora_ui/components/aurora_panel.hpp"
 #include "aurora_ui/components/aurora_text.hpp"
 
 #include <spdlog/spdlog.h>
 #include <string>
 
 namespace aurora {
-    AuroraUI::AuroraUI(AuroraComponentInfo &componentInfo, float width)
+    AuroraPanel::AuroraPanel(AuroraComponentInfo &componentInfo, float width)
         : AuroraComponentInterface{componentInfo}, width{width} {
         initialize();
     }
 
-    void AuroraUI::initialize() {
+    void AuroraPanel::initialize() {
         auto title1 = std::make_shared<AuroraText>(componentInfo, "[NETWORK STATUS]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
         title1->setPosition(50.f, 30.f);
         addChild(title1);
@@ -85,7 +85,7 @@ namespace aurora {
         addChild(bartapi_bracket_left);
     }
 
-    void AuroraUI::addTitle(std::string title){
+    void AuroraPanel::addTitle(std::string title){
         auto titleComponent = std::make_shared<AuroraText>(componentInfo, "[" + title + "]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
         titleComponent->setPosition(cursorPosition);
         addChild(titleComponent);

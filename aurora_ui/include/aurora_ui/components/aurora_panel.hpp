@@ -4,9 +4,9 @@
 #include <string>
 
 namespace aurora {
-    class AuroraUI : public AuroraComponentInterface {
+    class AuroraPanel : public AuroraComponentInterface {
         public:
-            AuroraUI(AuroraComponentInfo &componentInfo, float width);
+            AuroraPanel(AuroraComponentInfo &componentInfo, float width);
 
             const std::string& getVertexShaderPath() const override {
                 static const std::string vertexPath = "shaders/shader.vert.spv";

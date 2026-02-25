@@ -1,5 +1,6 @@
 
-#include "aurora_ui/aurora_app.hpp"
+#include "aurora_ui/aurora_ui.hpp"
+#include "aurora_ui/components/aurora_panel.hpp"
 
 #include <cstdlib>
 #include <spdlog/spdlog.h>
@@ -10,16 +11,19 @@ int main(){
 
     FcInit();
 
-    spdlog::info("Starting Aurora Vulkan Application");
-    aurora::AuroraApp app{};
+    spdlog::info("Starting Aurora Debug Example");
+    aurora::AuroraUI ui{"Aurora Debug"};
 
     try {
-        app.run();
+        ui.run([](aurora::AuroraComponentInfo& info) {
+            auto panel = std::make_shared<aurora::AuroraPanel>(info, 400.f);
+            panel->addToRenderSystem();
+        });
     } catch (const std::exception &e) {
         spdlog::error("{}", e.what());
         return EXIT_FAILURE;
     }
 
-    spdlog::info("Aurora Vulkan Application exiting successfully");
+    spdlog::info("Aurora Debug Example exiting successfully");
     return EXIT_SUCCESS;
 }

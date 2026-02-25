@@ -1,5 +1,5 @@
 
-#include "aurora_app/aurora_app.hpp"
+#include "aurora_ui/aurora_app.hpp"
 
 #include <cstdlib>
 #include <spdlog/spdlog.h>

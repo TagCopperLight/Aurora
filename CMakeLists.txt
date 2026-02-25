@@ -33,11 +33,11 @@ endif()
 
 # Add subdirectories in dependency order
 add_subdirectory(aurora_engine)
-add_subdirectory(aurora_app)
+add_subdirectory(aurora_ui)
 add_subdirectory(debug_example)
 
 # Optional: Create an install target
-install(TARGETS aurora_engine aurora_app
+install(TARGETS aurora_engine aurora_ui
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin

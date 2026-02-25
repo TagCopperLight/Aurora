@@ -3,6 +3,7 @@ project(Aurora VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add profiling flag
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
@@ -34,10 +35,11 @@ endif()
 # Add subdirectories in dependency order
 add_subdirectory(aurora_engine)
 add_subdirectory(aurora_ui)
+add_subdirectory(aurora_debug)
 add_subdirectory(debug_example)
 
 # Optional: Create an install target
-install(TARGETS aurora_engine aurora_ui
+install(TARGETS aurora_engine aurora_ui aurora_debug
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin

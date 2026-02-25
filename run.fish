@@ -36,6 +36,7 @@ cd build
 print_status "Configuring CMake..."
 if cmake ..
     print_success "CMake configuration completed"
+    ln -sf build/compile_commands.json ../compile_commands.json
 else
     print_error "CMake configuration failed"
     exit 1

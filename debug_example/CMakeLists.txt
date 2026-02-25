@@ -16,6 +16,7 @@ find_package(ZLIB REQUIRED)
 # Link with aurora libraries
 target_link_libraries(debug_example PRIVATE
     aurora_ui
+    aurora_debug
     aurora_engine
     fontconfig
     Freetype::Freetype

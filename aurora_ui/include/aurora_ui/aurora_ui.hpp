@@ -5,7 +5,6 @@
 #include "aurora_engine/core/aurora_renderer.hpp"
 #include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 #include "aurora_ui/components/aurora_component_info.hpp"
-#include <functional>
 #include <memory>
 #include <string>
 
@@ -16,14 +15,17 @@ namespace aurora {
             static constexpr int HEIGHT = 1080;
 
             explicit AuroraUI(const std::string& title = "Aurora");
-            ~AuroraUI();
+            virtual ~AuroraUI();
 
             AuroraUI(const AuroraUI&) = delete;
             AuroraUI& operator=(const AuroraUI&) = delete;
 
-            // setup is called once before the main loop; use it to create and
-            // register your components via the provided AuroraComponentInfo.
-            void run(std::function<void(AuroraComponentInfo&)> setup = nullptr);
+            void run();
+
+        protected:
+            virtual void onSetup(AuroraComponentInfo&) {}
+
+            virtual void onUpdate(float) {}
 
         private:
             AuroraWindow auroraWindow;

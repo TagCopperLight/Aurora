@@ -50,4 +50,4 @@ namespace aurora::debug {
             std::function<void(AuroraDebugSession&, const DebugMessage&)> messageHandler;
     };
 
-} // namespace aurora::debug
+}

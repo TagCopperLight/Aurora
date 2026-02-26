@@ -1,12 +1,11 @@
 #include "aurora_debug/aurora_debug_server.hpp"
 
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <errno.h>
 
 namespace aurora::debug {
 
@@ -19,7 +18,7 @@ namespace aurora::debug {
     void AuroraDebugServer::start() {
         serverFd = socket(AF_INET, SOCK_STREAM, 0);
         if (serverFd < 0) {
-            spdlog::error("[aurora_debug] Failed to create server socket");
+            aurora::log::debug()->error("Failed to create server socket");
             return;
         }
 
@@ -37,7 +36,7 @@ namespace aurora::debug {
         addr.sin_port        = htons(port);
 
         if (bind(serverFd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-            spdlog::error("[aurora_debug] Failed to bind on port {}", port);
+            aurora::log::debug()->error("Failed to bind on port {}", port);
             close(serverFd);
             serverFd = -1;
             return;
@@ -45,7 +44,7 @@ namespace aurora::debug {
 
         listen(serverFd, 8);
         running = true;
-        spdlog::info("[aurora_debug] Server listening on port {}", port);
+        aurora::log::debug()->info("Server listening on port {}", port);
     }
 
     void AuroraDebugServer::stop() {
@@ -56,7 +55,7 @@ namespace aurora::debug {
             close(serverFd);
             serverFd = -1;
         }
-        spdlog::info("[aurora_debug] Server stopped");
+        aurora::log::debug()->info("Server stopped");
     }
 
     void AuroraDebugServer::poll() {

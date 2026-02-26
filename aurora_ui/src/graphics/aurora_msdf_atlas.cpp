@@ -1,7 +1,7 @@
 #include "aurora_ui/graphics/aurora_msdf_atlas.hpp"
 
 #include <stdexcept>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <cstring>
 
 namespace aurora {
@@ -24,7 +24,7 @@ namespace aurora {
 
         uploadAtlasToTexture();
 
-        spdlog::info("MSDF Atlas generated with dimensions: {}x{}", config.width, config.height);
+        log::ui()->info("MSDF Atlas generated with dimensions: {}x{}", config.width, config.height);
     }
 
     AuroraMSDFAtlas::~AuroraMSDFAtlas() {
@@ -38,7 +38,7 @@ namespace aurora {
         fontHandle = msdfgen::loadFont(freetypeHandle, fontPath.c_str());
 
         if (!fontHandle) {
-            spdlog::error("Failed to load font from path: {}", fontPath);
+            log::ui()->error("Failed to load font from path: {}", fontPath);
             return false;
         }
 
@@ -47,7 +47,7 @@ namespace aurora {
 
     bool AuroraMSDFAtlas::generateAtlas() {
         if (!fontHandle) {
-            spdlog::error("Font handle is null, cannot generate atlas");
+            log::ui()->error("Font handle is null, cannot generate atlas");
             return false;
         }
 
@@ -141,7 +141,7 @@ namespace aurora {
             glyphCache[character] = &glyph;
         }
         
-        spdlog::debug("Built glyph cache with {} entries", glyphCache.size());
+        log::ui()->debug("Built glyph cache with {} entries", glyphCache.size());
     }
 
     void AuroraMSDFAtlas::buildKerningCache() {
@@ -156,12 +156,12 @@ namespace aurora {
             kerningCache[key] = kerningPair.second;
         }
         
-        spdlog::debug("Built kerning cache with {} entries", kerningCache.size());
+        log::ui()->debug("Built kerning cache with {} entries", kerningCache.size());
     }
 
     void AuroraMSDFAtlas::uploadAtlasToTexture() {
         if (!atlasTexture || !atlasStorage) {
-            spdlog::error("Atlas texture or storage is null, cannot upload data");
+            log::ui()->error("Atlas texture or storage is null, cannot upload data");
             return;
         }
 
@@ -220,7 +220,7 @@ namespace aurora {
     
     void AuroraMSDFAtlas::saveAtlasAsPNG(const std::string& outputPath) const {
         if (!atlasTexture) {
-            spdlog::error("Atlas texture is not initialized, cannot save as PNG");
+            log::ui()->error("Atlas texture is not initialized, cannot save as PNG");
             return;
         }
 
@@ -233,9 +233,9 @@ namespace aurora {
         );
 
         if (success) {
-            spdlog::info("Successfully saved MSDF atlas as PNG to {}", outputPath);
+            log::ui()->info("Successfully saved MSDF atlas as PNG to {}", outputPath);
         } else {
-            spdlog::error("Failed to save MSDF atlas as PNG");
+            log::ui()->error("Failed to save MSDF atlas as PNG");
         }
     }
     

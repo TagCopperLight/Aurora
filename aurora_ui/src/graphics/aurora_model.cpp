@@ -1,9 +1,7 @@
 #include "aurora_ui/graphics/aurora_model.hpp"
 
 #include <cassert>
-#include <spdlog/spdlog.h>
-#include <cassert>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <cstring>
 
 namespace aurora {
@@ -45,24 +43,24 @@ namespace aurora {
         if (isDynamicModel) {
             vertexAllocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
             if (!vertexAllocation.isValid()) {
-                spdlog::error("Failed to allocate dynamic vertex buffer from pool!");
+                log::ui()->error("Failed to allocate dynamic vertex buffer from pool!");
                 return;
             }
             if (vertexAllocation.mappedMemory) {
                 memcpy(vertexAllocation.mappedMemory, vertices.data(), (size_t)bufferSize);
             } else {
-                 spdlog::error("Dynamic buffer allocation has no mapped memory!");
+                 log::ui()->error("Dynamic buffer allocation has no mapped memory!");
             }
         } else {
             vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize);
             if (!vertexAllocation.isValid()) {
-                spdlog::error("Failed to allocate vertex buffer from pool!");
+                log::ui()->error("Failed to allocate vertex buffer from pool!");
                 return;
             }
 
             auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
             if (!stagingAllocation.isValid()) {
-                spdlog::error("Failed to allocate staging buffer from pool!");
+                log::ui()->error("Failed to allocate staging buffer from pool!");
                 return; 
             }
 
@@ -95,24 +93,24 @@ namespace aurora {
         if (isDynamicModel) {
             indexAllocation = auroraDevice.getDynamicIndexBufferPool().allocate(bufferSize);
             if (!indexAllocation.isValid()) {
-                spdlog::error("Failed to allocate dynamic index buffer from pool!");
+                log::ui()->error("Failed to allocate dynamic index buffer from pool!");
                 return;
             }
              if (indexAllocation.mappedMemory) {
                 memcpy(indexAllocation.mappedMemory, indices.data(), (size_t)bufferSize);
             } else {
-                 spdlog::error("Dynamic index allocation has no mapped memory!");
+                 log::ui()->error("Dynamic index allocation has no mapped memory!");
             }
         } else {
             indexAllocation = auroraDevice.getIndexBufferPool().allocate(bufferSize);
             if (!indexAllocation.isValid()) {
-                spdlog::error("Failed to allocate index buffer from pool!");
+                log::ui()->error("Failed to allocate index buffer from pool!");
                 return;
             }
 
             auto stagingAllocation = auroraDevice.getStagingBufferPool().allocate(bufferSize);
             if (!stagingAllocation.isValid()) {
-                spdlog::error("Failed to allocate staging buffer from pool!");
+                log::ui()->error("Failed to allocate staging buffer from pool!");
                 return; 
             }
 
@@ -142,12 +140,12 @@ namespace aurora {
 
     void AuroraModel::updateVertexData(const void* data, VkDeviceSize size, VkDeviceSize offset) {
         if (!isDynamicModel) {
-            spdlog::error("Cannot update static vertex buffer directly!");
+            log::ui()->error("Cannot update static vertex buffer directly!");
             return;
         }
         
         if (offset + size > vertexAllocation.size) {
-            spdlog::error("Update size out of bounds for vertex buffer!");
+            log::ui()->error("Update size out of bounds for vertex buffer!");
             return;
         }
 
@@ -158,12 +156,12 @@ namespace aurora {
 
     void AuroraModel::updateIndexData(const void* data, VkDeviceSize size, VkDeviceSize offset) {
         if (!isDynamicModel) {
-            spdlog::error("Cannot update static index buffer directly!");
+            log::ui()->error("Cannot update static index buffer directly!");
             return;
         }
 
         if (offset + size > indexAllocation.size) {
-             spdlog::error("Update size out of bounds for index buffer!");
+             log::ui()->error("Update size out of bounds for index buffer!");
              return;
         }
 
@@ -174,7 +172,7 @@ namespace aurora {
 
     void AuroraModel::resizeVertexBuffer(VkDeviceSize newSize) {
         if (!isDynamicModel) {
-            spdlog::error("Cannot resize static vertex buffer!");
+            log::ui()->error("Cannot resize static vertex buffer!");
             return;
         }
 
@@ -184,7 +182,7 @@ namespace aurora {
 
         auto newAlloc = auroraDevice.getDynamicVertexBufferPool().allocate(newSize);
         if (!newAlloc.isValid()) {
-             spdlog::error("Failed to resize dynamic vertex buffer!");
+             log::ui()->error("Failed to resize dynamic vertex buffer!");
              return;
         }
 

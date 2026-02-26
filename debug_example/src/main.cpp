@@ -1,29 +1,44 @@
-
 #include "aurora_ui/aurora_ui.hpp"
 #include "aurora_ui/components/aurora_panel.hpp"
 
 #include <cstdlib>
-#include <spdlog/spdlog.h>
+#include <memory>
+#include "aurora_engine/utils/log.hpp"
 #include <fontconfig/fontconfig.h>
 
-int main(){
-    spdlog::set_level(spdlog::level::debug);
+class DebugApp : public aurora::AuroraUI {
+    public:
+        DebugApp() : AuroraUI{"Aurora Debug"} {}
+
+    protected:
+        void onSetup(aurora::AuroraComponentInfo& info) override {
+            panel = std::make_shared<aurora::AuroraPanel>(info, 400.f);
+            panel->addToRenderSystem();
+        }
+
+        void onUpdate(float dt) override {
+            (void)dt;
+        }
+
+    private:
+        std::shared_ptr<aurora::AuroraPanel> panel;
+};
+
+int main() {
+    aurora::log::init(spdlog::level::debug);
 
     FcInit();
 
-    spdlog::info("Starting Aurora Debug Example");
-    aurora::AuroraUI ui{"Aurora Debug"};
+    aurora::log::engine()->info("Starting Aurora Debug Example");
+    DebugApp app{};
 
     try {
-        ui.run([](aurora::AuroraComponentInfo& info) {
-            auto panel = std::make_shared<aurora::AuroraPanel>(info, 400.f);
-            panel->addToRenderSystem();
-        });
-    } catch (const std::exception &e) {
-        spdlog::error("{}", e.what());
+        app.run();
+    } catch (const std::exception& e) {
+        aurora::log::engine()->error("{}", e.what());
         return EXIT_FAILURE;
     }
 
-    spdlog::info("Aurora Debug Example exiting successfully");
+    aurora::log::engine()->info("Aurora Debug Example exiting successfully");
     return EXIT_SUCCESS;
 }

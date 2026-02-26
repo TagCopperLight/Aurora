@@ -7,7 +7,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/constants.hpp>
 
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 #include <memory>
 #include <sstream>
@@ -33,7 +33,7 @@ namespace aurora {
         maxLines = std::max(1, maxLines);
         maxCharsPerLine = std::max(10, maxCharsPerLine);
         
-        spdlog::debug("Terminal dimensions: {}x{}, maxLines: {}, maxCharsPerLine: {}", size.x, size.y, maxLines, maxCharsPerLine);
+        log::ui()->debug("Terminal dimensions: {}x{}, maxLines: {}, maxCharsPerLine: {}", size.x, size.y, maxLines, maxCharsPerLine);
     }
 
     void AuroraTerminal::initialize() {

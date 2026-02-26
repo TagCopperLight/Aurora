@@ -2,7 +2,7 @@
 #include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <set>
 
 namespace aurora {
@@ -102,7 +102,7 @@ namespace aurora {
             if (!msdfAtlas.getGlyphInfo(character, glyphInfo)) {
                 static std::set<char> missingChars;
                 if (missingChars.find(character) == missingChars.end()) {
-                    spdlog::warn("Glyph not found for character: '{}'", character);
+                    log::ui()->warn("Glyph not found for character: '{}'", character);
                     missingChars.insert(character);
                 }
                 continue;

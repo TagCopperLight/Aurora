@@ -4,7 +4,7 @@
 #include <cstring>
 #include <set>
 #include <unordered_set>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 namespace aurora {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -17,7 +17,7 @@ namespace aurora {
         (void)messageType;
         (void)pUserData;
 
-        spdlog::error("validation layer: {}", pCallbackData->pMessage);
+        log::engine()->error("validation layer: {}", pCallbackData->pMessage);
         return VK_FALSE;
     }
 
@@ -150,7 +150,7 @@ namespace aurora {
         if (deviceCount == 0) {
             throw std::runtime_error("failed to find GPUs with Vulkan support!");
         }
-        spdlog::info("Found {} Vulkan devices", deviceCount);
+        log::engine()->info("Found {} Vulkan devices", deviceCount);
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
@@ -174,8 +174,8 @@ namespace aurora {
         else if (counts & VK_SAMPLE_COUNT_2_BIT) { msaaSamples = VK_SAMPLE_COUNT_2_BIT; }
         else { msaaSamples = VK_SAMPLE_COUNT_1_BIT; }
 
-        spdlog::info("Selected physical device: {}", properties.deviceName);
-        spdlog::info("Max MSAA samples: {}", static_cast<int>(msaaSamples));
+        log::engine()->info("Selected physical device: {}", properties.deviceName);
+        log::engine()->info("Max MSAA samples: {}", static_cast<int>(msaaSamples));
     }
 
     void AuroraDevice::createLogicalDevice() {

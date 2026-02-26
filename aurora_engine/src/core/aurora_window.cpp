@@ -1,7 +1,7 @@
 #include "aurora_engine/core/aurora_window.hpp"
 
 #include <stdexcept>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 namespace aurora {
     AuroraWindow::AuroraWindow(int w, int h, std::string name) : width{w}, height{h}, windowName{name} {
@@ -24,7 +24,7 @@ namespace aurora {
         width = mode->width;
         height = mode->height;
 
-        spdlog::info("Creating window: {} with size {}x{}", windowName, width, height);
+        log::engine()->info("Creating window: {} with size {}x{}", windowName, width, height);
 
         window = glfwCreateWindow(width, height, windowName.c_str(), monitor, nullptr);
         glfwSetWindowUserPointer(window, this);

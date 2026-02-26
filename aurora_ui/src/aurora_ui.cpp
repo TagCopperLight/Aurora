@@ -7,21 +7,21 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 namespace aurora {
     AuroraUI::AuroraUI(const std::string& title)
         : auroraWindow{WIDTH, HEIGHT, title},
           auroraDevice{auroraWindow},
           auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::get().BACKGROUND} {
-        spdlog::info("Initializing Aurora UI");
+        log::ui()->info("Initializing Aurora UI");
         renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
-        spdlog::info("Aurora UI ready");
+        log::ui()->info("Aurora UI ready");
     }
 
     AuroraUI::~AuroraUI() {}
 
-    void AuroraUI::run(std::function<void(AuroraComponentInfo&)> setup) {
+    void AuroraUI::run() {
         AuroraCamera camera;
         AuroraClock clock(60, true);
 
@@ -30,9 +30,7 @@ namespace aurora {
         auto& profiler = AuroraProfiler::instance();
         profiler.setEnabled(true);
 
-        if (setup) {
-            setup(componentInfo);
-        }
+        onSetup(componentInfo);
 
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();
@@ -44,6 +42,8 @@ namespace aurora {
 
             camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
+            onUpdate(static_cast<float>(clock.getFrameTimeMs()) / 1000.f);
+
             VkCommandBuffer commandBuffer = auroraRenderer.beginFrame();
 
             if (commandBuffer) {
@@ -52,7 +52,7 @@ namespace aurora {
                 auroraRenderer.endSwapChainRenderPass(commandBuffer);
                 auroraRenderer.endFrame();
             } else {
-                spdlog::warn("Failed to begin frame, skipping rendering");
+                log::ui()->warn("Failed to begin frame, skipping rendering");
             }
 
             profiler.setFrameTime(clock.getFrameTimeMs());

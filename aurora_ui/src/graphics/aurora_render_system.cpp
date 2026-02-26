@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 #include <array>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <cassert>
 
 namespace aurora {
@@ -149,7 +149,7 @@ namespace aurora {
              auto allocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
              
              if (!allocation.isValid()) {
-                 spdlog::error("Failed to allocate instance buffer from pool!");
+                 log::ui()->error("Failed to allocate instance buffer from pool!");
                  continue;
              }
              

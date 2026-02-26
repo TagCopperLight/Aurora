@@ -1,5 +1,5 @@
 #include "aurora_engine/core/aurora_buffer_pool.hpp"
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 namespace aurora {
 
@@ -59,7 +59,7 @@ namespace aurora {
             return alloc;
         }
 
-        spdlog::error("Failed to allocate buffer of size {} even after creating new page. Page size: {}", size, pageSize);
+        log::engine()->error("Failed to allocate buffer of size {} even after creating new page. Page size: {}", size, pageSize);
         return {}; 
     }
 
@@ -92,7 +92,7 @@ namespace aurora {
         page->freeMap.insert({0, pageSize});
         
         pages.push_back(std::move(page));
-        spdlog::debug("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
+        log::engine()->debug("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
     }
 
     bool AuroraBufferPool::Page::allocate(VkDeviceSize size, VkDeviceSize alignment, VkDeviceSize& outOffset) {

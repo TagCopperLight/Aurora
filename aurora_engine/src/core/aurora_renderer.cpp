@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 #include <array>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <cassert>
 
 namespace aurora {
@@ -40,7 +40,7 @@ namespace aurora {
     }
 
     void AuroraRenderer::createCommandBuffers() {
-        spdlog::debug("Creating command buffers");
+        log::engine()->debug("Creating command buffers");
         commandBuffers.resize(AuroraSwapChain::MAX_FRAMES_IN_FLIGHT);
 
         VkCommandBufferAllocateInfo allocInfo{};
@@ -52,14 +52,14 @@ namespace aurora {
         if (vkAllocateCommandBuffers(auroraDevice.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to allocate command buffers");
         }
-        spdlog::debug("Created {} command buffers", commandBuffers.size());
+        log::engine()->debug("Created {} command buffers", commandBuffers.size());
     }
 
     void AuroraRenderer::freeCommandBuffers() {
-        spdlog::debug("Freeing command buffers");
+        log::engine()->debug("Freeing command buffers");
         vkFreeCommandBuffers(auroraDevice.device(), auroraDevice.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
         commandBuffers.clear();
-        spdlog::debug("Command buffers freed successfully");
+        log::engine()->debug("Command buffers freed successfully");
     }
     VkCommandBuffer AuroraRenderer::beginFrame(){
         assert(!isFrameStarted && "Frame already in progress");
@@ -67,7 +67,7 @@ namespace aurora {
         auto result = auroraSwapChain->acquireNextImage(&currentImageIndex);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            spdlog::debug("Swap chain out of date, recreating");
+            log::engine()->debug("Swap chain out of date, recreating");
             recreateSwapChain();
             return nullptr;
         }
@@ -100,7 +100,7 @@ namespace aurora {
         auto result = auroraSwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || auroraWindow.wasWindowResized()) {
-            spdlog::debug("Swap chain out of date or window resized, recreating swap chain");
+            log::engine()->debug("Swap chain out of date or window resized, recreating swap chain");
             auroraWindow.resetWindowResizedFlag();
             recreateSwapChain();
         } else if (result != VK_SUCCESS) {

@@ -17,4 +17,4 @@ namespace aurora::debug {
         std::string payload; // newline-delimited JSON string
     };
 
-} // namespace aurora::debug
+}

@@ -1,6 +1,6 @@
 #include "aurora_ui/utils/aurora_clock.hpp"
 #include "aurora_engine/profiling/aurora_profiler.hpp"
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <thread>
 #include <iomanip>
 
@@ -14,13 +14,13 @@ namespace aurora {
           fps_(0.0),
           timestampMs_(0.0),
           csvLoggingEnabled_(false) {
-        spdlog::info("AuroraClock initialized with target frame rate: {} FPS", targetFrameRate);
+        log::ui()->info("AuroraClock initialized with target frame rate: {} FPS", targetFrameRate);
     }
 
     AuroraClock::~AuroraClock() {
         if (csvLoggingEnabled_ && csvFile_.is_open()) {
             csvFile_.close();
-            spdlog::info("Frame time data saved to CSV file");
+            log::ui()->info("Frame time data saved to CSV file");
         }
     }
 
@@ -52,7 +52,7 @@ namespace aurora {
 
     void AuroraClock::setFrameRateLimit(bool enable) {
         enableFrameRateLimit_ = enable;
-        spdlog::info("Frame rate limit {}", enable ? "enabled" : "disabled");
+        log::ui()->info("Frame rate limit {}", enable ? "enabled" : "disabled");
     }
 
     double AuroraClock::getFrameTimeMs() const {
@@ -77,9 +77,9 @@ namespace aurora {
             csvFile_ << "timestamp_ms,frame_time_ms,fps,render_components_ms,poll_events_ms,begin_frame_ms,end_frame_ms,profiler_ui_ms\n";
             csvFile_ << std::fixed << std::setprecision(3);
             csvLoggingEnabled_ = true;
-            spdlog::info("CSV logging enabled, writing to: {}", filename);
+            log::ui()->info("CSV logging enabled, writing to: {}", filename);
         } else {
-            spdlog::error("Failed to open CSV file for writing: {}", filename);
+            log::ui()->error("Failed to open CSV file for writing: {}", filename);
             csvLoggingEnabled_ = false;
         }
     }
@@ -87,7 +87,7 @@ namespace aurora {
     void AuroraClock::disableCSVLogging() {
         if (csvLoggingEnabled_ && csvFile_.is_open()) {
             csvFile_.close();
-            spdlog::info("CSV logging disabled");
+            log::ui()->info("CSV logging disabled");
         }
         csvLoggingEnabled_ = false;
     }

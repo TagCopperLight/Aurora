@@ -5,7 +5,7 @@
 #include <cstring>
 #include <limits>
 #include <stdexcept>
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <vulkan/vulkan_core.h>
 
 namespace aurora {
@@ -447,12 +447,12 @@ namespace aurora {
     VkPresentModeKHR AuroraSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                spdlog::info("Present mode: Mailbox");
+                log::engine()->debug("Present mode: Mailbox");
                 return availablePresentMode;
             }
         }
 
-        spdlog::info("Present mode: V-Sync");
+        log::engine()->info("Present mode: V-Sync");
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 

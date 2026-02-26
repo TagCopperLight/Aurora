@@ -1,7 +1,7 @@
 #include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 #include "aurora_ui/components/aurora_component_interface.hpp"
 #include "aurora_ui/utils/aurora_theme_settings.hpp"
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 
 #include <memory>
 
@@ -14,7 +14,7 @@ namespace aurora {
             .build();
 
         msdfAtlas = std::make_unique<AuroraMSDFAtlas>(auroraDevice, AuroraThemeSettings::FONT_PATH);
-        spdlog::info("RenderSystemManager initialized");
+        log::ui()->info("RenderSystemManager initialized");
     }
 
     void AuroraRenderSystemManager::addComponentToRenderSystems(std::shared_ptr<AuroraComponentInterface> component) {
@@ -57,7 +57,7 @@ namespace aurora {
 
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
         if (!componentQueue.empty()) {
-            spdlog::debug("Processing component queue with {} components", componentQueue.size());
+            log::ui()->debug("Processing component queue with {} components", componentQueue.size());
             for (const auto& component : componentQueue) {
                 addComponentToRenderSystems(component);
             }
@@ -65,7 +65,7 @@ namespace aurora {
 
             float depth = MAX_DEPTH;
             recalculateAllDepths(components, depth, DEPTH_INCREMENT);
-            spdlog::debug("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
+            log::ui()->debug("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
         }
 
         std::vector<AuroraRenderSystem*> opaqueSystems;

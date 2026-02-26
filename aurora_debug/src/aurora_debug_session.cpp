@@ -1,6 +1,6 @@
 #include "aurora_debug/aurora_debug_session.hpp"
 
-#include <spdlog/spdlog.h>
+#include "aurora_engine/utils/log.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -17,7 +17,7 @@ namespace aurora::debug {
         // Set socket to non-blocking so poll() never stalls the render loop.
         int flags = fcntl(fd, F_GETFL, 0);
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-        spdlog::info("[aurora_debug] Client connected: {}", address);
+        aurora::log::debug()->info("Client connected: {}", address);
     }
 
     AuroraDebugSession::~AuroraDebugSession() {
@@ -46,7 +46,7 @@ namespace aurora::debug {
 
         if (n == 0 || (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)) {
             connected = false;
-            spdlog::info("[aurora_debug] Client disconnected: {}", address);
+            aurora::log::debug()->info("Client disconnected: {}", address);
             return false;
         }
 

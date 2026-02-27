@@ -1,8 +1,7 @@
 #include "aurora_ui/aurora_ui.hpp"
 #include "aurora_ui/components/aurora_panel.hpp"
+#include "aurora_ui/utils/aurora_theme_settings.hpp"
 
-#include <cstdlib>
-#include <memory>
 #include "aurora_engine/utils/log.hpp"
 #include <fontconfig/fontconfig.h>
 
@@ -12,16 +11,24 @@ class DebugApp : public aurora::AuroraUI {
 
     protected:
         void onSetup(aurora::AuroraComponentInfo& info) override {
-            panel = std::make_shared<aurora::AuroraPanel>(info, 400.f, 9000);
+            panel = std::make_shared<aurora::AuroraPanel>(info, 400.f);
+
+            auto& network_section = panel->addSection("NETWORK STATUS");
+            network_section.addEntry("PORT", "9000");
+            network_status = network_section.addEntry("STATUS", "DISCONNECTED", true, aurora::AuroraThemeSettings::get().ERROR);
+
             panel->addToRenderSystem();
         }
 
         void onUpdate(float dt) override {
             (void)dt;
+            network_status.setValue("CONNECTED", aurora::AuroraThemeSettings::get().SUCCESS);
         }
 
     private:
         std::shared_ptr<aurora::AuroraPanel> panel;
+
+        aurora::AuroraEntryHandle network_status;
 };
 
 int main() {

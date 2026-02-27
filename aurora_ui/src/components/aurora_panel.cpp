@@ -1,56 +1,77 @@
 #include "aurora_ui/components/aurora_panel.hpp"
-#include "aurora_ui/components/aurora_text.hpp"
-#include <vector>
+#include "aurora_ui/utils/aurora_theme_settings.hpp"
 
 namespace aurora {
-    AuroraPanel::AuroraPanel(AuroraComponentInfo &componentInfo, float max_width, uint16_t port)
-        : AuroraComponentInterface{componentInfo}, max_width{max_width}, port{port} {
-        initialize();
+
+    AuroraEntryHandle::AuroraEntryHandle(std::weak_ptr<AuroraText> ref, bool enclosed, const glm::vec4& color, float max_width, float y)
+        : ref{ref}, enclosed{enclosed}, color{color}, max_width{max_width}, y{y} {}
+
+    void AuroraEntryHandle::setValue(const std::string& value) {
+        setValue(value, color);
     }
 
-    void AuroraPanel::initialize() {
-        auto network_section = std::make_shared<AuroraPanelSection>(componentInfo, "NETWORK STATUS", max_width, 50.f, 30.f);
-        network_section->addEntry(AuroraPanelEntry("PORT", std::to_string(port), false));
-        network_section->addEntry(AuroraPanelEntry("STATUS", "CONNECTED", true, AuroraThemeSettings::get().SUCCESS));
-        
-        for (auto& component : network_section->getComponents()) {
-            addChild(component);
+    void AuroraEntryHandle::setValue(const std::string& value, const glm::vec4& newColor) {
+        color = newColor;
+        if (auto text = ref.lock()) {
+            if (enclosed) {
+                text->setSegments({
+                    {"[", AuroraThemeSettings::get().TEXT_PRIMARY},
+                    {value, color},
+                    {"]", AuroraThemeSettings::get().TEXT_PRIMARY},
+                });
+            } else {
+                text->setSegments({{value, color}});
+            }
+            text->setPosition(max_width - text->getTextBounds().x, y);
         }
     }
 
-    void AuroraPanelSection::addEntry(const AuroraPanelEntry& entry) {
-        entries.emplace_back(entry);
+    AuroraPanelSection::AuroraPanelSection(AuroraComponentInfo& info, float max_width, float x, float& cursor_y, AddChildFn addChild)
+        : info{info}, max_width{max_width}, x{x}, cursor_y{cursor_y}, add_child{std::move(addChild)} {}
+
+    AuroraEntryHandle AuroraPanelSection::addEntry(const std::string& name, const std::string& value) {
+        return addEntry(name, value, false, AuroraThemeSettings::get().TEXT_PRIMARY);
     }
 
-    std::vector<std::shared_ptr<AuroraComponentInterface>> AuroraPanelSection::getComponents() {
-        std::vector<std::shared_ptr<AuroraComponentInterface>> components;
+    AuroraEntryHandle AuroraPanelSection::addEntry(const std::string& name, const std::string& value, bool enclosed, const glm::vec4& color) {
+        auto name_component = std::make_shared<AuroraText>(info, name, 16.f);
+        name_component->setPosition(x, cursor_y);
+        add_child(name_component);
+
+        std::shared_ptr<AuroraText> value_component;
+        if (enclosed) {
+            value_component = std::make_shared<AuroraText>(info, std::vector<TextSegment>{
+                {"[", AuroraThemeSettings::get().TEXT_PRIMARY},
+                {value, color},
+                {"]", AuroraThemeSettings::get().TEXT_PRIMARY},
+            }, 16.f);
+        } else {
+            value_component = std::make_shared<AuroraText>(info, value, 16.f, color);
+        }
+        value_component->setPosition(max_width - value_component->getTextBounds().x, cursor_y);
+        add_child(value_component);
+
+        cursor_y += 30.f;
+        return AuroraEntryHandle{value_component, enclosed, color, max_width, cursor_y - 30.f};
+    }
+
+    AuroraPanel::AuroraPanel(AuroraComponentInfo& info, float width)
+        : AuroraComponentInterface{info}, width{width} {}
+
+    AuroraPanelSection& AuroraPanel::addSection(const std::string& title) {
+        if (!sections.empty()) {
+            cursor_y += 20.f;
+        }
 
         auto title_component = std::make_shared<AuroraText>(componentInfo, "[" + title + "]", 16.f, AuroraThemeSettings::get().TEXT_SECONDARY);
-        title_component->setPosition(x, y + y_offset);
-        components.emplace_back(title_component);
+        title_component->setPosition(50.f, cursor_y);
+        addChild(title_component);
+        cursor_y += 40.f;
 
-        y_offset += 40.f;
-
-        for (const auto& entry : entries) {
-            auto entry_component = std::make_shared<AuroraText>(componentInfo, entry.getName(), 16.f);
-            entry_component->setPosition(x, y + y_offset);
-            components.emplace_back(entry_component);
-
-            std::shared_ptr<AuroraText> entry_component_data;
-            if (entry.isEnclosed()) {
-                entry_component_data = std::make_shared<AuroraText>(componentInfo, std::vector<TextSegment>{
-                    {"[", AuroraThemeSettings::get().TEXT_PRIMARY},
-                    {entry.getValue(), entry.getColor()},
-                    {"]", AuroraThemeSettings::get().TEXT_PRIMARY},
-                }, 16.f);
-            } else {
-                entry_component_data = std::make_shared<AuroraText>(componentInfo, entry.getValue(), 16.f, entry.getColor());
-            }
-            entry_component_data->setPosition(max_width - entry_component_data->getTextBounds().x, y + y_offset);
-            components.emplace_back(entry_component_data);
-
-            y_offset += 30.f;
-        }
-        return components;
+        sections.push_back(std::unique_ptr<AuroraPanelSection>(new AuroraPanelSection(
+            componentInfo, width, 50.f, cursor_y,
+            [this](std::shared_ptr<AuroraComponentInterface> child) { addChild(child); }
+        )));
+        return *sections.back();
     }
 }

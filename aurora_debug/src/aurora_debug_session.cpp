@@ -46,7 +46,6 @@ namespace aurora::debug {
 
         if (n == 0 || (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)) {
             connected = false;
-            aurora::log::debug()->info("Client disconnected: {}", address);
             return false;
         }
 

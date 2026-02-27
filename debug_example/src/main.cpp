@@ -12,7 +12,7 @@ class DebugApp : public aurora::AuroraUI {
 
     protected:
         void onSetup(aurora::AuroraComponentInfo& info) override {
-            panel = std::make_shared<aurora::AuroraPanel>(info, 400.f);
+            panel = std::make_shared<aurora::AuroraPanel>(info, 400.f, 9000);
             panel->addToRenderSystem();
         }
 

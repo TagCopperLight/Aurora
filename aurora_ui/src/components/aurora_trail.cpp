@@ -5,18 +5,19 @@
 
 namespace aurora {
     namespace {
-        // Newest dot strength (blend towards the trail color) and the size of the oldest dot relative to the newest
+        // Newest segment strength (blend towards the trail color) and the thickness of the oldest segment relative to the newest
         constexpr float MAX_STRENGTH = 0.6f;
         constexpr float MIN_SIZE = 0.4f;
     }
 
-    AuroraTrail::AuroraTrail(AuroraComponentInfo& componentInfo, size_t length, float radius, glm::vec4 color)
-        : AuroraComponentInterface{componentInfo}, points(length), radius{radius}, trailColor{color} {
-        for (size_t i = 0; i < length; ++i) {
-            auto dot = std::make_shared<AuroraCircle>(componentInfo, 1.f, color);
-            dot->setHidden(true);
-            dots.push_back(dot);
-            addChild(dot);
+    AuroraTrail::AuroraTrail(AuroraComponentInfo& componentInfo, size_t length, float thickness, glm::vec4 color)
+        : AuroraComponentInterface{componentInfo}, points(length), thickness{thickness}, trailColor{color} {
+        // One segment joins each pair of consecutive points
+        for (size_t i = 1; i < length; ++i) {
+            auto segment = std::make_shared<AuroraSegment>(componentInfo, color);
+            segment->setHidden(true);
+            segments.push_back(segment);
+            addChild(segment);
         }
     }
 
@@ -43,22 +44,23 @@ namespace aurora {
         const auto& background = AuroraThemeSettings::get().BACKGROUND;
         size_t length = points.size();
 
-        for (size_t age = 0; age < length; ++age) {
-            auto& dot = dots[age];
-            if (age >= size) {
-                dot->setHidden(true);
+        // Segment `age` joins the point of that age to the next older one
+        for (size_t age = 0; age < segments.size(); ++age) {
+            auto& segment = segments[age];
+            if (age + 1 >= size) {
+                segment->setHidden(true);
                 continue;
             }
 
-            size_t index = (head + length - 1 - age) % length;
+            size_t newer = (head + length - 1 - age) % length;
+            size_t older = (head + length - 2 - age) % length;
             float fade = 1.f - static_cast<float>(age) / static_cast<float>(length);
-            float dotRadius = radius * (MIN_SIZE + (1.f - MIN_SIZE) * fade);
+            float segmentThickness = thickness * (MIN_SIZE + (1.f - MIN_SIZE) * fade);
 
-            dot->color = glm::mix(background, trailColor, MAX_STRENGTH * fade);
-            dot->color.a = 1.f;
-            dot->setPosition(points[index]);
-            dot->setScale(dotRadius, dotRadius);
-            dot->setHidden(false);
+            segment->color = glm::mix(background, trailColor, MAX_STRENGTH * fade);
+            segment->color.a = 1.f;
+            segment->setEndpoints(points[newer], points[older], segmentThickness);
+            segment->setHidden(false);
         }
     }
 }

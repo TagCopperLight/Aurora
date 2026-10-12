@@ -13,10 +13,8 @@ namespace aurora {
             explicit AuroraPerformanceMonitor(AuroraPanelSection& section, double windowSeconds = 0.5);
 
             // Call once per frame from AuroraUI::onFrameEnd(). Returns true when the window ended and
-            // the displayed values were refreshed; getLastWindowSeconds() then gives its exact duration.
+            // the displayed values were refreshed.
             bool update();
-
-            double getLastWindowSeconds() const { return lastWindowSeconds; }
 
             // Time the CPU spent on the last frame: every phase of the frame except waiting on the GPU
             static double getCpuWorkTime();
@@ -38,7 +36,6 @@ namespace aurora {
             AuroraEntryHandle drawCalls;
 
             double windowSeconds;
-            double lastWindowSeconds = 0.0;
             Window window;
     };
 }

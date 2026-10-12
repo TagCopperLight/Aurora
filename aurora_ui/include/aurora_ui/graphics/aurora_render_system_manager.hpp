@@ -39,7 +39,12 @@ namespace aurora {
                 components.push_back(component);
             }
 
+            // Stops drawing the component and its children. They are kept alive until the frames
+            // in flight that may still use their GPU resources are done.
             void removeComponent(std::shared_ptr<AuroraComponentInterface> component);
+
+            // Re-sorts components by layer before the next frame
+            void markDrawOrderDirty() { drawOrderDirty = true; }
 
             // Returns a model shared by every component asking for the same key, so identical
             // geometry is drawn with a single instanced draw call. The vertices must therefore not
@@ -64,6 +69,14 @@ namespace aurora {
 
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             std::vector<std::shared_ptr<AuroraComponentInterface>> componentQueue;
+            bool drawOrderDirty = false;
+
+            struct RetiredComponent {
+                uint64_t frame;
+                std::shared_ptr<AuroraComponentInterface> component;
+            };
+            std::vector<RetiredComponent> retiredComponents;
+            uint64_t frameCount = 0;
 
             std::unordered_map<std::string, std::weak_ptr<AuroraModel>> sharedModels;
             size_t sharedModelsPruneSize = 64;

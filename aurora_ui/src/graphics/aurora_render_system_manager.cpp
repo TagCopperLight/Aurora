@@ -32,16 +32,16 @@ namespace aurora {
     }
 
     void AuroraRenderSystemManager::removeComponent(std::shared_ptr<AuroraComponentInterface> component) {
-        auto it = std::find(components.begin(), components.end(), component);
-        if (it != components.end()) {
-            components.erase(it);
-        }
-        auto itQueue = std::find(componentQueue.begin(), componentQueue.end(), component);
-        if (itQueue != componentQueue.end()) {
-            componentQueue.erase(itQueue);
-        }
+        components.erase(std::remove(components.begin(), components.end(), component), components.end());
+        componentQueue.erase(std::remove(componentQueue.begin(), componentQueue.end(), component), componentQueue.end());
         for (auto& sys : renderSystems) {
             sys->removeComponent(component);
+        }
+        component->setRendering(false);
+        retiredComponents.push_back({frameCount, component});
+
+        for (auto& child : component->getChildren()) {
+            removeComponent(child);
         }
     }
 
@@ -58,12 +58,19 @@ namespace aurora {
     }
 
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
-        if (!componentQueue.empty()) {
+        frameCount++;
+        // Freeing a model returns its buffer range to the pool, so it must wait until no frame in flight reads it
+        retiredComponents.erase(std::remove_if(retiredComponents.begin(), retiredComponents.end(), [this](const RetiredComponent& retired) {
+            return frameCount - retired.frame > AuroraSwapChain::MAX_FRAMES_IN_FLIGHT;
+        }), retiredComponents.end());
+
+        if (!componentQueue.empty() || drawOrderDirty) {
             log::ui()->debug("Processing component queue with {} components", componentQueue.size());
             for (const auto& component : componentQueue) {
                 addComponentToRenderSystems(component);
             }
             componentQueue.clear();
+            drawOrderDirty = false;
 
             std::stable_sort(components.begin(), components.end(), [](const auto& a, const auto& b) {
                 return a->getLayer() < b->getLayer();

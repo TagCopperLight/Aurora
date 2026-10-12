@@ -43,7 +43,6 @@ namespace aurora {
         gpuFrame.setValue(AuroraUtils::format("%.3f ms", window.gpuFrame / frames));
         drawCalls.setValue(std::to_string(profiler.getCounter("Draw Calls")));
 
-        lastWindowSeconds = elapsed;
         window = Window{};
         window.start = now;
         return true;

@@ -29,8 +29,10 @@ namespace aurora::debug {
 
             bool isRunning() const;
             uint16_t getPort() const;
+            size_t getClientCount() const;
 
-            // Callbacks — set before calling start().
+            // Callbacks — set before calling start(). getClientCount() already includes a new
+            // client in onConnect and excludes a departed one in onDisconnect.
             void onConnect(std::function<void(AuroraDebugSession&)> handler);
             void onDisconnect(std::function<void(const std::string& address)> handler);
             void onMessage(std::function<void(AuroraDebugSession&, const DebugMessage&)> handler);

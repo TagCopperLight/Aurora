@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <cstddef>
 
 namespace aurora {
     class AuroraThemeSettings {
@@ -54,6 +55,9 @@ namespace aurora {
         };
 
         static const Colors& get();
+
+        // Distinct colors for telling items apart (chart series, scene objects...), cycling past the end
+        static const glm::vec4& categorical(std::size_t index);
 
         static constexpr const char* FONT_PATH = "assets/Monaco.otf";
 

@@ -141,11 +141,11 @@ class BenchApp : public aurora::AuroraUI {
         }
 
     protected:
-        void onSetup(aurora::AuroraComponentInfo& info) override {
+        void onSetup() override {
             if (options.scene == "panel") {
-                buildPanelScene(info);
+                buildPanelScene();
             } else {
-                buildGridScene(info);
+                buildGridScene();
             }
         }
 
@@ -203,46 +203,36 @@ class BenchApp : public aurora::AuroraUI {
         }
 
     private:
-        template <typename T>
-        void track(const std::shared_ptr<T>& component) {
-            component->addToRenderSystem();
-            roots.push_back(component);
-        }
-
-        void buildGridScene(aurora::AuroraComponentInfo& info) {
+        void buildGridScene() {
             const auto& theme = aurora::AuroraThemeSettings::get();
 
             // 60 cards (each card = 3 child shapes)
             for (int i = 0; i < 60; ++i) {
-                auto card = std::make_shared<aurora::AuroraCard>(info, glm::vec2{280.f, 140.f}, theme.PURPLE);
+                auto card = create<aurora::AuroraCard>(glm::vec2{280.f, 140.f}, theme.PURPLE);
                 card->setPosition(20.f + static_cast<float>(i % 6) * 310.f, 20.f + static_cast<float>(i / 6) * 105.f);
-                track(card);
                 componentCount += 4;
             }
 
             // 400 small rounded rectangles
             for (int i = 0; i < 400; ++i) {
-                auto rect = std::make_shared<aurora::AuroraRoundedRectangle>(info, glm::vec2{36.f, 24.f}, 6.f);
+                auto rect = create<aurora::AuroraRoundedRectangle>(glm::vec2{36.f, 24.f}, 6.f);
                 rect->color = (i % 2) ? theme.BLUE : theme.ORANGE;
                 rect->setPosition(10.f + static_cast<float>(i % 40) * 47.f, 700.f + static_cast<float>(i / 40) * 30.f);
-                track(rect);
                 rects.push_back(rect);
                 componentCount++;
             }
 
             // 300 circles
             for (int i = 0; i < 300; ++i) {
-                auto circle = std::make_shared<aurora::AuroraCircle>(info, 8.f, theme.GRAY);
+                auto circle = create<aurora::AuroraCircle>(8.f, theme.GRAY);
                 circle->setPosition(20.f + static_cast<float>(i % 60) * 31.f, 1010.f + static_cast<float>(i / 60) * 12.f);
-                track(circle);
                 componentCount++;
             }
 
             // 1200 text labels, half of them updated every frame in the dynamic scene
             for (int i = 0; i < 1200; ++i) {
-                auto text = std::make_shared<aurora::AuroraText>(info, "Label " + std::to_string(i) + " value 0.000", 14.f);
+                auto text = create<aurora::AuroraText>("Label " + std::to_string(i) + " value 0.000", 14.f);
                 text->setPosition(30.f + static_cast<float>(i % 8) * 235.f, 40.f + static_cast<float>(i / 8) * 6.5f);
-                track(text);
                 texts.push_back(text);
                 componentCount++;
             }
@@ -262,8 +252,8 @@ class BenchApp : public aurora::AuroraUI {
             }
         }
 
-        void buildPanelScene(aurora::AuroraComponentInfo& info) {
-            auto panel = std::make_shared<aurora::AuroraPanel>(info, 900.f);
+        void buildPanelScene() {
+            auto panel = create<aurora::AuroraPanel>(900.f);
             for (int s = 0; s < 4; ++s) {
                 auto& section = panel->addSection("SECTION " + std::to_string(s));
                 for (int e = 0; e < 6; ++e) {
@@ -272,8 +262,6 @@ class BenchApp : public aurora::AuroraUI {
                     componentCount += 2;
                 }
             }
-            panel->addToRenderSystem();
-            roots.push_back(panel);
         }
 
         void updatePanelScene() {
@@ -284,7 +272,6 @@ class BenchApp : public aurora::AuroraUI {
 
         Options options;
 
-        std::vector<std::shared_ptr<aurora::AuroraComponentInterface>> roots;
         std::vector<std::shared_ptr<aurora::AuroraText>> texts;
         std::vector<std::shared_ptr<aurora::AuroraRoundedRectangle>> rects;
         std::vector<aurora::AuroraEntryHandle> entries;

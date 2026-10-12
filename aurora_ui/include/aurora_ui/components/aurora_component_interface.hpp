@@ -112,13 +112,8 @@ namespace aurora {
             }
 
             // Components are drawn by increasing layer, then in the order they were added to the
-            // render system. Children share their parent's layer. Set it before addToRenderSystem().
-            void setLayer(int value) {
-                layer = value;
-                for (const auto& child : children) {
-                    child->setLayer(value);
-                }
-            }
+            // render system. Children share their parent's layer. Can be changed at any time.
+            void setLayer(int value);
 
             int getLayer() const { return layer; }
 

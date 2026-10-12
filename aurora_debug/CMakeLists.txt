@@ -11,6 +11,7 @@ target_include_directories(aurora_debug PUBLIC
 
 target_link_libraries(aurora_debug PUBLIC
     aurora_engine
+    aurora_ui
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

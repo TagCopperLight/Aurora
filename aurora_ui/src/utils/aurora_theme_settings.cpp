@@ -75,4 +75,10 @@ namespace aurora {
         return instance;
     }
 
+    const glm::vec4& AuroraThemeSettings::categorical(std::size_t index) {
+        const auto& colors = get();
+        static const glm::vec4 palette[] = {colors.BLUE, colors.PURPLE, colors.ORANGE, colors.SUCCESS, colors.ERROR, colors.TEXT_PRIMARY};
+        return palette[index % (sizeof(palette) / sizeof(palette[0]))];
+    }
+
 }

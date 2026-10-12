@@ -5,6 +5,7 @@
 #include "aurora_engine/core/aurora_renderer.hpp"
 #include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 #include "aurora_ui/components/aurora_component_info.hpp"
+#include "aurora_ui/components/aurora_component_interface.hpp"
 #include <memory>
 #include <string>
 
@@ -23,7 +24,7 @@ namespace aurora {
             void run();
 
         protected:
-            virtual void onSetup(AuroraComponentInfo&) {}
+            virtual void onSetup() {}
 
             virtual void onUpdate(float) {}
 
@@ -34,12 +35,27 @@ namespace aurora {
             void requestClose() { auroraWindow.requestClose(); }
             AuroraRenderer& getRenderer() { return auroraRenderer; }
 
+            // Creates a component and starts drawing it, e.g. create<AuroraCircle>(radius, color)
+            template <typename T, typename... Args>
+            std::shared_ptr<T> create(Args&&... args) {
+                auto component = std::make_shared<T>(*componentInfo, std::forward<Args>(args)...);
+                component->addToRenderSystem();
+                return component;
+            }
+
+            // Stops drawing a component created with create(), along with its children
+            void destroy(const std::shared_ptr<AuroraComponentInterface>& component);
+
+            // Needed to build children before handing them to addChild()
+            AuroraComponentInfo& getComponentInfo() { return *componentInfo; }
+
         private:
             AuroraWindow auroraWindow;
             AuroraDevice auroraDevice;
             AuroraRenderer auroraRenderer;
 
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
+            std::unique_ptr<AuroraComponentInfo> componentInfo;
 
             bool frameRateLimit = true;
     };

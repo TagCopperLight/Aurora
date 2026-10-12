@@ -18,21 +18,24 @@ namespace aurora {
         FcInit();
         log::ui()->info("Initializing Aurora UI");
         renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
+        componentInfo = std::make_unique<AuroraComponentInfo>(AuroraComponentInfo{auroraDevice, *renderSystemManager});
         log::ui()->info("Aurora UI ready");
     }
 
     AuroraUI::~AuroraUI() {}
 
+    void AuroraUI::destroy(const std::shared_ptr<AuroraComponentInterface>& component) {
+        renderSystemManager->removeComponent(component);
+    }
+
     void AuroraUI::run() {
         AuroraCamera camera;
         AuroraClock clock(60, frameRateLimit);
 
-        AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
-
         auto& profiler = AuroraProfiler::instance();
         profiler.setEnabled(true);
 
-        onSetup(componentInfo);
+        onSetup();
 
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();

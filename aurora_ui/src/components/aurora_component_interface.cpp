@@ -10,4 +10,14 @@ namespace aurora {
             child->addToRenderSystem();
         }
     }
+
+    void AuroraComponentInterface::setLayer(int value) {
+        if (layer != value && rendering) {
+            componentInfo.renderSystemManager.markDrawOrderDirty();
+        }
+        layer = value;
+        for (auto& child : children) {
+            child->setLayer(value);
+        }
+    }
 }

@@ -73,9 +73,8 @@ namespace aurora::debug {
             std::string address = std::string(inet_ntoa(clientAddr.sin_addr))
                                 + ":" + std::to_string(ntohs(clientAddr.sin_port));
 
-            auto session = std::make_unique<AuroraDebugSession>(clientFd, address);
-            if (connectHandler) connectHandler(*session);
-            sessions.push_back(std::move(session));
+            sessions.push_back(std::make_unique<AuroraDebugSession>(clientFd, address));
+            if (connectHandler) connectHandler(*sessions.back());
         }
     }
 
@@ -88,8 +87,10 @@ namespace aurora::debug {
             });
 
             if (!alive) {
-                if (disconnectHandler) disconnectHandler(session.getAddress());
+                // Removed first so getClientCount() is already up to date in the handler
+                std::string address = session.getAddress();
                 it = sessions.erase(it);
+                if (disconnectHandler) disconnectHandler(address);
             } else {
                 ++it;
             }
@@ -98,6 +99,7 @@ namespace aurora::debug {
 
     bool AuroraDebugServer::isRunning() const { return running; }
     uint16_t AuroraDebugServer::getPort() const { return port; }
+    size_t AuroraDebugServer::getClientCount() const { return sessions.size(); }
 
     void AuroraDebugServer::onConnect(std::function<void(AuroraDebugSession&)> handler) {
         connectHandler = std::move(handler);

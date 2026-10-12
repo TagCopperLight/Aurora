@@ -1,7 +1,7 @@
 #include "aurora_ui/aurora_ui.hpp"
 #include "aurora_ui/components/aurora_panel.hpp"
 #include "aurora_ui/profiling/aurora_performance_monitor.hpp"
-#include "aurora_ui/utils/aurora_theme_settings.hpp"
+#include "aurora_debug/aurora_connection_monitor.hpp"
 #include "aurora_debug/aurora_debug_json.hpp"
 #include "aurora_debug/aurora_debug_server.hpp"
 
@@ -16,30 +16,20 @@ class DebugApp : public aurora::AuroraUI {
         }
 
     protected:
-        void onSetup(aurora::AuroraComponentInfo& info) override {
-            panel = std::make_shared<aurora::AuroraPanel>(info, 900.f);
+        void onSetup() override {
+            panel = create<aurora::AuroraPanel>(900.f);
 
-            auto& network_section = panel->addSection("NETWORK STATUS");
-            network_section.addEntry("PORT", "9000");
-            network_status = network_section.addEntry("STATUS", "DISCONNECTED", true, aurora::AuroraThemeSettings::get().ERROR);
-            client_count = network_section.addEntry("CLIENTS", "0");
-
+            connection = std::make_unique<aurora::debug::AuroraConnectionMonitor>(server, panel->addSection("NETWORK STATUS"));
             performance = std::make_unique<aurora::AuroraPerformanceMonitor>(panel->addSection("PERFORMANCE"));
 
             // Watches are listed below, in sections created as they first arrive
 
-            panel->addToRenderSystem();
-
-            server.onConnect([this](aurora::debug::AuroraDebugSession& session) {
-                connectedClients++;
+            server.onConnect([](aurora::debug::AuroraDebugSession& session) {
                 aurora::log::debug()->info("Client connected: {}", session.getAddress());
-                updateNetworkStatus();
             });
 
-            server.onDisconnect([this](const std::string& address) {
-                if (connectedClients > 0) connectedClients--;
+            server.onDisconnect([](const std::string& address) {
                 aurora::log::debug()->info("Client disconnected: {}", address);
-                updateNetworkStatus();
             });
 
             server.onMessage([this](aurora::debug::AuroraDebugSession&, const aurora::debug::DebugMessage& msg) {
@@ -63,28 +53,16 @@ class DebugApp : public aurora::AuroraUI {
         }
 
         void onFrameEnd() override {
+            connection->update();
             performance->update();
         }
 
     private:
-        void updateNetworkStatus() {
-            if (connectedClients > 0) {
-                network_status.setValue("CONNECTED", aurora::AuroraThemeSettings::get().SUCCESS);
-            } else if (connectedClients == 0) {
-                network_status.setValue("DISCONNECTED", aurora::AuroraThemeSettings::get().ERROR);
-            } else {
-                network_status.setValue("LISTENING", aurora::AuroraThemeSettings::get().ORANGE);
-            }
-            client_count.setValue(std::to_string(connectedClients));
-        }
-
         std::shared_ptr<aurora::AuroraPanel> panel;
-        aurora::AuroraEntryHandle network_status;
-        aurora::AuroraEntryHandle client_count;
+        std::unique_ptr<aurora::debug::AuroraConnectionMonitor> connection;
         std::unique_ptr<aurora::AuroraPerformanceMonitor> performance;
 
         aurora::debug::AuroraDebugServer server{9000};
-        int connectedClients{0};
 };
 
 int main() {

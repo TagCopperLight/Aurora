@@ -1,0 +1,11 @@
+[build-system]
+requires = ["uv_build>=0.8,<1"]
+build-backend = "uv_build"
+
+[project]
+name = "aurora-client"
+version = "0.1.0"
+description = "Send watches, logs and frames to an Aurora app over TCP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []

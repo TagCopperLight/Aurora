@@ -18,7 +18,7 @@ cd build
 ```
 
 The example opens a fullscreen window and listens on TCP port 9000. From another
-terminal, run `python3 debug_example/watch_example.py` at the repository root to
+terminal, run `uv run debug_example/watch_example.py` at the repository root to
 send live values. Run executables from the build directory so they can find
 `assets/` and `shaders/`.
 
@@ -65,5 +65,7 @@ and performance counters.
 - `aurora_engine`: Vulkan device, swapchain, buffers, textures, and profiling.
 - `aurora_ui`: components, text rendering, panels, and the application loop.
 - `aurora_debug`: TCP sessions, watch messages, and frame streaming.
-- `debug_example`: a live watch viewer and Python clients.
+- `clients`: libraries for sending data to Aurora from other programs, and the
+  [protocol](clients/PROTOCOL.md) they implement. See the [Python client](clients/python/README.md).
+- `debug_example`: a live watch viewer and Python scripts that use the Python client.
 - `aurora_bench` and [`bench/`](bench/README.md): rendering and performance checks.

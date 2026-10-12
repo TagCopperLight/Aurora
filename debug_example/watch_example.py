@@ -1,60 +1,58 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["aurora-client"]
+#
+# [tool.uv.sources]
+# aurora-client = { path = "../clients/python", editable = true }
+# ///
 """
 Aurora Debug - Variable watcher example.
 
-Connects to the AuroraDebugServer and streams live variable updates.
-Protocol: <1-byte MessageType> + <JSON payload> + '\n'
-  MessageType 1 = Watch  ->  {"name": "<var>", "value": "<val>"}
+Streams live variable updates to the debug example as watches.
+Run with: uv run debug_example/watch_example.py
 """
 
-import socket
-import json
-import time
 import math
-import struct
+import time
+from dataclasses import dataclass
 
-HOST = "127.0.0.1"
-PORT = 9000
+from aurora_client import AuroraClient, AuroraConnectionError
+
 INTERVAL = 0.1  # seconds between updates
 
 
-def encode_watch(name: str, value) -> bytes:
-    payload = json.dumps({"name": name, "value": str(value)}, separators=(",", ":"))
-    return struct.pack("B", 1) + payload.encode() + b"\n"
+@dataclass
+class FakeProgram:
+    """Variables that change over time, standing in for a real program's state."""
+
+    t: float = 0.0
+    counter: int = 0
+
+    def advance(self, dt: float) -> None:
+        self.t += dt
+        self.counter += 1
+
+    def watches(self) -> dict[str, object]:
+        return {
+            "velocity": round(math.sin(self.t) * 100.0, 2),       # oscillates -100 .. +100
+            "position": round(self.t * 10.0 % 500.0, 2),          # ramps and wraps
+            "health": max(0, 100 - self.counter % 101),           # counts down 100 -> 0
+            "fps": round(60.0 + math.cos(self.t * 2) * 5, 1),     # 55 .. 65
+        }
 
 
 def main() -> None:
-    with socket.create_connection((HOST, PORT), timeout=5) as sock:
-        print(f"Connected to {HOST}:{PORT}  (Ctrl+C to stop)")
-
-        t = 0.0
-        counter = 0
+    program = FakeProgram()
+    with AuroraClient() as aurora:
+        print(f"Connected to {aurora.address}  (Ctrl+C to stop)")
 
         while True:
-            # --- Variables being watched ---
-            velocity = round(math.sin(t) * 100.0, 2)        # oscillates -100 .. +100
-            position = round(t * 10.0 % 500.0, 2)           # ramps and wraps
-            health   = max(0, 100 - counter % 101)           # counts down 100 -> 0
-            fps      = round(60.0 + math.cos(t * 2) * 5, 1) # 55 .. 65
+            watches = program.watches()
+            aurora.watches(watches)
+            print("  ".join(f"{name}={value:>8}" for name, value in watches.items()), end="\r")
 
-            watches = [
-                ("velocity", velocity),
-                ("position", position),
-                ("health",   health),
-                ("fps",      fps),
-            ]
-
-            for name, val in watches:
-                sock.sendall(encode_watch(name, val))
-
-            print(
-                f"  velocity={velocity:>8}  position={position:>8}"
-                f"  health={health:>3}  fps={fps:>5}",
-                end="\r",
-            )
-
-            t       += INTERVAL
-            counter += 1
+            program.advance(INTERVAL)
             time.sleep(INTERVAL)
 
 
@@ -63,5 +61,5 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("\nStopped.")
-    except ConnectionRefusedError:
-        print(f"Could not connect to {HOST}:{PORT} — is the debug app running?")
+    except AuroraConnectionError as error:
+        print(error)

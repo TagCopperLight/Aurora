@@ -1,4 +1,6 @@
 #include "aurora_ui/components/aurora_circle.hpp"
+#include "aurora_ui/utils/aurora_utils.hpp"
+#include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -14,10 +16,9 @@ namespace aurora {
     }
 
     void AuroraCircle::initialize() {
-        std::vector<AuroraModel::Vertex> vertices = createCircleVertices(64);
-        AuroraModel::Builder builder{};
-        builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
+        model = componentInfo.renderSystemManager.getSharedModel(
+            AuroraUtils::modelKey("circle", {radius, 64.f}),
+            [&] { return createCircleVertices(64); });
     }
 
     std::vector<AuroraModel::Vertex> AuroraCircle::createCircleVertices(int numSegments) {

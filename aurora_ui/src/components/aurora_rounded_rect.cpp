@@ -1,5 +1,6 @@
 #include "aurora_ui/components/aurora_rounded_rect.hpp"
 #include "aurora_ui/utils/aurora_utils.hpp"
+#include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 
@@ -10,10 +11,10 @@ namespace aurora {
     }
 
     void AuroraRoundedRectangle::initialize() {
-        std::vector<AuroraModel::Vertex> vertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 16, 0.0f, color);
-        AuroraModel::Builder builder{};
-        builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
+        glm::vec4 vertexColor = color;
+        model = componentInfo.renderSystemManager.getSharedModel(
+            AuroraUtils::modelKey("rounded_rect", {size.x, size.y, radius, vertexColor.r, vertexColor.g, vertexColor.b, vertexColor.a}),
+            [&] { return AuroraUtils::createRoundedRectangleVertices(size, radius, 16, 0.0f, vertexColor); });
     }
 
 }

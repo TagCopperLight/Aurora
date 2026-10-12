@@ -5,9 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Add profiling flag
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# gprof instrumentation (-pg)
+option(AURORA_ENABLE_GPROF "Build with gprof instrumentation (-pg)" ON)
+if(AURORA_ENABLE_GPROF)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+endif()
 
 # Find required packages once at the root level
 find_package(Vulkan REQUIRED)
@@ -37,6 +40,7 @@ add_subdirectory(aurora_engine)
 add_subdirectory(aurora_ui)
 add_subdirectory(aurora_debug)
 add_subdirectory(debug_example)
+add_subdirectory(aurora_bench)
 
 # Optional: Create an install target
 install(TARGETS aurora_engine aurora_ui aurora_debug

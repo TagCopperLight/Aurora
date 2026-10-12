@@ -52,6 +52,9 @@ namespace aurora {
 
             virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {
                 child->parent = weak_from_this();
+                // The parent transform is pushed down explicitly: weak_from_this() is still empty when
+                // children are added from a constructor, so the child cannot rely on locking `parent`.
+                child->setParentTransform(worldTransform);
                 children.push_back(child);
 
                 if (rendering) {
@@ -61,7 +64,7 @@ namespace aurora {
 
             virtual void addToRenderSystem();
 
-            glm::mat4 getWorldTransform() const {
+            const glm::mat4& getWorldTransform() const {
                 return worldTransform;
             }
 
@@ -123,20 +126,28 @@ namespace aurora {
             bool rendering = false;
 
             glm::mat4 worldTransform{1.0f};
+            glm::mat4 parentTransform{1.0f};
+            bool hasParent = false;
+
+            void setParentTransform(const glm::mat4& transform) {
+                parentTransform = transform;
+                hasParent = true;
+                updateWorldTransform();
+            }
 
             void updateWorldTransform() {
                 glm::mat4 localTransform = transform.mat4();
                 
-                if (auto parentPtr = parent.lock()) {
+                if (hasParent) {
                     float ourZDepth = localTransform[3][2];
-                    worldTransform = parentPtr->getWorldTransform() * localTransform;
+                    worldTransform = parentTransform * localTransform;
                     worldTransform[3][2] = ourZDepth;
                 } else {
                     worldTransform = localTransform;
                 }
                 
                 for (const auto& child : children) {
-                    child->updateWorldTransform();
+                    child->setParentTransform(worldTransform);
                 }
             }
 

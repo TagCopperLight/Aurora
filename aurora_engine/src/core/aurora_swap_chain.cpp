@@ -6,6 +6,7 @@
 #include <limits>
 #include <stdexcept>
 #include "aurora_engine/utils/log.hpp"
+#include "aurora_engine/profiling/aurora_profiler.hpp"
 #include <vulkan/vulkan_core.h>
 
 namespace aurora {
@@ -72,12 +73,15 @@ namespace aurora {
     }
 
     VkResult AuroraSwapChain::acquireNextImage(uint32_t *imageIndex) {
-        vkWaitForFences(
-            device.device(),
-            1,
-            &inFlightFences[currentFrame],
-            VK_TRUE,
-            std::numeric_limits<uint64_t>::max());
+        {
+            AURORA_PROFILE("GPU Wait");
+            vkWaitForFences(
+                device.device(),
+                1,
+                &inFlightFences[currentFrame],
+                VK_TRUE,
+                std::numeric_limits<uint64_t>::max());
+        }
 
         VkResult result = vkAcquireNextImageKHR(
             device.device(),
@@ -159,6 +163,11 @@ namespace aurora {
         createInfo.imageExtent = extent;
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        // Allow frame captures (used by the benchmark to check rendering output)
+        captureSupported = (swapChainSupport.capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) != 0;
+        if (captureSupported) {
+            createInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
 
         QueueFamilyIndices indices = device.findPhysicalQueueFamilies();
         uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
@@ -217,9 +226,10 @@ namespace aurora {
         VkFormat colorFormat = swapChainImageFormat;
         VkExtent2D swapChainExtent = getSwapChainExtent();
 
-        colorImages.resize(imageCount());
-        colorImageMemorys.resize(imageCount());
-        colorImageViews.resize(imageCount());
+        // A single multisampled target is enough: frames are rendered in order on one queue
+        colorImages.resize(1);
+        colorImageMemorys.resize(1);
+        colorImageViews.resize(1);
 
         for (size_t i = 0; i < colorImages.size(); i++) {
             VkImageCreateInfo imageInfo{};
@@ -310,14 +320,17 @@ namespace aurora {
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
         subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
+        // The multisampled color and depth attachments are shared by all frames in flight, so the
+        // previous frame's attachment writes must complete before this frame writes them (WAW).
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.srcAccessMask = 0;
+        dependency.srcAccessMask =
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         dependency.srcStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
         dependency.dstSubpass = 0;
         dependency.dstStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask =
             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
@@ -340,9 +353,9 @@ namespace aurora {
         swapChainFramebuffers.resize(imageCount());
         for (size_t i = 0; i < imageCount(); i++) {
             std::array<VkImageView, 3> attachments = {
-                colorImageViews[i],      
-                depthImageViews[i],      
-                swapChainImageViews[i]   
+                colorImageViews[0],
+                depthImageViews[0],
+                swapChainImageViews[i]
             };
 
             VkExtent2D swapChainExtent = getSwapChainExtent();
@@ -367,9 +380,9 @@ namespace aurora {
         
         VkExtent2D swapChainExtent = getSwapChainExtent();
 
-        depthImages.resize(imageCount());
-        depthImageMemorys.resize(imageCount());
-        depthImageViews.resize(imageCount());
+        depthImages.resize(1);
+        depthImageMemorys.resize(1);
+        depthImageViews.resize(1);
 
         for (size_t i = 0; i < depthImages.size(); i++) {
             VkImageCreateInfo imageInfo{};
@@ -473,8 +486,10 @@ namespace aurora {
     }
 
     VkFormat AuroraSwapChain::findDepthFormat() {
+        // D16 is plenty for UI layering (components are 1e-4 apart in a linear [0, 1] depth range)
+        // and halves depth bandwidth, which matters with multisampled attachments.
         return device.findSupportedFormat(
-            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            {VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }

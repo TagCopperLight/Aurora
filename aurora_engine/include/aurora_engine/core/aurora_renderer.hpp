@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <cassert>
 
@@ -43,10 +44,20 @@ namespace aurora {
             void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
             void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
+            // GPU time of the most recently completed frame, in ms (0 until available)
+            double getLastGpuFrameTimeMs() const { return lastGpuFrameTimeMs; }
+
+            // Write the next presented frame to a binary PPM file (waits for the GPU, debug use only)
+            void requestCapture(const std::string& path) { capturePath = path; }
+
         private:
             void createCommandBuffers();
             void freeCommandBuffers();
             void recreateSwapChain();
+            void createTimestampQueries();
+            void readTimestampQueries();
+            void recordCapture(VkCommandBuffer commandBuffer);
+            void writeCapture();
 
             AuroraWindow& auroraWindow;
             AuroraDevice& auroraDevice;
@@ -57,5 +68,14 @@ namespace aurora {
             uint32_t currentImageIndex;
             int currentFrameIndex;
             bool isFrameStarted;
+
+            VkQueryPool timestampQueryPool = VK_NULL_HANDLE;
+            std::vector<bool> timestampPending;
+            uint64_t timestampMask = ~0ull;
+            double lastGpuFrameTimeMs = 0.0;
+
+            std::string capturePath;
+            VkBuffer captureBuffer = VK_NULL_HANDLE;
+            VkDeviceMemory captureMemory = VK_NULL_HANDLE;
     };
 }

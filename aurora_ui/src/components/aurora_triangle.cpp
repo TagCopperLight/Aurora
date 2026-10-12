@@ -1,4 +1,5 @@
 #include "aurora_ui/components/aurora_triangle.hpp"
+#include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 
@@ -8,15 +9,13 @@ namespace aurora {
     }
 
     void AuroraTriangle::initialize() {
-        std::vector<AuroraModel::Vertex> vertices = {
-            {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-            {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-            {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
-        };
-
-        AuroraModel::Builder builder{};
-        builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
+        model = componentInfo.renderSystemManager.getSharedModel("triangle", [] {
+            return std::vector<AuroraModel::Vertex>{
+                {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+                {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+                {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
+            };
+        });
         color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }

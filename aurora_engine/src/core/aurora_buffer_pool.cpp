@@ -1,6 +1,8 @@
 #include "aurora_engine/core/aurora_buffer_pool.hpp"
 #include "aurora_engine/utils/log.hpp"
 
+#include <algorithm>
+
 namespace aurora {
 
     AuroraBufferPool::AuroraBufferPool(
@@ -38,7 +40,8 @@ namespace aurora {
             }
         }
 
-        createNewPage();
+        // Oversized requests get a dedicated, larger page instead of failing
+        createNewPage(std::max(pageSize, size + alignment));
         
         VkDeviceSize offset;
         auto& newPage = pages.back();
@@ -71,12 +74,12 @@ namespace aurora {
          }
     }
 
-    void AuroraBufferPool::createNewPage() {
+    void AuroraBufferPool::createNewPage(VkDeviceSize size) {
         auto page = std::make_unique<Page>();
         
         page->buffer = std::make_unique<AuroraBuffer>(
             device,
-            pageSize,
+            size,
             1,
             usage,
             memoryProperties
@@ -86,10 +89,10 @@ namespace aurora {
             page->buffer->map();
         }
 
-        page->size = pageSize;
+        page->size = size;
         page->allocatedSize = 0;
         
-        page->freeMap.insert({0, pageSize});
+        page->freeMap.insert({0, size});
         
         pages.push_back(std::move(page));
         log::engine()->debug("Allocated new Buffer Pool Page (ID: {})", pages.size() - 1);
@@ -100,7 +103,8 @@ namespace aurora {
             VkDeviceSize currentOffset = it->first;
             VkDeviceSize currentSize = it->second;
 
-            VkDeviceSize alignedOffset = (currentOffset + alignment - 1) & ~(alignment - 1);
+            // Alignment may be a non-power-of-two (e.g. a vertex stride, so offsets map to whole vertices)
+            VkDeviceSize alignedOffset = (currentOffset + alignment - 1) / alignment * alignment;
             VkDeviceSize padding = alignedOffset - currentOffset;
 
             if (currentSize >= size + padding) {

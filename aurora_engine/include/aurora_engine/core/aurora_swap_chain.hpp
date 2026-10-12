@@ -18,6 +18,8 @@ namespace aurora {
             AuroraSwapChain& operator=(const AuroraSwapChain &) = delete;
 
             VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
+            VkImage getImage(int index) { return swapChainImages[index]; }
+            bool supportsCapture() const { return captureSupported; }
             VkRenderPass getRenderPass() { return renderPass; }
             VkImageView getImageView(int index) { return swapChainImageViews[index]; }
             size_t imageCount() { return swapChainImages.size(); }
@@ -63,6 +65,7 @@ namespace aurora {
             std::vector<VkDeviceMemory> depthImageMemorys;
             std::vector<VkImageView> depthImageViews;
             std::vector<VkImage> swapChainImages;
+            bool captureSupported = false;
             std::vector<VkImageView> swapChainImageViews;
             
             

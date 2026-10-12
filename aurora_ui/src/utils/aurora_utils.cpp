@@ -4,6 +4,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/constants.hpp>
 
+#include <cstdio>
+
 namespace aurora {
     namespace AuroraUtils {
         std::vector<AuroraModel::Vertex> createRoundedRectangleVertices(
@@ -36,6 +38,16 @@ namespace aurora {
             }
 
             return vertices;
+        }
+    
+        std::string modelKey(const char* shape, std::initializer_list<float> params) {
+            std::string key = shape;
+            char buffer[32];
+            for (float param : params) {
+                std::snprintf(buffer, sizeof(buffer), ":%a", static_cast<double>(param));
+                key += buffer;
+            }
+            return key;
         }
     }
 }

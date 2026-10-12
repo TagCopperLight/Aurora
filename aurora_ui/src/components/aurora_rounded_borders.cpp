@@ -1,5 +1,6 @@
 #include "aurora_ui/components/aurora_rounded_borders.hpp"
 #include "aurora_ui/utils/aurora_utils.hpp"
+#include "aurora_ui/graphics/aurora_render_system_manager.hpp"
 
 #include <memory>
 
@@ -10,21 +11,23 @@ namespace aurora {
     }
 
     void AuroraRoundedBorders::initialize() {
-        std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, color);
-        std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, borderWidth, color);
-        std::vector<AuroraModel::Vertex> vertices;
+        glm::vec4 vertexColor = color;
+        model = componentInfo.renderSystemManager.getSharedModel(
+            AuroraUtils::modelKey("rounded_borders", {size.x, size.y, radius, borderWidth, vertexColor.r, vertexColor.g, vertexColor.b, vertexColor.a}),
+            [&] {
+                std::vector<AuroraModel::Vertex> outerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, 0.0f, vertexColor);
+                std::vector<AuroraModel::Vertex> innerVertices = AuroraUtils::createRoundedRectangleVertices(size, radius, 8, borderWidth, vertexColor);
+                std::vector<AuroraModel::Vertex> vertices;
 
-        for (size_t i = 0; i < outerVertices.size(); ++i) {
-            vertices.push_back(outerVertices[i]);
-            vertices.push_back(innerVertices[i]);
-        }
+                for (size_t i = 0; i < outerVertices.size(); ++i) {
+                    vertices.push_back(outerVertices[i]);
+                    vertices.push_back(innerVertices[i]);
+                }
 
-        vertices.push_back(outerVertices[0]);
-        vertices.push_back(innerVertices[0]);
-
-        AuroraModel::Builder builder{};
-        builder.vertices = vertices;
-        model = std::make_shared<AuroraModel>(componentInfo.auroraDevice, builder);
+                vertices.push_back(outerVertices[0]);
+                vertices.push_back(innerVertices[0]);
+                return vertices;
+            });
     }
 
 }

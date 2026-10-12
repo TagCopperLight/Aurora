@@ -57,7 +57,7 @@ namespace aurora {
         std::vector<std::unique_ptr<Page>> pages;
         std::mutex poolMutex;
 
-        void createNewPage();
+        void createNewPage(VkDeviceSize size);
     };
 
 }

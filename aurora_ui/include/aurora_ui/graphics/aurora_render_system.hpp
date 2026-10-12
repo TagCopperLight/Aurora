@@ -5,13 +5,15 @@
 #include "aurora_engine/core/aurora_camera.hpp"
 #include "aurora_engine/core/aurora_descriptors.hpp"
 #include "aurora_engine/core/aurora_buffer_pool.hpp"
+#include "aurora_engine/core/aurora_buffer.hpp"
+#include "aurora_engine/core/aurora_swap_chain.hpp"
 #include "aurora_ui/graphics/aurora_msdf_atlas.hpp"
 #include "aurora_ui/graphics/aurora_model.hpp"
 
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include <map>
+#include <array>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -71,6 +73,9 @@ namespace aurora {
             void createPipelineLayout();
             void createPipeline(VkRenderPass renderPass, const std::string& vertFilePath, const std::string& fragFilePath, VkPrimitiveTopology topology);
             void createComponentDescriptorSets(size_t componentIndex, AuroraMSDFAtlas* msdfAtlas);
+            AuroraBuffer& getInstanceBuffer(int frameIndex, VkDeviceSize requiredSize);
+            bool batchesOutdated() const;
+            void rebuildBatches();
 
             AuroraDevice& auroraDevice;
 
@@ -86,8 +91,21 @@ namespace aurora {
 
             std::vector<std::shared_ptr<AuroraComponentInterface>> components;
             
-            std::map<int, std::vector<BufferAllocation>> frameInstanceAllocations;
-            std::unordered_map<AuroraModel*, std::vector<AuroraModel::InstanceData>> batches;
+            // One persistently mapped instance buffer per frame in flight. A frame slot is only
+            // rewritten after its fence has been waited on, so no further synchronisation is needed.
+            std::array<std::unique_ptr<AuroraBuffer>, AuroraSwapChain::MAX_FRAMES_IN_FLIGHT> frameInstanceBuffers;
+
+            // Runs of consecutive components sharing a model, drawn as one instanced draw each.
+            // Only consecutive components are merged so the draw order stays exactly the component
+            // (back-to-front) order, which blended shapes rely on. Rebuilt only when components are
+            // added/removed or a component's model changes.
+            struct Batch {
+                AuroraModel* model;
+                std::vector<AuroraComponentInterface*> members;
+            };
+            std::vector<Batch> batches;
+            std::vector<AuroraModel*> batchedModels;
+            bool batchesDirty = true;
             
             std::string vertexShaderPath;
             std::string fragmentShaderPath;

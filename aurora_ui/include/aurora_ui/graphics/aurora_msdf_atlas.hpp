@@ -12,6 +12,7 @@
 
 #include <string>
 #include <memory>
+#include <array>
 #include <unordered_map>
 
 namespace aurora {
@@ -51,11 +52,19 @@ namespace aurora {
             bool getGlyphInfo(char character, GlyphInfo& glyphInfo) const;
             double getKerning(char left, char right) const;
 
+            // Precomputed glyph metrics, nullptr if the atlas has no glyph for this character
+            const GlyphInfo* findGlyph(char character) const {
+                unsigned char index = static_cast<unsigned char>(character);
+                return glyphValid[index] ? &glyphTable[index] : nullptr;
+            }
+            bool hasKerning() const { return !kerningCache.empty(); }
+
             const BufferAllocation& getSharedIndexAllocation();
 
         private:
             void createAtlasTexture();
             void buildGlyphCache();
+            bool computeGlyphInfo(const msdf_atlas::GlyphGeometry& glyph, GlyphInfo& glyphInfo) const;
             void buildKerningCache();
 
             AuroraDevice& auroraDevice;
@@ -73,6 +82,8 @@ namespace aurora {
             msdf_atlas::FontGeometry fontGeometry;
 
             mutable std::unordered_map<char, const msdf_atlas::GlyphGeometry*> glyphCache;
+            std::array<GlyphInfo, 256> glyphTable{};
+            std::array<bool, 256> glyphValid{};
             mutable std::unordered_map<uint64_t, double> kerningCache;
 
             BufferAllocation sharedIndexAllocation{};

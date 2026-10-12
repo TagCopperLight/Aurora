@@ -42,7 +42,7 @@ namespace aurora {
         }
     }
 
-    AuroraDevice::AuroraDevice(AuroraWindow &window) : window{window} {
+    AuroraDevice::AuroraDevice(AuroraWindow &window, VkSampleCountFlagBits maxMsaaSamples) : maxMsaaSamples{maxMsaaSamples}, window{window} {
         createInstance();
         setupDebugMessenger();
         createSurface();
@@ -50,37 +50,38 @@ namespace aurora {
         createLogicalDevice();
         createCommandPool();
 
+        // Pages are created on demand (and enlarged for oversized allocations), so keep them modest
         vertexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
-            64 * 1024 * 1024,
+            8 * 1024 * 1024,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
         indexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
-            16 * 1024 * 1024,
+            4 * 1024 * 1024,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
         stagingBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
-            64 * 1024 * 1024,
+            8 * 1024 * 1024,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
         dynamicVertexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
-            16 * 1024 * 1024,
+            8 * 1024 * 1024,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
         dynamicIndexBufferPool = std::make_unique<AuroraBufferPool>(
             *this,
-            4 * 1024 * 1024,
+            1 * 1024 * 1024,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
@@ -169,6 +170,13 @@ namespace aurora {
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
 
         VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts & properties.limits.framebufferDepthSampleCounts;
+        // The render pass always resolves a multisampled target, so at least 2 samples are required
+        if (maxMsaaSamples < VK_SAMPLE_COUNT_2_BIT) {
+            log::engine()->warn("MSAA below 2x is not supported, using 2x");
+            maxMsaaSamples = VK_SAMPLE_COUNT_2_BIT;
+        }
+        // Keep only the sample counts up to the requested maximum
+        counts &= (static_cast<VkSampleCountFlags>(maxMsaaSamples) << 1) - 1;
         if (counts & VK_SAMPLE_COUNT_8_BIT) { msaaSamples = VK_SAMPLE_COUNT_8_BIT; }
         else if (counts & VK_SAMPLE_COUNT_4_BIT) { msaaSamples = VK_SAMPLE_COUNT_4_BIT; }
         else if (counts & VK_SAMPLE_COUNT_2_BIT) { msaaSamples = VK_SAMPLE_COUNT_2_BIT; }

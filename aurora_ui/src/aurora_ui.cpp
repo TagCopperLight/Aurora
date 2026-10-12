@@ -10,9 +10,9 @@
 #include "aurora_engine/utils/log.hpp"
 
 namespace aurora {
-    AuroraUI::AuroraUI(const std::string& title)
+    AuroraUI::AuroraUI(const std::string& title, VkSampleCountFlagBits maxMsaaSamples)
         : auroraWindow{WIDTH, HEIGHT, title},
-          auroraDevice{auroraWindow},
+          auroraDevice{auroraWindow, maxMsaaSamples},
           auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::get().BACKGROUND} {
         log::ui()->info("Initializing Aurora UI");
         renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
@@ -23,7 +23,7 @@ namespace aurora {
 
     void AuroraUI::run() {
         AuroraCamera camera;
-        AuroraClock clock(60, true);
+        AuroraClock clock(60, frameRateLimit);
 
         AuroraComponentInfo componentInfo{auroraDevice, *renderSystemManager};
 
@@ -35,21 +35,35 @@ namespace aurora {
         while (!auroraWindow.shouldClose()) {
             clock.beginFrame();
 
-            glfwPollEvents();
+            {
+                AURORA_PROFILE("Poll Events");
+                glfwPollEvents();
+            }
 
             uint32_t width = auroraRenderer.getWidth();
             uint32_t height = auroraRenderer.getHeight();
 
             camera.setOrthographicProjection(0, width, height, 0, 0, 1);
 
-            onUpdate(static_cast<float>(clock.getFrameTimeMs()) / 1000.f);
+            {
+                AURORA_PROFILE("Update");
+                onUpdate(static_cast<float>(clock.getFrameTimeMs()) / 1000.f);
+            }
 
-            VkCommandBuffer commandBuffer = auroraRenderer.beginFrame();
+            VkCommandBuffer commandBuffer;
+            {
+                AURORA_PROFILE("Begin Frame");
+                commandBuffer = auroraRenderer.beginFrame();
+            }
 
             if (commandBuffer) {
-                auroraRenderer.beginSwapChainRenderPass(commandBuffer);
-                renderSystemManager->renderAllComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
-                auroraRenderer.endSwapChainRenderPass(commandBuffer);
+                {
+                    AURORA_PROFILE("Render Components");
+                    auroraRenderer.beginSwapChainRenderPass(commandBuffer);
+                    renderSystemManager->renderAllComponents(auroraRenderer.getCurrentCommandBuffer(), camera);
+                    auroraRenderer.endSwapChainRenderPass(commandBuffer);
+                }
+                AURORA_PROFILE("End Frame");
                 auroraRenderer.endFrame();
             } else {
                 log::ui()->warn("Failed to begin frame, skipping rendering");
@@ -57,6 +71,7 @@ namespace aurora {
 
             profiler.setFrameTime(clock.getFrameTimeMs());
             clock.endFrame();
+            onFrameEnd();
             profiler.newFrame();
         }
 

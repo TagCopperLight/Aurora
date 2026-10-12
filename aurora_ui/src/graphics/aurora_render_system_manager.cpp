@@ -3,6 +3,8 @@
 #include "aurora_ui/utils/aurora_theme_settings.hpp"
 #include "aurora_engine/utils/log.hpp"
 
+#include <algorithm>
+#include <iterator>
 #include <memory>
 
 namespace aurora {
@@ -88,6 +90,27 @@ namespace aurora {
         for (auto renderSystem : transparentSystems) {
             renderSystem->renderComponents(commandBuffer, camera, auroraRenderer.getFrameIndex());
         }
+    }
+
+    std::shared_ptr<AuroraModel> AuroraRenderSystemManager::getSharedModel(const std::string& key, const std::function<std::vector<AuroraModel::Vertex>()>& createVertices) {
+        auto& entry = sharedModels[key];
+        if (auto model = entry.lock()) {
+            return model;
+        }
+
+        AuroraModel::Builder builder{};
+        builder.vertices = createVertices();
+        auto model = std::make_shared<AuroraModel>(auroraDevice, builder);
+        entry = model;
+
+        // Drop entries whose models are gone, amortised so lookups stay O(1) on average
+        if (sharedModels.size() >= 2 * sharedModelsPruneSize) {
+            for (auto it = sharedModels.begin(); it != sharedModels.end();) {
+                it = it->second.expired() ? sharedModels.erase(it) : std::next(it);
+            }
+            sharedModelsPruneSize = std::max<size_t>(sharedModels.size(), 64);
+        }
+        return model;
     }
 
     size_t AuroraRenderSystemManager::getTotalComponentCount() const {

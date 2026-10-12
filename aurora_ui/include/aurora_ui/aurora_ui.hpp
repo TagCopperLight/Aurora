@@ -14,7 +14,7 @@ namespace aurora {
             static constexpr int WIDTH = 1920;
             static constexpr int HEIGHT = 1080;
 
-            explicit AuroraUI(const std::string& title = "Aurora");
+            explicit AuroraUI(const std::string& title = "Aurora", VkSampleCountFlagBits maxMsaaSamples = VK_SAMPLE_COUNT_8_BIT);
             virtual ~AuroraUI();
 
             AuroraUI(const AuroraUI&) = delete;
@@ -27,11 +27,20 @@ namespace aurora {
 
             virtual void onUpdate(float) {}
 
+            // Called at the end of every frame, before per-frame profiler data is reset
+            virtual void onFrameEnd() {}
+
+            void setFrameRateLimit(bool enabled) { frameRateLimit = enabled; }
+            void requestClose() { auroraWindow.requestClose(); }
+            AuroraRenderer& getRenderer() { return auroraRenderer; }
+
         private:
             AuroraWindow auroraWindow;
             AuroraDevice auroraDevice;
             AuroraRenderer auroraRenderer;
 
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
+
+            bool frameRateLimit = true;
     };
 }

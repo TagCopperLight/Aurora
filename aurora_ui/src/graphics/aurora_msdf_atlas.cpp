@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include "aurora_engine/utils/log.hpp"
 #include <cstring>
+#include <algorithm>
+#include <thread>
 
 namespace aurora {
     AuroraMSDFAtlas::AuroraMSDFAtlas(AuroraDevice& device, const std::string& fontPath)
@@ -87,7 +89,7 @@ namespace aurora {
         msdf_atlas::GeneratorAttributes attributes;
         
         generator.setAttributes(attributes);
-        generator.setThreadCount(4);
+        generator.setThreadCount(static_cast<int>(std::max(1u, std::thread::hardware_concurrency())));
 
         generator.generate(glyphs.data(), static_cast<int>(glyphs.size()));
 
@@ -130,6 +132,7 @@ namespace aurora {
         
         glyphCache.clear();
         kerningCache.clear();
+        glyphValid.fill(false);
     }
 
     void AuroraMSDFAtlas::buildGlyphCache() {
@@ -139,6 +142,12 @@ namespace aurora {
         for (const auto& glyph : glyphGeometry) {
             char character = static_cast<char>(glyph.getCodepoint());
             glyphCache[character] = &glyph;
+        }
+
+        glyphValid.fill(false);
+        for (const auto& [character, glyph] : glyphCache) {
+            unsigned char index = static_cast<unsigned char>(character);
+            glyphValid[index] = computeGlyphInfo(*glyph, glyphTable[index]);
         }
         
         log::ui()->debug("Built glyph cache with {} entries", glyphCache.size());
@@ -227,7 +236,7 @@ namespace aurora {
         msdfgen::BitmapConstRef<msdf_atlas::byte, 3> bitmapRef = *atlasStorage;
 
         bool success = msdf_atlas::saveImage(
-            bitmapRef,
+            msdfgen::BitmapConstSection<msdf_atlas::byte, 3>(bitmapRef),
             msdf_atlas::ImageFormat::PNG,
             outputPath.c_str()
         );
@@ -240,13 +249,15 @@ namespace aurora {
     }
     
     bool AuroraMSDFAtlas::getGlyphInfo(char character, GlyphInfo& glyphInfo) const {
-        auto it = glyphCache.find(character);
-        if (it == glyphCache.end()) {
+        const GlyphInfo* info = findGlyph(character);
+        if (!info) {
             return false;
         }
-        
-        const auto& glyph = *it->second;
-        
+        glyphInfo = *info;
+        return true;
+    }
+
+    bool AuroraMSDFAtlas::computeGlyphInfo(const msdf_atlas::GlyphGeometry& glyph, GlyphInfo& glyphInfo) const {
         double left, bottom, right, top;
         glyph.getQuadAtlasBounds(left, bottom, right, top);
         

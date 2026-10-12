@@ -41,7 +41,7 @@ namespace aurora {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
 
         if (isDynamicModel) {
-            vertexAllocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
+            vertexAllocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize, sizeof(Vertex));
             if (!vertexAllocation.isValid()) {
                 log::ui()->error("Failed to allocate dynamic vertex buffer from pool!");
                 return;
@@ -52,7 +52,7 @@ namespace aurora {
                  log::ui()->error("Dynamic buffer allocation has no mapped memory!");
             }
         } else {
-            vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize);
+            vertexAllocation = auroraDevice.getVertexBufferPool().allocate(bufferSize, sizeof(Vertex));
             if (!vertexAllocation.isValid()) {
                 log::ui()->error("Failed to allocate vertex buffer from pool!");
                 return;
@@ -130,11 +130,11 @@ namespace aurora {
         }
     }
 
-    void AuroraModel::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) {
+    void AuroraModel::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount, uint32_t firstInstance) {
         if (hasIndexBuffer) {
-            vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, firstInstance);
         } else {
-            vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
+            vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, firstInstance);
         }
     }
 
@@ -180,7 +180,7 @@ namespace aurora {
             return;
         }
 
-        auto newAlloc = auroraDevice.getDynamicVertexBufferPool().allocate(newSize);
+        auto newAlloc = auroraDevice.getDynamicVertexBufferPool().allocate(newSize, sizeof(Vertex));
         if (!newAlloc.isValid()) {
              log::ui()->error("Failed to resize dynamic vertex buffer!");
              return;

@@ -46,7 +46,7 @@ namespace aurora {
             AuroraModel &operator=(const AuroraModel &) = delete;
 
             void bind(VkCommandBuffer commandBuffer);
-            void draw(VkCommandBuffer commandBuffer, uint32_t instanceCount = 1);
+            void draw(VkCommandBuffer commandBuffer, uint32_t instanceCount = 1, uint32_t firstInstance = 0);
 
             void updateVertexData(const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
             void updateIndexData(const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
@@ -60,6 +60,12 @@ namespace aurora {
             uint32_t getIndexCount() const { return indexCount; }
 
             bool isDynamic() const { return isDynamicModel; }
+
+            VkBuffer getVertexBuffer() const { return vertexAllocation.buffer; }
+            VkDeviceSize getVertexBufferOffset() const { return vertexAllocation.offset; }
+            bool hasIndices() const { return hasIndexBuffer; }
+            VkBuffer getIndexBuffer() const { return indexAllocation.buffer; }
+            VkDeviceSize getIndexBufferOffset() const { return indexAllocation.offset; }
 
         private:
             void createVertexBuffers(const std::vector<Vertex> &vertices);

@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <array>
+#include <algorithm>
 #include "aurora_engine/utils/log.hpp"
 #include <cassert>
 
@@ -92,6 +93,7 @@ namespace aurora {
     void AuroraRenderSystem::addComponent(std::shared_ptr<AuroraComponentInterface> component) {
         size_t componentIndex = components.size();
         components.push_back(component);
+        batchesDirty = true;
         createComponentDescriptorSets(componentIndex, msdfAtlas);
     }
 
@@ -99,7 +101,39 @@ namespace aurora {
         auto it = std::find(components.begin(), components.end(), component);
         if (it != components.end()) {
             components.erase(it);
+            batchesDirty = true;
         }
+    }
+
+    bool AuroraRenderSystem::batchesOutdated() const {
+        if (batchesDirty || batchedModels.size() != components.size()) {
+            return true;
+        }
+        for (size_t i = 0; i < components.size(); ++i) {
+            if (components[i]->model.get() != batchedModels[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void AuroraRenderSystem::rebuildBatches() {
+        batches.clear();
+        batchedModels.clear();
+        batchedModels.reserve(components.size());
+
+        for (const auto& component : components) {
+            AuroraModel* model = component->model.get();
+            batchedModels.push_back(model);
+            if (!model) {
+                continue;
+            }
+            if (batches.empty() || batches.back().model != model) {
+                batches.push_back({model, {}});
+            }
+            batches.back().members.push_back(component.get());
+        }
+        batchesDirty = false;
     }
 
     void AuroraRenderSystem::renderComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera, int frameIndex) {
@@ -108,11 +142,6 @@ namespace aurora {
         if (needsTextureBinding && sharedDescriptorSet != VK_NULL_HANDLE) {
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sharedDescriptorSet, 0, nullptr);
         }
-
-        for (auto& allocation : frameInstanceAllocations[frameIndex]) {
-            auroraDevice.getDynamicVertexBufferPool().free(allocation);
-        }
-        frameInstanceAllocations[frameIndex].clear();
 
         PushConstantData pushData{};
         pushData.projectionViewMatrix = camera.getProjection();
@@ -126,49 +155,97 @@ namespace aurora {
             &pushData
         );
 
-        for (auto& [model, instances] : batches) {
-            instances.clear();
+        if (batchesOutdated()) {
+            rebuildBatches();
         }
-        
-        for (const auto& component : components) {
-            if (component->isHidden() || !component->model) {
-                continue;
-            }
-            
-            AuroraModel::InstanceData data{};
-            data.modelMatrix = component->getWorldTransform();
-            data.color = component->color;
-            
-            batches[component->model.get()].push_back(data);
+        if (batches.empty()) {
+            return;
         }
 
-        for (auto& [model, instances] : batches) {
-             if (instances.empty()) continue;
-             
-             VkDeviceSize bufferSize = sizeof(AuroraModel::InstanceData) * instances.size();
-             auto allocation = auroraDevice.getDynamicVertexBufferPool().allocate(bufferSize);
-             
-             if (!allocation.isValid()) {
-                 log::ui()->error("Failed to allocate instance buffer from pool!");
+        // Sized for every component; hidden ones are skipped so fewer instances may be written
+        AuroraBuffer& instanceBuffer = getInstanceBuffer(frameIndex, sizeof(AuroraModel::InstanceData) * components.size());
+        auto* instanceMemory = static_cast<AuroraModel::InstanceData*>(instanceBuffer.getMappedMemory());
+
+        VkBuffer instanceBuffers[] = {instanceBuffer.getBuffer()};
+        VkDeviceSize instanceOffsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 1, 1, instanceBuffers, instanceOffsets);
+
+        // Models mostly live in a few shared pool buffers. Their offsets are vertex-aligned, so
+        // each buffer is bound once and models are selected through firstVertex / vertexOffset.
+        VkBuffer boundVertexBuffer = VK_NULL_HANDLE;
+        VkBuffer boundIndexBuffer = VK_NULL_HANDLE;
+        VkDeviceSize boundIndexOffset = 0;
+
+        uint32_t firstInstance = 0;
+        uint64_t drawCalls = 0;
+        for (const auto& batch : batches) {
+             AuroraModel* model = batch.model;
+             uint32_t instanceCount = 0;
+             for (const AuroraComponentInterface* component : batch.members) {
+                 if (component->isHidden()) {
+                     continue;
+                 }
+                 AuroraModel::InstanceData& data = instanceMemory[firstInstance + instanceCount];
+                 data.modelMatrix = component->getWorldTransform();
+                 data.color = component->color;
+                 instanceCount++;
+             }
+             if (instanceCount == 0) continue;
+             if (model->getVertexBuffer() == VK_NULL_HANDLE) {
+                 // Vertex allocation failed when the model was created; nothing to draw
+                 firstInstance += instanceCount;
                  continue;
              }
-             
-             if (allocation.mappedMemory) {
-                memcpy(allocation.mappedMemory, instances.data(), (size_t)bufferSize);
-             }
-             
-             frameInstanceAllocations[frameIndex].push_back(allocation);
 
-             model->bind(commandBuffer);
-             
-             VkBuffer buffers[] = {allocation.buffer};
-             VkDeviceSize offsets[] = {allocation.offset};
-             vkCmdBindVertexBuffers(commandBuffer, 1, 1, buffers, offsets);
-             
-             model->draw(commandBuffer, static_cast<uint32_t>(instances.size()));
-             
-             AuroraProfiler::instance().incrementCounter("Draw Calls");
+             VkDeviceSize vertexOffset = model->getVertexBufferOffset();
+             if (vertexOffset % sizeof(AuroraModel::Vertex) != 0) {
+                 model->bind(commandBuffer);
+                 boundVertexBuffer = VK_NULL_HANDLE;
+                 boundIndexBuffer = VK_NULL_HANDLE;
+                 model->draw(commandBuffer, instanceCount, firstInstance);
+             } else {
+                 if (model->getVertexBuffer() != boundVertexBuffer) {
+                     boundVertexBuffer = model->getVertexBuffer();
+                     VkDeviceSize zeroOffset = 0;
+                     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &boundVertexBuffer, &zeroOffset);
+                 }
+
+                 uint32_t firstVertex = static_cast<uint32_t>(vertexOffset / sizeof(AuroraModel::Vertex));
+                 if (model->hasIndices()) {
+                     if (model->getIndexBuffer() != boundIndexBuffer || model->getIndexBufferOffset() != boundIndexOffset) {
+                         boundIndexBuffer = model->getIndexBuffer();
+                         boundIndexOffset = model->getIndexBufferOffset();
+                         vkCmdBindIndexBuffer(commandBuffer, boundIndexBuffer, boundIndexOffset, VK_INDEX_TYPE_UINT32);
+                     }
+                     vkCmdDrawIndexed(commandBuffer, model->getIndexCount(), instanceCount, 0, static_cast<int32_t>(firstVertex), firstInstance);
+                 } else {
+                     vkCmdDraw(commandBuffer, model->getVertexCount(), instanceCount, firstVertex, firstInstance);
+                 }
+             }
+
+             firstInstance += instanceCount;
+             drawCalls++;
         }
+
+        AuroraProfiler::instance().incrementCounter("Draw Calls", drawCalls);
+    }
+
+    AuroraBuffer& AuroraRenderSystem::getInstanceBuffer(int frameIndex, VkDeviceSize requiredSize) {
+        auto& buffer = frameInstanceBuffers[frameIndex];
+        if (!buffer || buffer->getBufferSize() < requiredSize) {
+            // Grow geometrically so a slowly growing scene doesn't reallocate every frame
+            VkDeviceSize capacity = buffer ? buffer->getBufferSize() : 0;
+            capacity = std::max(requiredSize, capacity * 2);
+            buffer = std::make_unique<AuroraBuffer>(
+                auroraDevice,
+                capacity,
+                1,
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+            );
+            buffer->map();
+        }
+        return *buffer;
     }
 
     bool AuroraRenderSystem::isCompatibleWith(const AuroraComponentInterface& component) const {

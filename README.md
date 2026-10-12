@@ -1,8 +1,10 @@
 # Aurora
 
-A C++17 toolkit for visualizing simulations and debugging live data, rendered
+A toolkit for visualizing simulations and debugging live data, rendered
 with Vulkan. Combine 2D shapes, text, trails, and panels in a small application,
 or receive watch values from another process over TCP.
+
+![Orbits](docs/screenshots/orbits.png)
 
 ## Build and run
 
@@ -65,7 +67,6 @@ and performance counters.
 - `aurora_engine`: Vulkan device, swapchain, buffers, textures, and profiling.
 - `aurora_ui`: components, text rendering, panels, and the application loop.
 - `aurora_debug`: TCP sessions, watch messages, and frame streaming.
-- `clients`: libraries for sending data to Aurora from other programs, and the
-  [protocol](clients/PROTOCOL.md) they implement. See the [Python client](clients/python/README.md).
+- `clients`: libraries for sending data to Aurora from other programs, and the [protocol](clients/PROTOCOL.md) they implement.
 - `debug_example`: a live watch viewer and Python scripts that use the Python client.
 - `aurora_bench` and [`bench/`](bench/README.md): rendering and performance checks.

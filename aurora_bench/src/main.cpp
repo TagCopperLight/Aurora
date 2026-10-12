@@ -13,7 +13,6 @@
 #include "aurora_engine/profiling/aurora_profiler.hpp"
 #include "aurora_engine/utils/log.hpp"
 
-#include <fontconfig/fontconfig.h>
 #include <sys/resource.h>
 #include <dirent.h>
 
@@ -323,7 +322,6 @@ int main(int argc, char** argv) {
         if (std::strcmp(argv[i], "--verbose") == 0) verbose = true;
     }
     aurora::log::init(verbose ? spdlog::level::debug : spdlog::level::warn);
-    FcInit();
 
     auto setupStart = Clock::now();
     BenchApp app{options};

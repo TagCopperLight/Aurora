@@ -4,6 +4,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/constants.hpp>
 
+#include <cstdarg>
 #include <cstdio>
 
 namespace aurora {
@@ -48,6 +49,15 @@ namespace aurora {
                 key += buffer;
             }
             return key;
+        }
+
+        std::string format(const char* fmt, ...) {
+            char buffer[128];
+            va_list args;
+            va_start(args, fmt);
+            std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+            va_end(args);
+            return buffer;
         }
     }
 }

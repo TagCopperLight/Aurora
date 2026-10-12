@@ -17,7 +17,6 @@ find_package(ZLIB REQUIRED)
 target_link_libraries(aurora_bench PRIVATE
     aurora_ui
     aurora_engine
-    fontconfig
     Freetype::Freetype
     PNG::PNG
     ZLIB::ZLIB

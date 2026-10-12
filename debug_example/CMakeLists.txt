@@ -18,7 +18,6 @@ target_link_libraries(debug_example PRIVATE
     aurora_ui
     aurora_debug
     aurora_engine
-    fontconfig
     Freetype::Freetype
     PNG::PNG
     ZLIB::ZLIB

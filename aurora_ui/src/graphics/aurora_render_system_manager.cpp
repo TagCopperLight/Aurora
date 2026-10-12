@@ -65,6 +65,10 @@ namespace aurora {
             }
             componentQueue.clear();
 
+            std::stable_sort(components.begin(), components.end(), [](const auto& a, const auto& b) {
+                return a->getLayer() < b->getLayer();
+            });
+
             float depth = MAX_DEPTH;
             recalculateAllDepths(components, depth, DEPTH_INCREMENT);
             log::ui()->debug("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());

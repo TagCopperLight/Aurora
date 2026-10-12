@@ -8,12 +8,14 @@
 #include <glm/glm.hpp>
 
 #include "aurora_engine/utils/log.hpp"
+#include <fontconfig/fontconfig.h>
 
 namespace aurora {
     AuroraUI::AuroraUI(const std::string& title, VkSampleCountFlagBits maxMsaaSamples)
         : auroraWindow{WIDTH, HEIGHT, title},
           auroraDevice{auroraWindow, maxMsaaSamples},
           auroraRenderer{auroraWindow, auroraDevice, AuroraThemeSettings::get().BACKGROUND} {
+        FcInit();
         log::ui()->info("Initializing Aurora UI");
         renderSystemManager = std::make_unique<AuroraRenderSystemManager>(auroraDevice, auroraRenderer);
         log::ui()->info("Aurora UI ready");

@@ -91,6 +91,7 @@ target_link_libraries(aurora_ui PUBLIC
     ${MSDF_ATLAS_GEN_LIB}
     ${MSDFGEN_EXT_LIB}
     ${MSDFGEN_CORE_LIB}
+    fontconfig
 )
 
 # Set compiler-specific options

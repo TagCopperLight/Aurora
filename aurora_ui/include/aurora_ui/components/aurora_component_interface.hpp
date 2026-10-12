@@ -52,6 +52,7 @@ namespace aurora {
 
             virtual void addChild(std::shared_ptr<AuroraComponentInterface> child) {
                 child->parent = weak_from_this();
+                child->setLayer(layer);
                 // The parent transform is pushed down explicitly: weak_from_this() is still empty when
                 // children are added from a constructor, so the child cannot rely on locking `parent`.
                 child->setParentTransform(worldTransform);
@@ -110,6 +111,17 @@ namespace aurora {
                 }
             }
 
+            // Components are drawn by increasing layer, then in the order they were added to the
+            // render system. Children share their parent's layer. Set it before addToRenderSystem().
+            void setLayer(int value) {
+                layer = value;
+                for (const auto& child : children) {
+                    child->setLayer(value);
+                }
+            }
+
+            int getLayer() const { return layer; }
+
             void setRendering(bool value) {
                 rendering = value;
             }
@@ -124,6 +136,7 @@ namespace aurora {
 
             bool hidden = false;
             bool rendering = false;
+            int layer = 0;
 
             glm::mat4 worldTransform{1.0f};
             glm::mat4 parentTransform{1.0f};

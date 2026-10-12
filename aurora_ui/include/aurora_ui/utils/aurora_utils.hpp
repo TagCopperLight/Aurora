@@ -19,5 +19,8 @@ namespace aurora {
 
         // Builds a cache key for AuroraRenderSystemManager::getSharedModel from a shape name and its parameters
         std::string modelKey(const char* shape, std::initializer_list<float> params);
+
+        // printf-style formatting into a std::string, e.g. format("%.2f ms", frameTime)
+        std::string format(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
     }
 }

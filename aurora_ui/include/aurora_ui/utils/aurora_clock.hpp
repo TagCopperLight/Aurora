@@ -6,7 +6,7 @@
 namespace aurora {
     class AuroraClock {
     public:
-        AuroraClock(int targetFrameRate = 60, bool enableFrameRateLimit = true);
+        AuroraClock(int targetFrameRate = 60, bool enableFrameRateLimit = false);
         ~AuroraClock();
 
         void beginFrame();

@@ -57,6 +57,6 @@ namespace aurora {
             std::unique_ptr<AuroraRenderSystemManager> renderSystemManager;
             std::unique_ptr<AuroraComponentInfo> componentInfo;
 
-            bool frameRateLimit = true;
+            bool frameRateLimit = false;
     };
 }

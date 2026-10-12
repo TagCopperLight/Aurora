@@ -111,9 +111,7 @@ namespace {
 class BenchApp : public aurora::AuroraUI {
     public:
         explicit BenchApp(Options options)
-            : AuroraUI{"Aurora Bench", static_cast<VkSampleCountFlagBits>(options.msaa)}, options{std::move(options)} {
-            setFrameRateLimit(false);
-        }
+            : AuroraUI{"Aurora Bench", static_cast<VkSampleCountFlagBits>(options.msaa)}, options{std::move(options)} {}
 
         void printResults(double setupMs) const {
             if (frameTimes.values.empty()) {

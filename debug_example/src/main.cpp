@@ -11,9 +11,7 @@
 
 class DebugApp : public aurora::AuroraUI {
     public:
-        DebugApp() : AuroraUI{"Aurora Debug"} {
-            setFrameRateLimit(false);
-        }
+        DebugApp() : AuroraUI{"Aurora Debug"} {}
 
     protected:
         void onSetup() override {

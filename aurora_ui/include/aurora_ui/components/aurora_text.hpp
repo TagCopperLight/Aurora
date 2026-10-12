@@ -61,7 +61,6 @@ namespace aurora {
 
             std::string cachedFullText;
 
-            size_t currentVertexCapacity = 0;
             std::vector<AuroraModel::Vertex> cachedVertices;
     };
 }

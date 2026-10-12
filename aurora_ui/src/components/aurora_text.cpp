@@ -81,7 +81,6 @@ namespace aurora {
         model->setVertexCount(static_cast<uint32_t>(cachedVertices.size()));
         model->setIndexCount(static_cast<uint32_t>(cachedVertices.size() / 4 * 6));
 
-        currentVertexCapacity = vertexCapacity;
     }
 
     void AuroraText::updateTextVertices() {

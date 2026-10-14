@@ -29,6 +29,7 @@ namespace aurora {
         window = glfwCreateWindow(width, height, windowName.c_str(), monitor, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+        glfwSetKeyCallback(window, keyCallback);
     }
         
     void AuroraWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
@@ -42,5 +43,10 @@ namespace aurora {
         auroraWindow->framebufferResized = true;
         auroraWindow->width = width;
         auroraWindow->height = height;
+    }
+
+    void AuroraWindow::keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int mods) {
+        auto auroraWindow = reinterpret_cast<AuroraWindow *>(glfwGetWindowUserPointer(window));
+        if (action != GLFW_RELEASE && auroraWindow->keyHandler) auroraWindow->keyHandler(key, mods);
     }
 }

@@ -31,6 +31,9 @@ namespace aurora {
             // Called at the end of every frame, before per-frame profiler data is reset
             virtual void onFrameEnd() {}
 
+            // Called with the GLFW key code (GLFW_KEY_*) and modifier bits when a key is pressed or repeats
+            virtual void onKey(int /*key*/, int /*mods*/) {}
+
             void setFrameRateLimit(bool enabled) { frameRateLimit = enabled; }
             void requestClose() { auroraWindow.requestClose(); }
             AuroraRenderer& getRenderer() { return auroraRenderer; }

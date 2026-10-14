@@ -37,6 +37,8 @@ namespace aurora::debug {
     bool AuroraDebugSession::poll(const std::function<void(const DebugMessage&)>& onMessage) {
         if (!connected) return false;
 
+        flush();
+
         char buf[4096];
         ssize_t n;
 
@@ -66,6 +68,27 @@ namespace aurora::debug {
         }
 
         return true;
+    }
+
+    void AuroraDebugSession::send(const DebugMessage& msg) {
+        if (!connected) return;
+        writeBuffer += static_cast<char>(msg.type);
+        writeBuffer += msg.payload;
+        writeBuffer += '\n';
+        flush();
+    }
+
+    void AuroraDebugSession::flush() {
+        while (!writeBuffer.empty()) {
+            // MSG_NOSIGNAL: a client that went away must not kill the app with SIGPIPE
+            ssize_t n = ::send(fd, writeBuffer.data(), writeBuffer.size(), MSG_NOSIGNAL);
+            if (n < 0) {
+                // A closed connection is noticed and reported by the next recv() in poll()
+                if (errno != EAGAIN && errno != EWOULDBLOCK) writeBuffer.clear();
+                return;
+            }
+            writeBuffer.erase(0, static_cast<size_t>(n));
+        }
     }
 
 } // namespace aurora::debug

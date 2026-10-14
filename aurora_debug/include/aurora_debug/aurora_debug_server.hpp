@@ -27,6 +27,9 @@ namespace aurora::debug {
             // Call once per frame.
             void poll();
 
+            // Sends a message to every connected client
+            void broadcast(const DebugMessage& msg);
+
             bool isRunning() const;
             uint16_t getPort() const;
             size_t getClientCount() const;

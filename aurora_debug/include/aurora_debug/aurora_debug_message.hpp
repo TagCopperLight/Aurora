@@ -10,6 +10,7 @@ namespace aurora::debug {
         Watch     = 1,  // variable name + value
         Profiling = 2,  // frame timing data
         Custom    = 3,  // application-defined widget data
+        Command   = 4,  // sent by the app to its clients, e.g. to pause a simulation
     };
 
     struct DebugMessage {

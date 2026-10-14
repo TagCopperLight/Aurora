@@ -54,5 +54,14 @@ aurora.send(
 )
 ```
 
+`commands()` returns the commands the app sent since the last call, without
+blocking, so it can be polled once per frame:
+
+```python
+for command in aurora.commands():
+    if command.name == "pause":
+        paused = not paused
+```
+
 `AuroraUnavailableError` and `AuroraDisconnectedError` both subclass
 `AuroraConnectionError`, which subclasses the built-in `ConnectionError`.

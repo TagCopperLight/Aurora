@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <functional>
 #include <string>
 
 namespace aurora {
@@ -21,8 +22,12 @@ namespace aurora {
 
             void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
+            // Called with the GLFW key code and modifier bits whenever a key is pressed or repeats
+            void setKeyHandler(std::function<void(int key, int mods)> handler) { keyHandler = std::move(handler); }
+
         private:
             static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+            static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
             void initWindow();
 
             int width;
@@ -31,5 +36,6 @@ namespace aurora {
 
             std::string windowName;
             GLFWwindow* window;
+            std::function<void(int, int)> keyHandler;
     };
 }

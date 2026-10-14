@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import select
 import socket
 from collections.abc import Mapping
 from types import TracebackType
 from typing import Any, Self
 
-from .messages import Custom, Log, LogLevel, Message, Watch
+from .messages import Command, Custom, Log, LogLevel, Message, Watch
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 9000
@@ -37,6 +38,7 @@ class AuroraClient:
         self.port = port
         self.timeout = timeout
         self._socket: socket.socket | None = None
+        self._received = b""  # bytes read from the app that do not form a complete line yet
 
     def __repr__(self) -> str:
         state = "connected" if self.connected else "closed"
@@ -68,6 +70,7 @@ class AuroraClient:
         if self._socket is not None:
             self._socket.close()
             self._socket = None
+            self._received = b""
 
     def send(self, *messages: Message) -> None:
         """Sends all messages in a single write."""
@@ -78,6 +81,23 @@ class AuroraClient:
         except (BrokenPipeError, ConnectionResetError) as error:
             self.close()
             raise AuroraDisconnectedError(f"Aurora app at {self.address} closed the connection") from error
+
+    def commands(self) -> list[Command]:
+        """Returns the commands the app sent since the last call, oldest first. Never blocks."""
+        if self._socket is None:
+            raise AuroraConnectionError("Not connected, call connect() first")
+        while select.select([self._socket], [], [], 0)[0]:
+            try:
+                data = self._socket.recv(4096)
+            except ConnectionResetError:
+                data = b""
+            if not data:
+                self.close()
+                raise AuroraDisconnectedError(f"Aurora app at {self.address} closed the connection")
+            self._received += data
+
+        *lines, self._received = self._received.split(b"\n")
+        return [command for line in lines if (command := Command.decode(line)) is not None]
 
     def log(self, text: str, level: LogLevel = LogLevel.INFO) -> None:
         self.send(Log(text, level))

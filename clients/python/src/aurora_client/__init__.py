@@ -8,7 +8,7 @@ from .client import (
     AuroraDisconnectedError,
     AuroraUnavailableError,
 )
-from .messages import Custom, Log, LogLevel, Message, MessageType, Profiling, Watch
+from .messages import Command, Custom, Log, LogLevel, Message, MessageType, Profiling, Watch
 
 __all__ = [
     "DEFAULT_HOST",
@@ -17,6 +17,7 @@ __all__ = [
     "AuroraConnectionError",
     "AuroraDisconnectedError",
     "AuroraUnavailableError",
+    "Command",
     "Custom",
     "Log",
     "LogLevel",

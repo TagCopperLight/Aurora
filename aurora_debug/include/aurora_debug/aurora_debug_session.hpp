@@ -22,14 +22,21 @@ namespace aurora::debug {
             // was closed and the session should be removed.
             bool poll(const std::function<void(const DebugMessage&)>& onMessage);
 
+            // Queues a message for the client and sends as much of it as the socket accepts.
+            // Whatever is left is sent by the next poll(), so this never blocks either.
+            void send(const DebugMessage& msg);
+
             bool isConnected() const;
             const std::string& getAddress() const;
 
         private:
+            void flush();
+
             int fd;
             bool connected;
             std::string address;
-            std::string readBuffer; // accumulates partial data between polls
+            std::string readBuffer;  // accumulates partial data between polls
+            std::string writeBuffer; // data queued by send() that the socket has not taken yet
     };
 
 } // namespace aurora::debug

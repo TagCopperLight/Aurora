@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum, StrEnum
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Self
 
 
 class MessageType(IntEnum):
@@ -16,6 +16,7 @@ class MessageType(IntEnum):
     WATCH = 1
     PROFILING = 2
     CUSTOM = 3
+    COMMAND = 4  # sent by the Aurora app to its clients
 
 
 class LogLevel(StrEnum):
@@ -97,3 +98,27 @@ class Custom(Message):
         if self.sent is not None:
             payload["sent"] = self.sent
         return payload
+
+
+@dataclass(frozen=True, slots=True)
+class Command(Message):
+    """A request sent by the Aurora app, e.g. to pause a simulation. The names are agreed with the app."""
+
+    type: ClassVar[MessageType] = MessageType.COMMAND
+
+    name: str
+
+    @classmethod
+    def decode(cls, line: bytes) -> Self | None:
+        """Reads one line received from the app, without its newline. Returns None if it is not a command."""
+        if not line or line[0] != MessageType.COMMAND:
+            return None
+        try:
+            payload = json.loads(line[1:])
+        except ValueError:
+            return None
+        name = payload.get("command") if isinstance(payload, dict) else None
+        return cls(name) if isinstance(name, str) else None
+
+    def payload(self) -> dict[str, Any]:
+        return {"command": self.name}

@@ -35,6 +35,7 @@ namespace aurora {
         auto& profiler = AuroraProfiler::instance();
         profiler.setEnabled(true);
 
+        auroraWindow.setKeyHandler([this](int key, int mods) { onKey(key, mods); });
         onSetup();
 
         while (!auroraWindow.shouldClose()) {

@@ -1,15 +1,15 @@
 # Aurora debug protocol
 
 Programs send data to an Aurora app over TCP. The app runs an `AuroraDebugServer`
-(port 9000 by default) and each client opens one connection to it. Data only flows
-from the client to the server; the server never replies.
+(port 9000 by default) and each client opens one connection to it. Data mostly flows
+from the client to the server; the only messages the server sends back are commands.
 
 The clients in this folder implement this protocol. Use one if it exists for your
 language, and update this file first when the protocol changes.
 
 ## Framing
 
-Each message is one line:
+Each message, in either direction, is one line:
 
 ```
 <1-byte message type><JSON object>\n
@@ -29,6 +29,7 @@ Each message is one line:
 | `1`  | Watch     | `WatchMessage::parse`, shown in an `AuroraPanel` |
 | `2`  | Profiling | Nothing built in; reserved for timing data       |
 | `3`  | Custom    | The app, usually through `AuroraFrameStream`    |
+| `4`  | Command   | The client; sent by the app, never to it         |
 
 ### Log
 
@@ -73,3 +74,16 @@ Application-defined data, typically one frame of a simulation:
   machine for this to be meaningful, since it compares their wall clocks.
 - `AuroraFrameStream` only draws the latest frame. Frames that arrive between two
   renders are counted as not drawn.
+
+### Command
+
+Sent by the app to its clients with `AuroraDebugServer::broadcast`, usually in
+response to user input:
+
+```json
+{"command": "pause"}
+```
+
+- The command names are agreed between the app and its clients, like Custom keys.
+- Clients that do not read from their socket can ignore commands entirely: the app
+  never waits for them to be read.

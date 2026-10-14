@@ -97,6 +97,10 @@ namespace aurora::debug {
         }
     }
 
+    void AuroraDebugServer::broadcast(const DebugMessage& msg) {
+        for (auto& session : sessions) session->send(msg);
+    }
+
     bool AuroraDebugServer::isRunning() const { return running; }
     uint16_t AuroraDebugServer::getPort() const { return port; }
     size_t AuroraDebugServer::getClientCount() const { return sessions.size(); }

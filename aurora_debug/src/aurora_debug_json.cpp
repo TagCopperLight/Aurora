@@ -1,6 +1,7 @@
 #include "aurora_debug/aurora_debug_json.hpp"
 
 #include <cctype>
+#include <cstdio>
 #include <cstdlib>
 
 namespace aurora::debug {
@@ -98,6 +99,28 @@ namespace aurora::debug {
             }
             return values;
         }
+
+        std::string quote(const std::string& text) {
+            std::string quoted = "\"";
+            for (char c : text) {
+                switch (c) {
+                    case '"': quoted += "\\\""; break;
+                    case '\\': quoted += "\\\\"; break;
+                    case '\n': quoted += "\\n"; break;
+                    case '\t': quoted += "\\t"; break;
+                    case '\r': quoted += "\\r"; break;
+                    default:
+                        if (static_cast<unsigned char>(c) < 0x20) {
+                            char escaped[7];
+                            std::snprintf(escaped, sizeof(escaped), "\\u%04x", c);
+                            quoted += escaped;
+                        } else {
+                            quoted += c;
+                        }
+                }
+            }
+            return quoted + "\"";
+        }
     }
 
     bool WatchMessage::parse(const std::string& payload, WatchMessage& out) {
@@ -108,6 +131,10 @@ namespace aurora::debug {
         if (out.section.empty()) out.section = "WATCHES";
         out.value = json::getString(payload, "value");
         return true;
+    }
+
+    DebugMessage CommandMessage::toMessage() const {
+        return {MessageType::Command, "{\"command\":" + json::quote(name) + "}"};
     }
 
 }

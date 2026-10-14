@@ -30,6 +30,7 @@ namespace aurora {
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
         glfwSetKeyCallback(window, keyCallback);
+        glfwSetMouseButtonCallback(window, mouseButtonCallback);
     }
         
     void AuroraWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
@@ -48,5 +49,20 @@ namespace aurora {
     void AuroraWindow::keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int mods) {
         auto auroraWindow = reinterpret_cast<AuroraWindow *>(glfwGetWindowUserPointer(window));
         if (action != GLFW_RELEASE && auroraWindow->keyHandler) auroraWindow->keyHandler(key, mods);
+    }
+
+    void AuroraWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        auto auroraWindow = reinterpret_cast<AuroraWindow *>(glfwGetWindowUserPointer(window));
+        if (action == GLFW_PRESS && auroraWindow->mouseButtonHandler) auroraWindow->mouseButtonHandler(button, mods);
+    }
+
+    glm::vec2 AuroraWindow::getCursorPosition() const {
+        double x, y;
+        int windowWidth, windowHeight, framebufferWidth, framebufferHeight;
+        glfwGetCursorPos(window, &x, &y);
+        glfwGetWindowSize(window, &windowWidth, &windowHeight);
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+        if (windowWidth == 0 || windowHeight == 0) return {0.f, 0.f};
+        return {static_cast<float>(x) * framebufferWidth / windowWidth, static_cast<float>(y) * framebufferHeight / windowHeight};
     }
 }

@@ -36,6 +36,7 @@ namespace aurora {
         profiler.setEnabled(true);
 
         auroraWindow.setKeyHandler([this](int key, int mods) { onKey(key, mods); });
+        auroraWindow.setMouseButtonHandler([this](int button, int) { onMouseButton(button, getCursorPosition()); });
         onSetup();
 
         while (!auroraWindow.shouldClose()) {

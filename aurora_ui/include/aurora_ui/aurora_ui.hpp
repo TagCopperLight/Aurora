@@ -34,6 +34,12 @@ namespace aurora {
             // Called with the GLFW key code (GLFW_KEY_*) and modifier bits when a key is pressed or repeats
             virtual void onKey(int /*key*/, int /*mods*/) {}
 
+            // Called with the GLFW button code (GLFW_MOUSE_BUTTON_*) and the cursor position when a mouse button is pressed
+            virtual void onMouseButton(int /*button*/, glm::vec2 /*position*/) {}
+
+            // In the same pixels as component positions
+            glm::vec2 getCursorPosition() const { return auroraWindow.getCursorPosition(); }
+
             void setFrameRateLimit(bool enabled) { frameRateLimit = enabled; }
             void requestClose() { auroraWindow.requestClose(); }
             AuroraRenderer& getRenderer() { return auroraRenderer; }

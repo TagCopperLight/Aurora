@@ -11,7 +11,7 @@ namespace aurora {
     }
 
     AuroraTrail::AuroraTrail(AuroraComponentInfo& componentInfo, size_t length, float thickness, glm::vec4 color)
-        : AuroraComponentInterface{componentInfo}, points(length), thickness{thickness}, trailColor{color} {
+        : AuroraComponentInterface{componentInfo}, points(length), connections(length), thickness{thickness}, trailColor{color} {
         // One segment joins each pair of consecutive points
         for (size_t i = 1; i < length; ++i) {
             auto segment = std::make_shared<AuroraSegment>(componentInfo, color);
@@ -21,9 +21,19 @@ namespace aurora {
         }
     }
 
-    void AuroraTrail::push(glm::vec2 position) {
+    void AuroraTrail::push(glm::vec2 point, bool connected) {
         if (points.empty()) return;
-        points[head] = position;
+
+        size_t length = points.size();
+        size_t newest = (head + length - 1) % length;
+        if (connected && size >= 2 && connections[newest] && glm::distance(point, points[(head + length - 2) % length]) < minStep) {
+            points[newest] = point;
+            refresh();
+            return;
+        }
+
+        points[head] = point;
+        connections[head] = connected;
         head = (head + 1) % points.size();
         size = std::min(size + 1, points.size());
         refresh();
@@ -31,6 +41,13 @@ namespace aurora {
 
     void AuroraTrail::clear() {
         size = 0;
+        refresh();
+    }
+
+    void AuroraTrail::setMapping(glm::vec2 origin, glm::vec2 scale) {
+        if (this->origin == origin && this->scale == scale) return;
+        this->origin = origin;
+        this->scale = scale;
         refresh();
     }
 
@@ -47,19 +64,19 @@ namespace aurora {
         // Segment `age` joins the point of that age to the next older one
         for (size_t age = 0; age < segments.size(); ++age) {
             auto& segment = segments[age];
-            if (age + 1 >= size) {
+            size_t newer = (head + length - 1 - age) % length;
+            size_t older = (head + length - 2 - age) % length;
+            if (age + 1 >= size || !connections[newer]) {
                 segment->setHidden(true);
                 continue;
             }
 
-            size_t newer = (head + length - 1 - age) % length;
-            size_t older = (head + length - 2 - age) % length;
             float fade = 1.f - static_cast<float>(age) / static_cast<float>(length);
             float segmentThickness = thickness * (MIN_SIZE + (1.f - MIN_SIZE) * fade);
 
             segment->color = glm::mix(background, trailColor, MAX_STRENGTH * fade);
             segment->color.a = 1.f;
-            segment->setEndpoints(points[newer], points[older], segmentThickness);
+            segment->setEndpoints(origin + points[newer] * scale, origin + points[older] * scale, segmentThickness);
             segment->setHidden(false);
         }
     }

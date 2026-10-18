@@ -486,8 +486,6 @@ namespace aurora {
     }
 
     VkFormat AuroraSwapChain::findDepthFormat() {
-        // D16 is plenty for UI layering (components are 1e-4 apart in a linear [0, 1] depth range)
-        // and halves depth bandwidth, which matters with multisampled attachments.
         return device.findSupportedFormat(
             {VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,

@@ -1,7 +1,7 @@
 // Aurora benchmark: renders a stress scene with the frame-rate limiter disabled,
 // then prints a single JSON line with per-frame timing statistics.
 //
-// Usage: aurora_bench [--scene static|dynamic|panel] [--frames N] [--warmup N] [--max-seconds S] [--capture out.ppm] [--msaa 1|2|4|8] [--verbose]
+// Usage: aurora_bench [--scene static|dynamic|panel|many] [--count N] [--frames N] [--warmup N] [--max-seconds S] [--capture out.ppm] [--msaa 1|2|4|8] [--verbose]
 
 #include "aurora_ui/aurora_ui.hpp"
 #include "aurora_ui/components/aurora_card.hpp"
@@ -101,6 +101,7 @@ namespace {
         double maxSeconds = 60.0; // hard cap so the window always closes itself
         std::string capturePath;  // if set, the last measured frame is written there as PPM
         int msaa = 8;             // maximum MSAA sample count
+        int count = 40000;        // number of shapes in the "many" scene
     };
 
     // Phases recorded through AURORA_PROFILE in AuroraUI::run / the renderer
@@ -142,6 +143,8 @@ class BenchApp : public aurora::AuroraUI {
         void onSetup() override {
             if (options.scene == "panel") {
                 buildPanelScene();
+            } else if (options.scene == "many") {
+                buildManyScene();
             } else {
                 buildGridScene();
             }
@@ -236,6 +239,31 @@ class BenchApp : public aurora::AuroraUI {
             }
         }
 
+        // Overlapping rectangles and circles, alternated so neighbours live in different render systems
+        // and only the depth values keep later shapes on top of earlier ones
+        void buildManyScene() {
+            const auto& theme = aurora::AuroraThemeSettings::get();
+            const glm::vec4 colors[] = {theme.BLUE, theme.ORANGE, theme.PURPLE, theme.GRAY};
+            const int columns = 240;
+            const float cell = 1900.f / static_cast<float>(columns);
+            const float rowHeight = 1060.f * static_cast<float>(columns) / static_cast<float>(std::max(options.count, 1));
+
+            for (int i = 0; i < options.count; ++i) {
+                float x = 10.f + static_cast<float>(i % columns) * cell;
+                float y = 10.f + static_cast<float>(i / columns) * rowHeight;
+                const glm::vec4& color = colors[i % 4];
+                if (i % 2) {
+                    auto circle = create<aurora::AuroraCircle>(cell * 0.9f, color);
+                    circle->setPosition(x, y);
+                } else {
+                    auto rect = create<aurora::AuroraRoundedRectangle>(glm::vec2{cell * 1.8f, cell * 1.8f}, 2.f);
+                    rect->color = color;
+                    rect->setPosition(x, y);
+                }
+                componentCount++;
+            }
+        }
+
         void updateDynamicScene() {
             char buffer[64];
             for (size_t i = 0; i < texts.size(); i += 2) {
@@ -300,6 +328,7 @@ int main(int argc, char** argv) {
         else if (std::strcmp(argv[i], "--max-seconds") == 0 && i + 1 < argc) options.maxSeconds = std::atof(argv[++i]);
         else if (std::strcmp(argv[i], "--capture") == 0 && i + 1 < argc) options.capturePath = argv[++i];
         else if (std::strcmp(argv[i], "--msaa") == 0 && i + 1 < argc) options.msaa = std::atoi(argv[++i]);
+        else if (std::strcmp(argv[i], "--count") == 0 && i + 1 < argc) options.count = std::atoi(argv[++i]);
     }
 
     bool verbose = false;

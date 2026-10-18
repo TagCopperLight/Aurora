@@ -45,16 +45,25 @@ namespace aurora {
         }
     }
 
-    void AuroraRenderSystemManager::recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float& depth, float depthIncrement) {
+    void AuroraRenderSystemManager::recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, size_t& index, float depthIncrement) {
         for (const auto& component : components) {
-            component->setDepth(depth);
-            depth -= depthIncrement;
+            // Computed from the index rather than accumulated so rounding errors don't build up over many components
+            component->setDepth(MAX_DEPTH - static_cast<float>(index) * depthIncrement);
+            index++;
 
             auto& children = component->getChildren();
             if (!children.empty()) {
-                recalculateAllDepths(children, depth, depthIncrement);
+                recalculateAllDepths(children, index, depthIncrement);
             }
         }
+    }
+
+    size_t AuroraRenderSystemManager::countComponentTree(const std::vector<std::shared_ptr<AuroraComponentInterface>>& components) {
+        size_t count = components.size();
+        for (const auto& component : components) {
+            count += countComponentTree(component->getChildren());
+        }
+        return count;
     }
 
     void AuroraRenderSystemManager::renderAllComponents(VkCommandBuffer commandBuffer, const AuroraCamera& camera) {
@@ -76,8 +85,11 @@ namespace aurora {
                 return a->getLayer() < b->getLayer();
             });
 
-            float depth = MAX_DEPTH;
-            recalculateAllDepths(components, depth, DEPTH_INCREMENT);
+            // Every component must land in (0, MAX_DEPTH], anything below 0 is clipped away
+            size_t componentTreeSize = countComponentTree(components);
+            float depthIncrement = std::min(DEPTH_INCREMENT, MAX_DEPTH / static_cast<float>(std::max<size_t>(componentTreeSize, 1)));
+            size_t depthIndex = 0;
+            recalculateAllDepths(components, depthIndex, depthIncrement);
             log::ui()->debug("Created {} render systems with {} total components", renderSystems.size(), getTotalComponentCount());
         }
 

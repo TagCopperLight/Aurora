@@ -58,7 +58,9 @@ namespace aurora {
             
             void addComponentToRenderSystems(std::shared_ptr<AuroraComponentInterface> component);
 
-            void recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, float& depth, float depthIncrement);
+            void recalculateAllDepths(std::vector<std::shared_ptr<AuroraComponentInterface>>& components, size_t& index, float depthIncrement);
+
+            static size_t countComponentTree(const std::vector<std::shared_ptr<AuroraComponentInterface>>& components);
 
             AuroraDevice& auroraDevice;
             AuroraRenderer& auroraRenderer;
@@ -82,6 +84,8 @@ namespace aurora {
             size_t sharedModelsPruneSize = 64;
 
             static constexpr float MAX_DEPTH = 0.9999f;
+            // Preferred spacing between consecutive components; shrunk when there are more than MAX_DEPTH / DEPTH_INCREMENT of them.
+            // Ordering stays exact as long as the step is coarser than the depth format's resolution (1/65535 for D16).
             static constexpr float DEPTH_INCREMENT = 0.0001f;
     };
 }

@@ -5,13 +5,14 @@ JSON line of timings: frame time, per-phase CPU time (from `AURORA_PROFILE` scop
 (timestamp queries), process CPU per frame, GPU memory (DRM fdinfo) and time to first frame.
 
 ```
-aurora_bench --scene static|dynamic|panel [--frames N] [--warmup N] [--max-seconds S]
+aurora_bench --scene static|dynamic|panel|many [--count N] [--frames N] [--warmup N] [--max-seconds S]
              [--msaa 2|4|8] [--capture out.ppm] [--verbose]
 ```
 
 - `static`: 60 cards, 400 rounded rects, 300 circles, 1200 text labels
 - `dynamic`: same scene, 600 labels re-laid out and 400 rects moved every frame
 - `panel`: a small `AuroraPanel` with every value updated each frame (like `debug_example`)
+- `many`: `--count` (default 40000) overlapping rects and circles, to check depth ordering with many components
 
 It opens a fullscreen window and always closes itself after `--max-seconds` (default 60).
 Run it from the build directory (it loads `shaders/` and `assets/` relatively).

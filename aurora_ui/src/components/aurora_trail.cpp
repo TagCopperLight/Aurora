@@ -63,7 +63,8 @@ namespace aurora {
 
         // Segment `age` joins the point of that age to the next older one
         for (size_t age = 0; age < segments.size(); ++age) {
-            auto& segment = segments[age];
+            // The newest segment is the last child, so it is drawn in front where the trail crosses itself
+            auto& segment = segments[segments.size() - 1 - age];
             size_t newer = (head + length - 1 - age) % length;
             size_t older = (head + length - 2 - age) % length;
             if (age + 1 >= size || !connections[newer]) {

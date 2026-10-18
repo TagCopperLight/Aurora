@@ -62,6 +62,7 @@ class AuroraClient:
         if self._socket is None:
             try:
                 self._socket = socket.create_connection((self.host, self.port), timeout=self.timeout)
+                self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             except (ConnectionRefusedError, TimeoutError) as error:
                 raise AuroraUnavailableError(f"No Aurora app is listening on {self.address}") from error
         return self
